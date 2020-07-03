@@ -34,13 +34,15 @@ LDLIBS += -ltbb -lstdc++ -lm -ldl
 endif
 
 
-all: driver parallel_scalability
+all: driver #parallel_scalability
 
 driver: driver.o mmio.o mini_spasm.o classical.o simple_sort.o
-parallel_scalability: parallel_scalability.o mmio.o mini_spasm.o simple_sort.o
+
+#parallel_scalability: parallel_scalability.o mmio.o mini_spasm.o simple_sort.o
 
 
 .PHONY: clean
 
 clean:
-	rm -rf driver parallel_scalability *.o
+	rm -rf driver *.o
+	#rm -rf parallel_scalability

@@ -37,7 +37,7 @@ struct {
 
 } total[4];
 
-const char * MATRIX_PATH="../charles_work/sparse_transpose/matrices";
+const char * MATRIX_PATH="/Infos/lmd/2019/master/ue/MU4IN903-2020fev";
 
 /* the matrices in "Parallel Transposition of Sparse Data Structures" by Wang, Liu, Hou and Feng */
 const char *matrices[N] = {

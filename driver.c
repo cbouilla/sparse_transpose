@@ -368,13 +368,13 @@ void show_grand_totals()
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[GUSTAVSON].transpose);
 	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[GUSTAVSON].transpose_tr);
 	
-	fprintf(stderr, "  std::parallel_sort:\n");
+	fprintf(stderr, "  tbb::parallel_sort:\n");
 	fprintf(stderr, "    compress:      %.3fs\n", total[TBBSORT].compress);
 	fprintf(stderr, "    compress_tr:   %.3fs\n", total[TBBSORT].compress_tr);
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[TBBSORT].transpose);
 	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[TBBSORT].transpose_tr);
 	
-	fprintf(stderr, "  tbb::sort:\n");
+	fprintf(stderr, "  std::sort:\n");
 	fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
 	fprintf(stderr, "    compress_tr:   %.3fs\n", total[STDSORT].compress_tr);
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[STDSORT].transpose);
@@ -405,7 +405,7 @@ int main()
 
 
 #ifdef BENCHMARK_LARGE_MATRICES
-	for (int i = 41; i <= 41; i++) {  // just this one is enough to exhibit the crash
+	for (int i = 1; i <= 59; i++) {  // just this one is enough to exhibit the crash
 	 	char filename[128];
 	 	sprintf(filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
 		

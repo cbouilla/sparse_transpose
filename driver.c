@@ -22,7 +22,8 @@ void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, i
 #include <mkl_spblas.h>
 #endif
 
-#define N 21             // #matrices
+#define BENCHMARK_SMALL_MATRICES
+#define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
 #define GUSTAVSON 0      
@@ -40,6 +41,7 @@ struct {
 const char * MATRIX_PATH="/Infos/lmd/2019/master/ue/MU4IN903-2020fev";
 
 /* the matrices in "Parallel Transposition of Sparse Data Structures" by Wang, Liu, Hou and Feng */
+#define N 21
 const char *matrices[N] = {
 	"language",
 	"ASIC_680k", 
@@ -126,14 +128,14 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R)
 	stop = spasm_wtime();
 	check(T, A);
 	total[GUSTAVSON].compress += stop - start;
-	fprintf(stderr, "-- Gustavson compress [COO->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- Gustavson compress [COO->CSR]: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	classical_transpose(A, B, W);
 	stop = spasm_wtime();
 	check(R, B);
 	total[GUSTAVSON].transpose += stop - start;
-	fprintf(stderr, "-- Gustavson transpose [CSR->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- Gustavson transpose [CSR->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	classical_compress(R, C, W);
@@ -141,7 +143,7 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R)
 		
 	check(R, C);
 	total[GUSTAVSON].compress_tr += stop - start;
-	fprintf(stderr, "-- Gustavson compress [COO'->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- Gustavson compress [COO'->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	classical_transpose(C, D, W);
@@ -149,7 +151,7 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R)
 		
 	check(T, D);
 	total[GUSTAVSON].transpose_tr += stop - start;
-	fprintf(stderr, "-- Gustavson transpose [CSR'->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- Gustavson transpose [CSR'->CSR]: %.3fs\n", stop - start);
 
 	spasm_csr_free(A);
 	spasm_csr_free(B);
@@ -176,14 +178,14 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R)
 	stop = spasm_wtime();
 	check(T, A);
 	total[STDSORT].compress += stop - start;
-	fprintf(stderr, "-- std::sort compress [COO->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- std::sort compress [COO->CSR]: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	stdsort_transpose(A, B, Te);
 	stop = spasm_wtime();
 	check(R, B);
 	total[STDSORT].transpose += stop - start;
-	fprintf(stderr, "-- std::sort transpose [CSR->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- std::sort transpose [CSR->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	stdsort_compress(R, C, Te);
@@ -191,14 +193,14 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R)
 		
 	check(R, C);
 	total[STDSORT].compress_tr += stop - start;
-	fprintf(stderr, "-- std::sort compress [COO'->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- std::sort compress [COO'->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	stdsort_transpose(C, D, Te);
 	stop = spasm_wtime();	
 	check(T, D);
 	total[STDSORT].transpose_tr += stop - start;
-	fprintf(stderr, "-- std::sort transpose [CSR'->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- std::sort transpose [CSR'->CSR]: %.3fs\n", stop - start);
 
 	spasm_csr_free(A);
 	spasm_csr_free(B);
@@ -225,14 +227,14 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R)
 	stop = spasm_wtime();
 	check(T, A);
 	total[TBBSORT].compress += stop - start;
-	fprintf(stderr, "-- tbb::parallel_sort compress [COO->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- tbb::parallel_sort compress [COO->CSR]: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	tbbsort_transpose(A, B, Te, -1);
 	stop = spasm_wtime();
 	check(R, B);
 	total[TBBSORT].transpose += stop - start;
-	fprintf(stderr, "-- tbb::parallel_sort transpose [CSR->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- tbb::parallel_sort transpose [CSR->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	tbbsort_compress(R, C, Te, -1);
@@ -240,14 +242,14 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R)
 		
 	check(R, C);
 	total[TBBSORT].compress_tr += stop - start;
-	fprintf(stderr, "-- tbb::parallel_sort compress [COO'->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- tbb::parallel_sort compress [COO'->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	tbbsort_transpose(C, D, Te, -1);
 	stop = spasm_wtime();	
 	check(T, D);
 	total[TBBSORT].transpose_tr += stop - start;
-	fprintf(stderr, "-- tbb::parallel_sort transpose [CSR'->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- tbb::parallel_sort transpose [CSR'->CSR]: %.3fs\n", stop - start);
 
 	spasm_csr_free(A);
 	spasm_csr_free(B);
@@ -277,7 +279,7 @@ void run_test_MKL(const spasm_triplet *T)
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	total[MKL].compress += stop - start;
-	fprintf(stderr, "-- MKL compress [COO->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- MKL compress [COO->CSR]: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_A, SPARSE_OPERATION_TRANSPOSE, &mkl_B);
@@ -285,7 +287,7 @@ void run_test_MKL(const spasm_triplet *T)
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	total[MKL].transpose += stop - start;
-	fprintf(stderr, "-- MKL transpose [CSR->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- MKL transpose [CSR->CSR']: %.3fs\n", stop - start);
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_T, SPARSE_OPERATION_TRANSPOSE, &mkl_C);
@@ -293,7 +295,7 @@ void run_test_MKL(const spasm_triplet *T)
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	total[MKL].compress_tr += stop - start;
-	fprintf(stderr, "-- MKL compress [COO'->CSR']: %.2fs\n", stop - start);
+	fprintf(stderr, "-- MKL compress [COO'->CSR']: %.3fs\n", stop - start);
 
 
 	start = spasm_wtime();
@@ -302,7 +304,7 @@ void run_test_MKL(const spasm_triplet *T)
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	total[MKL].transpose_tr += stop - start;
-	fprintf(stderr, "-- MKL transpose [CSR'->CSR]: %.2fs\n", stop - start);
+	fprintf(stderr, "-- MKL transpose [CSR'->CSR]: %.3fs\n", stop - start);
 
 	status = mkl_sparse_destroy(mkl_T);
 	if (status != SPARSE_STATUS_SUCCESS)
@@ -361,33 +363,33 @@ void show_grand_totals()
 {
 	fprintf(stderr, "\n\nGRAND TOTALS:\n");
 	fprintf(stderr, "  Gustavson:\n");
-	fprintf(stderr, "    compress:      %.2fs\n", total[GUSTAVSON].compress);
-	fprintf(stderr, "    compress_tr:   %.2fs\n", total[GUSTAVSON].compress_tr);
-	fprintf(stderr, "    transpsose:    %.2fs\n", total[GUSTAVSON].transpose);
-	fprintf(stderr, "    transpsose_tr: %.2fs\n", total[GUSTAVSON].transpose_tr);
+	fprintf(stderr, "    compress:      %.3fs\n", total[GUSTAVSON].compress);
+	fprintf(stderr, "    compress_tr:   %.3fs\n", total[GUSTAVSON].compress_tr);
+	fprintf(stderr, "    transpsose:    %.3fs\n", total[GUSTAVSON].transpose);
+	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[GUSTAVSON].transpose_tr);
 	
 	fprintf(stderr, "  std::parallel_sort:\n");
-	fprintf(stderr, "    compress:      %.2fs\n", total[TBBSORT].compress);
-	fprintf(stderr, "    compress_tr:   %.2fs\n", total[TBBSORT].compress_tr);
-	fprintf(stderr, "    transpsose:    %.2fs\n", total[TBBSORT].transpose);
-	fprintf(stderr, "    transpsose_tr: %.2fs\n", total[TBBSORT].transpose_tr);
+	fprintf(stderr, "    compress:      %.3fs\n", total[TBBSORT].compress);
+	fprintf(stderr, "    compress_tr:   %.3fs\n", total[TBBSORT].compress_tr);
+	fprintf(stderr, "    transpsose:    %.3fs\n", total[TBBSORT].transpose);
+	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[TBBSORT].transpose_tr);
 	
 	fprintf(stderr, "  tbb::sort:\n");
-	fprintf(stderr, "    compress:      %.2fs\n", total[STDSORT].compress);
-	fprintf(stderr, "    compress_tr:   %.2fs\n", total[STDSORT].compress_tr);
-	fprintf(stderr, "    transpsose:    %.2fs\n", total[STDSORT].transpose);
-	fprintf(stderr, "    transpsose_tr: %.2fs\n", total[STDSORT].transpose_tr);
+	fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
+	fprintf(stderr, "    compress_tr:   %.3fs\n", total[STDSORT].compress_tr);
+	fprintf(stderr, "    transpsose:    %.3fs\n", total[STDSORT].transpose);
+	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[STDSORT].transpose_tr);
 
 	fprintf(stderr, "  MKL:\n");
-	fprintf(stderr, "    compress:      %.2fs\n", total[MKL].compress);
-	fprintf(stderr, "    compress_tr:   %.2fs\n", total[MKL].compress_tr);
-	fprintf(stderr, "    transpsose:    %.2fs\n", total[MKL].transpose);
-	fprintf(stderr, "    transpsose_tr: %.2fs\n", total[MKL].transpose_tr);
+	fprintf(stderr, "    compress:      %.3fs\n", total[MKL].compress);
+	fprintf(stderr, "    compress_tr:   %.3fs\n", total[MKL].compress_tr);
+	fprintf(stderr, "    transpsose:    %.3fs\n", total[MKL].transpose);
+	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MKL].transpose_tr);
 }
 
 int main()
 {
-#if 1
+#ifdef BENCHMARK_SMALL_MATRICES
 	for (int i = 0; i < N; i++) {
 	 	char filename[128];
 	 	sprintf(filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
@@ -402,8 +404,8 @@ int main()
 #endif
 
 
-#if 1
-	for (int i = 41; i <= 41; i++) {
+#ifdef BENCHMARK_LARGE_MATRICES
+	for (int i = 41; i <= 41; i++) {  // just this one is enough to exhibit the crash
 	 	char filename[128];
 	 	sprintf(filename, "../RSA/pre_transpose%d.mtx", i);
 		

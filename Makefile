@@ -1,3 +1,4 @@
+CC = gcc
 CFLAGS = -O3 -g -mavx2 -Wall -Wextra -std=c11 -fopenmp
 CPPFLAGS = -O3 -g -mavx2 -Wall -Wextra -fopenmp
 

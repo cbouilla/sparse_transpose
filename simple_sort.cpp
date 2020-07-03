@@ -128,11 +128,14 @@ void tbbsort_compress(const spasm_triplet * T, spasm * A, struct matrix_entry_t 
 
 	finalize(n, nnz, Te, A);
 
+	/* 
+	// extra timing
 	double d = spasm_wtime();
 	printf("      Subtimes:\n");
 	printf("        Fill_Te: %.3f\n", b-a);
 	printf("        tbb::sort: %.3f\n", c-b);
 	printf("        finalize: %.3f\n", d-c);
+	*/
 }
 
 void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, int num_threads)
@@ -164,11 +167,13 @@ void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, i
 	double c = spasm_wtime();
 
 	finalize(m, nnz, Te, R);
-
+	/*
+	// extra timing
 	double d = spasm_wtime();
 	printf("      Subtimes:\n");
 	printf("        Fill_Te: %.3f\n", b-a);
 	printf("        tbb::sort: %.3f\n", c-b);
 	printf("        finalize: %.3f\n", d-c);
+	*/
 }
 #endif

@@ -407,7 +407,7 @@ int main()
 #ifdef BENCHMARK_LARGE_MATRICES
 	for (int i = 41; i <= 41; i++) {  // just this one is enough to exhibit the crash
 	 	char filename[128];
-	 	sprintf(filename, "../RSA/pre_transpose%d.mtx", i);
+	 	sprintf(filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
 		
 		printf("#---------------------------------------- %s\n", filename);
 		run_test(filename);

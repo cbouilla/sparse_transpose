@@ -69,30 +69,54 @@ LDLIBS += -lm
 # Intel MKL
 # USE_MKL :=
 ifdef USE_MKL
-CPPFLAGS += -DHAVE_MKL -m64 -I${MKLROOT}/include
-LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed
-LDLIBS += -lmkl_intel_lp64
+ifeq ($(CC),gcc)
+	CPPFLAGS += -DHAVE_MKL -m64 -I${MKLROOT}/include
+	LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed
+	LDLIBS += -lmkl_intel_lp64
 
-# Parallel MKL using TBB
-ifeq ($(USE_MKL),tbb)
-	LDLIBS += -lmkl_tbb_thread -lmkl_core -ltbb -lstdc++
-endif # Parallel MKL using TBB
+	# Parallel MKL using TBB
+	ifeq ($(USE_MKL),tbb)
+		LDLIBS += -lmkl_tbb_thread -lmkl_core -ltbb -lstdc++
+	endif # Parallel MKL using TBB
 
-# Parallel MKL using Gomp
-ifeq ($(USE_MKL),gomp)
-	LDLIBS += -lmkl_gnu_thread -lmkl_core -lgomp
-endif # Parallel MKL using Gomp
+	# Parallel MKL using Gomp
+	ifeq ($(USE_MKL),gomp)
+		LDLIBS += -lmkl_gnu_thread -lmkl_core -lgomp
+	endif # Parallel MKL using Gomp
 
-# Parallel MKL using iomp5
-ifeq ($(USE_MKL),iomp)
-	LDLIBS += -lmkl_intel_thread -lmkl_core -liomp5
-endif # Parallel MKL using iomp5
+	# Parallel MKL using iomp5
+	ifeq ($(USE_MKL),iomp)
+		LDLIBS += -lmkl_intel_thread -lmkl_core -liomp5
+	endif # Parallel MKL using iomp5
 
-# Sequential MKL
-ifeq ($(USE_MKL),sequential)
-	LDLIBS += -lmkl_sequential -lmkl_core
-endif # Sequential MKL
-LDLIBS += -lpthread -lm -ldl
+	# Sequential MKL
+	ifeq ($(USE_MKL),sequential)
+		LDLIBS += -lmkl_sequential -lmkl_core
+	endif # Sequential MKL
+
+	LDLIBS += -lpthread -lm -ldl
+else ifeq ($(CC),icc)
+
+	CPPFLAGS += -DHAVE_MKL
+	# Parallel MKL using TBB
+	ifeq ($(USE_MKL),tbb)
+		CPPFLAGS += -mkl=parallel
+		LDLIBS += -mkl=parallel -ltbb -lstdc++ -lpthread -lm -ldl
+	endif # Parallel MKL using TBB
+
+	# Parallel MKL using iomp5
+	ifeq ($(USE_MKL),iomp)
+		CPPFLAGS += -mkl=parallel
+		LDLIBS += -mkl=parallel -liomp5 -lpthread -lm -ldl
+	endif # Parallel MKL using iomp5
+
+	# Sequential MKL
+	ifeq ($(USE_MKL),sequential)
+		CPPFLAGS += -mkl=sequential
+		LDLIBS += -mkl=sequential -lpthread -lm -ldl
+	endif # Sequential MKL
+
+endif
 endif # Intel MKL
 
 # TBB

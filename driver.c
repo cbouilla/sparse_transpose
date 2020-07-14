@@ -16,13 +16,29 @@ void stdsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te);
 
 void tbbsort_compress(const spasm_triplet * T, spasm * A, struct matrix_entry_t * Te, int num_threads);
 void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, int num_threads);
-
+void tbb_version();
 
 #ifdef HAVE_MKL
+#include <mkl.h>
 #include <mkl_spblas.h>
+void mkl_version()
+{
+	const int len = 198;
+	char buf[len];
+	mkl_get_version_string(buf, len);
+	printf("MKL version: %s\n", buf);
+	int num_threads = mkl_get_max_threads();
+	if (num_threads == 1)
+	{
+		printf("MKL: sequential\n");
+	} else
+	{
+		printf("MKL: parallel, %d threads\n", num_threads);
+	}
+}
 #endif
 
-#define BENCHMARK_SMALL_MATRICES
+// #define BENCHMARK_SMALL_MATRICES
 #define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
@@ -44,7 +60,7 @@ const char * MATRIX_PATH="/Infos/lmd/2019/master/ue/MU4IN903-2020fev";
 #define N 21
 const char *matrices[N] = {
 	"language",
-	"ASIC_680k", 
+	"ASIC_680k",
 	"circuit5M",
 	"flickr",
 	"memchip",
@@ -389,6 +405,12 @@ void show_grand_totals()
 
 int main()
 {
+#ifdef HAVE_TBB
+	tbb_version();
+#endif
+#ifdef HAVE_MKL
+	mkl_version();
+#endif
 #ifdef BENCHMARK_SMALL_MATRICES
 	for (int i = 0; i < N; i++) {
 	 	char filename[128];
@@ -405,7 +427,7 @@ int main()
 
 
 #ifdef BENCHMARK_LARGE_MATRICES
-	for (int i = 1; i <= 59; i++) {  // just this one is enough to exhibit the crash
+	for (int i = 1; i <= 58; i++) {  // just this one is enough to exhibit the crash
 	 	char filename[128];
 	 	sprintf(filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
 		

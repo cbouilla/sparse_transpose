@@ -1,0 +1,497 @@
+TBB version: compiled=11100, runtime=11100
+MKL version: Intel(R) Math Kernel Library Version 2020.0.0 Product Build 20191122 for Intel(R) 64 architecture applications
+TBBmalloc: VERSION		2019.0
+TBBmalloc: INTERFACE VERSION	11008
+TBBmalloc: BUILD_DATE		Wed Aug 14 16:50:32 UTC 2019
+TBBmalloc: BUILD_HOST		fxe16lin03 (x86_64)
+TBBmalloc: BUILD_OS		Red Hat Enterprise Linux Server release 6.2 (Santiago)
+TBBmalloc: BUILD_KERNEL	Linux 2.6.32-504.3.3.el6.x86_64 #1 SMP Fri Dec 12 16:05:43 EST 2014
+TBBmalloc: BUILD_GCC		g++ (GCC) 4.4.6 20110731 (Red Hat 4.4.6-3)
+TBBmalloc: BUILD_COMPILER	ICC: Intel(R) C Intel(R) 64 Compiler for applications running on Intel(R) 64, Version 19.0.4.243 Build 20190416
+TBBmalloc: BUILD_LIBC	2.12
+TBBmalloc: BUILD_LD		GNU ld version 2.20.51.0.2-5.28.el6 20091009
+TBBmalloc: BUILD_TARGET	intel64 on cc4.4.6_libc2.12_kernel2.6.32
+TBBmalloc: BUILD_COMMAND	icpc -DDO_ITT_NOTIFY -O2 -g -DUSE_PTHREAD -strict-ansi -w1 -fcf-protection=full -D__TBB_SOURCE_DIRECTLY_INCLUDED=1 -fstack-protector -Wformat -Wformat-security -D_FORTIFY_SOURCE=2 -I../../src -I../../src/rml/include -I../../include
+TBBmalloc: TBB_USE_DEBUG	0
+TBBmalloc: TBB_USE_ASSERT	0
+TBBmalloc: DO_ITT_NOTIFY	1
+TBBmalloc: huge pages	not requested
+MKL: parallel, 44 threads, Iomp
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/language.mtx
+[IO] loading 399130 x 399130 MTX [matrix coordinate real general] 1.2m NNZ ... Actually 399130 x 399130 [0.4s]
+-- Gustavson compress [COO->CSR]: 0.012s
+-- Gustavson transpose [CSR->CSR']: 0.012s
+-- Gustavson compress [COO'->CSR']: 0.007s
+-- Gustavson transpose [CSR'->CSR]: 0.012s
+-- std::sort compress [COO->CSR]: 0.073s
+-- std::sort transpose [CSR->CSR']: 0.076s
+-- std::sort compress [COO'->CSR']: 0.031s
+-- std::sort transpose [CSR'->CSR]: 0.075s
+TBB: VERSION		2020.0
+TBB: INTERFACE VERSION	11100
+TBB: BUILD_DATE		Wed Oct 23 19:01:00 UTC 2019
+TBB: BUILD_HOST		nntpdsd52-138 (x86_64)
+TBB: BUILD_OS		NAME=Red Hat Enterprise Linux Server
+TBB: BUILD_KERNEL	Linux 3.10.0-957.el7.x86_64 #1 SMP Thu Oct 4 20:48:51 UTC 2018
+TBB: BUILD_GCC		g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-36)
+TBB: BUILD_COMPILER	ICC: Intel(R) C Intel(R) 64 Compiler for applications running on Intel(R) 64, Version 18.0 Build 20180823
+TBB: BUILD_LIBC	2.17
+TBB: BUILD_LD		GNU ld version 2.27-34.base.el7
+TBB: BUILD_TARGET	intel64 on cc4.8.5_libc2.17_kernel3.10_cpp11
+TBB: BUILD_COMMAND	icpc -O2 -g -qno-opt-report-embed -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -strict-ansi -fstack-protector -Wformat -Wformat-security -D_FORTIFY_SOURCE=2 -fPIC -D__TBB_BUILD=1 -w1 -Werror -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -std=c++11 -I../../src -I../../src/rml/include -I../../include -I.
+TBB: TBB_USE_DEBUG	0
+TBB: TBB_USE_ASSERT	0
+TBB: DO_ITT_NOTIFY	1
+TBB: ALLOCATOR	scalable_malloc
+TBB: RML	private
+TBB: Tools support	disabled
+TBBmalloc: VERSION		2020.0
+TBBmalloc: INTERFACE VERSION	11100
+TBBmalloc: BUILD_DATE		Wed Oct 23 19:01:53 UTC 2019
+TBBmalloc: BUILD_HOST		nntpdsd52-138 (x86_64)
+TBBmalloc: BUILD_OS		NAME=Red Hat Enterprise Linux Server
+TBBmalloc: BUILD_KERNEL	Linux 3.10.0-957.el7.x86_64 #1 SMP Thu Oct 4 20:48:51 UTC 2018
+TBBmalloc: BUILD_GCC		g++ (GCC) 4.8.5 20150623 (Red Hat 4.8.5-36)
+TBBmalloc: BUILD_COMPILER	ICC: Intel(R) C Intel(R) 64 Compiler for applications running on Intel(R) 64, Version 18.0 Build 20180823
+TBBmalloc: BUILD_LIBC	2.17
+TBBmalloc: BUILD_LD		GNU ld version 2.27-34.base.el7
+TBBmalloc: BUILD_TARGET	intel64 on cc4.8.5_libc2.17_kernel3.10_cpp11
+TBBmalloc: BUILD_COMMAND	icpc -O2 -g -qno-opt-report-embed -DDO_ITT_NOTIFY -DUSE_PTHREAD -pthread -strict-ansi -w1 -Werror -DTBB_SUPPRESS_DEPRECATED_MESSAGES=1 -fstack-protector -Wformat -Wformat-security -D_FORTIFY_SOURCE=2 -std=c++11 -I../../src -I../../src/rml/include -I../../include
+TBBmalloc: TBB_USE_DEBUG	0
+TBBmalloc: TBB_USE_ASSERT	0
+TBBmalloc: DO_ITT_NOTIFY	1
+TBBmalloc: huge pages	not requested
+-- tbb::parallel_sort compress [COO->CSR]: 0.067s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.037s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.029s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.038s
+-- MKL compress [COO->CSR]: 0.048s
+-- MKL transpose [CSR->CSR']: 0.039s
+-- MKL compress [COO'->CSR']: 0.044s
+-- MKL transpose [CSR'->CSR]: 0.020s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/ASIC_680k.mtx
+[IO] loading 682862 x 682862 MTX [matrix coordinate real general] 3.9m NNZ ... Actually 682862 x 682862 [1.4s]
+-- Gustavson compress [COO->CSR]: 0.041s
+-- Gustavson transpose [CSR->CSR']: 0.038s
+-- Gustavson compress [COO'->CSR']: 0.021s
+-- Gustavson transpose [CSR'->CSR]: 0.037s
+-- std::sort compress [COO->CSR]: 0.190s
+-- std::sort transpose [CSR->CSR']: 0.223s
+-- std::sort compress [COO'->CSR']: 0.102s
+-- std::sort transpose [CSR'->CSR]: 0.209s
+-- tbb::parallel_sort compress [COO->CSR]: 0.083s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.085s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.034s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.108s
+-- MKL compress [COO->CSR]: 0.052s
+-- MKL transpose [CSR->CSR']: 0.044s
+-- MKL compress [COO'->CSR']: 0.073s
+-- MKL transpose [CSR'->CSR]: 0.039s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/circuit5M.mtx
+[IO] loading 5558326 x 5558326 MTX [matrix coordinate real general] 59.5m NNZ ... Actually 5558326 x 5558326 [24.6s]
+-- Gustavson compress [COO->CSR]: 0.634s
+-- Gustavson transpose [CSR->CSR']: 0.609s
+-- Gustavson compress [COO'->CSR']: 0.324s
+-- Gustavson transpose [CSR'->CSR]: 0.620s
+-- std::sort compress [COO->CSR]: 3.495s
+-- std::sort transpose [CSR->CSR']: 4.125s
+-- std::sort compress [COO'->CSR']: 1.936s
+-- std::sort transpose [CSR'->CSR]: 3.581s
+-- tbb::parallel_sort compress [COO->CSR]: 0.811s
+-- tbb::parallel_sort transpose [CSR->CSR']: 1.018s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.380s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.845s
+-- MKL compress [COO->CSR]: 0.324s
+-- MKL transpose [CSR->CSR']: 0.259s
+-- MKL compress [COO'->CSR']: 0.619s
+-- MKL transpose [CSR'->CSR]: 0.245s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/flickr.mtx
+[IO] loading 820878 x 820878 MTX [matrix coordinate pattern general] 9.8m NNZ ... Actually 820736 x 820878 [1.4s]
+-- Gustavson compress [COO->CSR]: 0.202s
+-- Gustavson transpose [CSR->CSR']: 0.202s
+-- Gustavson compress [COO'->CSR']: 0.057s
+-- Gustavson transpose [CSR'->CSR]: 0.198s
+-- std::sort compress [COO->CSR]: 0.640s
+-- std::sort transpose [CSR->CSR']: 0.678s
+-- std::sort compress [COO'->CSR']: 0.280s
+-- std::sort transpose [CSR'->CSR]: 0.631s
+-- tbb::parallel_sort compress [COO->CSR]: 0.223s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.254s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.082s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.182s
+-- MKL compress [COO->CSR]: 0.037s
+-- MKL transpose [CSR->CSR']: 0.098s
+-- MKL compress [COO'->CSR']: 0.134s
+-- MKL transpose [CSR'->CSR]: 0.100s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/memchip.mtx
+[IO] loading 2707524 x 2707524 MTX [matrix coordinate real general] 14.8m NNZ ... Actually 2707524 x 2707524 [5.9s]
+-- Gustavson compress [COO->CSR]: 0.134s
+-- Gustavson transpose [CSR->CSR']: 0.127s
+-- Gustavson compress [COO'->CSR']: 0.077s
+-- Gustavson transpose [CSR'->CSR]: 0.131s
+-- std::sort compress [COO->CSR]: 0.917s
+-- std::sort transpose [CSR->CSR']: 1.030s
+-- std::sort compress [COO'->CSR']: 0.431s
+-- std::sort transpose [CSR'->CSR]: 0.956s
+-- tbb::parallel_sort compress [COO->CSR]: 0.256s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.286s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.136s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.213s
+-- MKL compress [COO->CSR]: 0.063s
+-- MKL transpose [CSR->CSR']: 0.108s
+-- MKL compress [COO'->CSR']: 0.174s
+-- MKL transpose [CSR'->CSR]: 0.114s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/rajat21.mtx
+[IO] loading 411676 x 411676 MTX [matrix coordinate real general] 1.9m NNZ ... Actually 411676 x 411676 [0.8s]
+-- Gustavson compress [COO->CSR]: 0.015s
+-- Gustavson transpose [CSR->CSR']: 0.014s
+-- Gustavson compress [COO'->CSR']: 0.011s
+-- Gustavson transpose [CSR'->CSR]: 0.015s
+-- std::sort compress [COO->CSR]: 0.090s
+-- std::sort transpose [CSR->CSR']: 0.098s
+-- std::sort compress [COO'->CSR']: 0.047s
+-- std::sort transpose [CSR'->CSR]: 0.093s
+-- tbb::parallel_sort compress [COO->CSR]: 0.061s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.056s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.014s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.075s
+-- MKL compress [COO->CSR]: 0.016s
+-- MKL transpose [CSR->CSR']: 0.010s
+-- MKL compress [COO'->CSR']: 0.051s
+-- MKL transpose [CSR'->CSR]: 0.034s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/sme3Dc.mtx
+[IO] loading 42930 x 42930 MTX [matrix coordinate real general] 3.1m NNZ ... Actually 42930 x 42930 [1.3s]
+-- Gustavson compress [COO->CSR]: 0.058s
+-- Gustavson transpose [CSR->CSR']: 0.056s
+-- Gustavson compress [COO'->CSR']: 0.016s
+-- Gustavson transpose [CSR'->CSR]: 0.055s
+-- std::sort compress [COO->CSR]: 0.188s
+-- std::sort transpose [CSR->CSR']: 0.204s
+-- std::sort compress [COO'->CSR']: 0.075s
+-- std::sort transpose [CSR'->CSR]: 0.192s
+-- tbb::parallel_sort compress [COO->CSR]: 0.137s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.137s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.021s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.102s
+-- MKL compress [COO->CSR]: 0.010s
+-- MKL transpose [CSR->CSR']: 0.015s
+-- MKL compress [COO'->CSR']: 0.030s
+-- MKL transpose [CSR'->CSR]: 0.016s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/stomach.mtx
+[IO] loading 213360 x 213360 MTX [matrix coordinate real general] 3.0m NNZ ... Actually 213360 x 213360 [1.4s]
+-- Gustavson compress [COO->CSR]: 0.017s
+-- Gustavson transpose [CSR->CSR']: 0.016s
+-- Gustavson compress [COO'->CSR']: 0.014s
+-- Gustavson transpose [CSR'->CSR]: 0.018s
+-- std::sort compress [COO->CSR]: 0.138s
+-- std::sort transpose [CSR->CSR']: 0.156s
+-- std::sort compress [COO'->CSR']: 0.070s
+-- std::sort transpose [CSR'->CSR]: 0.148s
+-- tbb::parallel_sort compress [COO->CSR]: 0.097s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.052s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.023s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.074s
+-- MKL compress [COO->CSR]: 0.005s
+-- MKL transpose [CSR->CSR']: 0.007s
+-- MKL compress [COO'->CSR']: 0.018s
+-- MKL transpose [CSR'->CSR]: 0.014s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/transient.mtx
+[IO] loading 178866 x 178866 MTX [matrix coordinate real general] 961.8k NNZ ... Actually 178866 x 178866 [0.5s]
+-- Gustavson compress [COO->CSR]: 0.007s
+-- Gustavson transpose [CSR->CSR']: 0.007s
+-- Gustavson compress [COO'->CSR']: 0.004s
+-- Gustavson transpose [CSR'->CSR]: 0.007s
+-- std::sort compress [COO->CSR]: 0.046s
+-- std::sort transpose [CSR->CSR']: 0.050s
+-- std::sort compress [COO'->CSR']: 0.018s
+-- std::sort transpose [CSR'->CSR]: 0.047s
+-- tbb::parallel_sort compress [COO->CSR]: 0.025s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.038s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.006s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.025s
+-- MKL compress [COO->CSR]: 0.006s
+-- MKL transpose [CSR->CSR']: 0.005s
+-- MKL compress [COO'->CSR']: 0.011s
+-- MKL transpose [CSR'->CSR]: 0.005s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/webbase-1M.mtx
+[IO] loading 1000005 x 1000005 MTX [matrix coordinate real general] 3.1m NNZ ... Actually 1000005 x 1000005 [1.0s]
+-- Gustavson compress [COO->CSR]: 0.030s
+-- Gustavson transpose [CSR->CSR']: 0.036s
+-- Gustavson compress [COO'->CSR']: 0.018s
+-- Gustavson transpose [CSR'->CSR]: 0.033s
+-- std::sort compress [COO->CSR]: 0.144s
+-- std::sort transpose [CSR->CSR']: 0.171s
+-- std::sort compress [COO'->CSR']: 0.082s
+-- std::sort transpose [CSR'->CSR]: 0.158s
+-- tbb::parallel_sort compress [COO->CSR]: 0.068s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.074s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.035s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.077s
+-- MKL compress [COO->CSR]: 0.017s
+-- MKL transpose [CSR->CSR']: 0.052s
+-- MKL compress [COO'->CSR']: 0.070s
+-- MKL transpose [CSR'->CSR]: 0.049s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/wiki-Talk.mtx
+[IO] loading 2394385 x 2394385 MTX [matrix coordinate pattern general] 5.0m NNZ ... Actually 2393819 x 2394385 [0.8s]
+-- Gustavson compress [COO->CSR]: 0.076s
+-- Gustavson transpose [CSR->CSR']: 0.166s
+-- Gustavson compress [COO'->CSR']: 0.030s
+-- Gustavson transpose [CSR'->CSR]: 0.078s
+-- std::sort compress [COO->CSR]: 0.289s
+-- std::sort transpose [CSR->CSR']: 0.388s
+-- std::sort compress [COO'->CSR']: 0.152s
+-- std::sort transpose [CSR'->CSR]: 0.292s
+-- tbb::parallel_sort compress [COO->CSR]: 0.126s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.144s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.052s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.122s
+-- MKL compress [COO->CSR]: 0.035s
+-- MKL transpose [CSR->CSR']: 0.158s
+-- MKL compress [COO'->CSR']: 0.199s
+-- MKL transpose [CSR'->CSR]: 0.114s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/cage14.mtx
+[IO] loading 1505785 x 1505785 MTX [matrix coordinate real general] 27.1m NNZ ... Actually 1505785 x 1505785 [9.9s]
+-- Gustavson compress [COO->CSR]: 0.489s
+-- Gustavson transpose [CSR->CSR']: 0.470s
+-- Gustavson compress [COO'->CSR']: 0.142s
+-- Gustavson transpose [CSR'->CSR]: 0.469s
+-- std::sort compress [COO->CSR]: 1.863s
+-- std::sort transpose [CSR->CSR']: 1.923s
+-- std::sort compress [COO'->CSR']: 0.813s
+-- std::sort transpose [CSR'->CSR]: 1.860s
+-- tbb::parallel_sort compress [COO->CSR]: 0.381s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.399s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.203s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.372s
+-- MKL compress [COO->CSR]: 0.083s
+-- MKL transpose [CSR->CSR']: 0.127s
+-- MKL compress [COO'->CSR']: 0.216s
+-- MKL transpose [CSR'->CSR]: 0.129s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/eu-2005.mtx
+[IO] loading 862664 x 862664 MTX [matrix coordinate pattern general] 19.2m NNZ ... Actually 862664 x 862664 [2.7s]
+-- Gustavson compress [COO->CSR]: 0.277s
+-- Gustavson transpose [CSR->CSR']: 0.245s
+-- Gustavson compress [COO'->CSR']: 0.107s
+-- Gustavson transpose [CSR'->CSR]: 0.269s
+-- std::sort compress [COO->CSR]: 1.068s
+-- std::sort transpose [CSR->CSR']: 1.112s
+-- std::sort compress [COO'->CSR']: 0.594s
+-- std::sort transpose [CSR'->CSR]: 1.058s
+-- tbb::parallel_sort compress [COO->CSR]: 0.306s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.320s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.133s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.291s
+-- MKL compress [COO->CSR]: 0.041s
+-- MKL transpose [CSR->CSR']: 0.076s
+-- MKL compress [COO'->CSR']: 0.118s
+-- MKL transpose [CSR'->CSR]: 0.084s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/FullChip.mtx
+[IO] loading 2987012 x 2987012 MTX [matrix coordinate real general] 26.6m NNZ ... Actually 2987012 x 2987012 [9.8s]
+-- Gustavson compress [COO->CSR]: 0.313s
+-- Gustavson transpose [CSR->CSR']: 0.305s
+-- Gustavson compress [COO'->CSR']: 0.138s
+-- Gustavson transpose [CSR'->CSR]: 0.307s
+-- std::sort compress [COO->CSR]: 1.651s
+-- std::sort transpose [CSR->CSR']: 1.823s
+-- std::sort compress [COO'->CSR']: 0.861s
+-- std::sort transpose [CSR'->CSR]: 1.703s
+-- tbb::parallel_sort compress [COO->CSR]: 0.438s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.442s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.214s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.437s
+-- MKL compress [COO->CSR]: 0.221s
+-- MKL transpose [CSR->CSR']: 0.180s
+-- MKL compress [COO'->CSR']: 0.388s
+-- MKL transpose [CSR'->CSR]: 0.178s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/mac_econ_fwd500.mtx
+[IO] loading 206500 x 206500 MTX [matrix coordinate real general] 1.3m NNZ ... Actually 206500 x 206500 [0.5s]
+-- Gustavson compress [COO->CSR]: 0.008s
+-- Gustavson transpose [CSR->CSR']: 0.010s
+-- Gustavson compress [COO'->CSR']: 0.005s
+-- Gustavson transpose [CSR'->CSR]: 0.007s
+-- std::sort compress [COO->CSR]: 0.060s
+-- std::sort transpose [CSR->CSR']: 0.058s
+-- std::sort compress [COO'->CSR']: 0.025s
+-- std::sort transpose [CSR'->CSR]: 0.057s
+-- tbb::parallel_sort compress [COO->CSR]: 0.049s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.048s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.008s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.059s
+-- MKL compress [COO->CSR]: 0.003s
+-- MKL transpose [CSR->CSR']: 0.004s
+-- MKL compress [COO'->CSR']: 0.009s
+-- MKL transpose [CSR'->CSR]: 0.004s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/para-4.mtx
+[IO] loading 153226 x 153226 MTX [matrix coordinate real general] 5.3m NNZ ... Actually 153226 x 153226 [1.7s]
+-- Gustavson compress [COO->CSR]: 0.082s
+-- Gustavson transpose [CSR->CSR']: 0.078s
+-- Gustavson compress [COO'->CSR']: 0.029s
+-- Gustavson transpose [CSR'->CSR]: 0.079s
+-- std::sort compress [COO->CSR]: 0.316s
+-- std::sort transpose [CSR->CSR']: 0.362s
+-- std::sort compress [COO'->CSR']: 0.141s
+-- std::sort transpose [CSR'->CSR]: 0.330s
+-- tbb::parallel_sort compress [COO->CSR]: 0.199s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.165s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.076s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.133s
+-- MKL compress [COO->CSR]: 0.015s
+-- MKL transpose [CSR->CSR']: 0.022s
+-- MKL compress [COO'->CSR']: 0.033s
+-- MKL transpose [CSR'->CSR]: 0.021s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/rajat29.mtx
+[IO] loading 643994 x 643994 MTX [matrix coordinate real general] 4.9m NNZ ... Actually 643994 x 643994 [1.8s]
+-- Gustavson compress [COO->CSR]: 0.045s
+-- Gustavson transpose [CSR->CSR']: 0.041s
+-- Gustavson compress [COO'->CSR']: 0.026s
+-- Gustavson transpose [CSR'->CSR]: 0.044s
+-- std::sort compress [COO->CSR]: 0.261s
+-- std::sort transpose [CSR->CSR']: 0.282s
+-- std::sort compress [COO'->CSR']: 0.136s
+-- std::sort transpose [CSR'->CSR]: 0.265s
+-- tbb::parallel_sort compress [COO->CSR]: 0.108s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.091s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.036s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.183s
+-- MKL compress [COO->CSR]: 0.044s
+-- MKL transpose [CSR->CSR']: 0.043s
+-- MKL compress [COO'->CSR']: 0.085s
+-- MKL transpose [CSR'->CSR]: 0.043s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/Stanford_Berkeley.mtx
+[IO] loading 683446 x 683446 MTX [matrix coordinate pattern general] 7.6m NNZ ... Actually 683446 x 683446 [1.1s]
+-- Gustavson compress [COO->CSR]: 0.071s
+-- Gustavson transpose [CSR->CSR']: 0.082s
+-- Gustavson compress [COO'->CSR']: 0.043s
+-- Gustavson transpose [CSR'->CSR]: 0.071s
+-- std::sort compress [COO->CSR]: 0.389s
+-- std::sort transpose [CSR->CSR']: 0.461s
+-- std::sort compress [COO'->CSR']: 0.218s
+-- std::sort transpose [CSR'->CSR]: 0.411s
+-- tbb::parallel_sort compress [COO->CSR]: 0.158s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.160s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.055s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.126s
+-- MKL compress [COO->CSR]: 0.036s
+-- MKL transpose [CSR->CSR']: 0.051s
+-- MKL compress [COO'->CSR']: 0.089s
+-- MKL transpose [CSR'->CSR]: 0.046s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/torso1.mtx
+[IO] loading 116158 x 116158 MTX [matrix coordinate real general] 8.5m NNZ ... Actually 116158 x 116158 [3.3s]
+-- Gustavson compress [COO->CSR]: 0.098s
+-- Gustavson transpose [CSR->CSR']: 0.095s
+-- Gustavson compress [COO'->CSR']: 0.048s
+-- Gustavson transpose [CSR'->CSR]: 0.098s
+-- std::sort compress [COO->CSR]: 0.374s
+-- std::sort transpose [CSR->CSR']: 0.517s
+-- std::sort compress [COO'->CSR']: 0.228s
+-- std::sort transpose [CSR'->CSR]: 0.387s
+-- tbb::parallel_sort compress [COO->CSR]: 0.131s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.204s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.060s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.173s
+-- MKL compress [COO->CSR]: 0.077s
+-- MKL transpose [CSR->CSR']: 0.021s
+-- MKL compress [COO'->CSR']: 0.100s
+-- MKL transpose [CSR'->CSR]: 0.022s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/venkat01.mtx
+[IO] loading 62424 x 62424 MTX [matrix coordinate real general] 1.7m NNZ ... Actually 62424 x 62424 [0.7s]
+-- Gustavson compress [COO->CSR]: 0.011s
+-- Gustavson transpose [CSR->CSR']: 0.013s
+-- Gustavson compress [COO'->CSR']: 0.007s
+-- Gustavson transpose [CSR'->CSR]: 0.014s
+-- std::sort compress [COO->CSR]: 0.072s
+-- std::sort transpose [CSR->CSR']: 0.082s
+-- std::sort compress [COO'->CSR']: 0.030s
+-- std::sort transpose [CSR'->CSR]: 0.072s
+-- tbb::parallel_sort compress [COO->CSR]: 0.052s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.039s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.008s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.064s
+-- MKL compress [COO->CSR]: 0.002s
+-- MKL transpose [CSR->CSR']: 0.004s
+-- MKL compress [COO'->CSR']: 0.006s
+-- MKL transpose [CSR'->CSR]: 0.004s
+
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/web-Google.mtx
+[IO] loading 916428 x 916428 MTX [matrix coordinate pattern general] 5.1m NNZ ... Actually 916428 x 916428 [0.8s]
+-- Gustavson compress [COO->CSR]: 0.209s
+-- Gustavson transpose [CSR->CSR']: 0.155s
+-- Gustavson compress [COO'->CSR']: 0.030s
+-- Gustavson transpose [CSR'->CSR]: 0.201s
+-- std::sort compress [COO->CSR]: 0.398s
+-- std::sort transpose [CSR->CSR']: 0.378s
+-- std::sort compress [COO'->CSR']: 0.146s
+-- std::sort transpose [CSR'->CSR]: 0.393s
+-- tbb::parallel_sort compress [COO->CSR]: 0.132s
+-- tbb::parallel_sort transpose [CSR->CSR']: 0.133s
+-- tbb::parallel_sort compress [COO'->CSR']: 0.058s
+-- tbb::parallel_sort transpose [CSR'->CSR]: 0.128s
+-- MKL compress [COO->CSR]: 0.029s
+-- MKL transpose [CSR->CSR']: 0.101s
+-- MKL compress [COO'->CSR']: 0.130s
+-- MKL transpose [CSR'->CSR]: 0.114s
+
+
+
+
+GRAND TOTALS:
+  Gustavson:
+    compress:      2.828s
+    compress_tr:   1.154s
+    transpsose:    2.777s
+    transpsose_tr: 2.763s
+  tbb::parallel_sort:
+    compress:      3.907s
+    compress_tr:   1.663s
+    transpsose:    4.183s
+    transpsose_tr: 3.826s
+  std::sort:
+    compress:      12.661s
+    compress_tr:   6.416s
+    transpsose:    14.196s
+    transpsose_tr: 12.918s
+  MKL:
+    compress:      1.166s
+    compress_tr:   2.597s
+    transpsose:    1.426s
+    transpsose_tr: 1.392s
+

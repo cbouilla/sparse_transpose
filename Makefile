@@ -5,8 +5,8 @@ CPPFLAGS = -O3 -g -mavx2 -Wall -Wextra -fopenmp
 LDFLAGS = -fopenmp
 LDLIBS = -lm
 
-#USE_MKL = yes  # comment this line otherwise
-#USE_TBB = yes  # comment this line otherwise
+USE_MKL = yes  # comment this line otherwise
+USE_TBB = yes  # comment this line otherwise
 
 ifdef USE_MKL
 # for intel MKL
@@ -20,10 +20,10 @@ LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed
 #LDLIBS += -lmkl_intel_lp64 -lmkl_gnu_thread -lmkl_core -lgomp -lpthread -lm -ldl
 
 #parallel MKL using iomp5
-LDLIBS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
+#LDLIBS += -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -liomp5 -lpthread -lm -ldl
 
 # sequential MKL
-#LDLIBS += -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
+LDLIBS += -lmkl_intel_lp64 -lmkl_sequential -lmkl_core -lpthread -lm -ldl
 endif
 
 
@@ -45,5 +45,5 @@ driver: driver.o mmio.o mini_spasm.o classical.o simple_sort.o
 .PHONY: clean
 
 clean:
-	rm -rf driver *.o
+	rm -vrf driver *.o
 	#rm -rf parallel_scalability

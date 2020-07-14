@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cstdint>
+#include <iostream>
 
 /* simple compress/transpose algorithm that directly rely on explicit sorting, 
    using off-the-shelf sort functions (std::sort from the STL, or Intel's parallel quicksort). 
@@ -16,8 +17,10 @@ extern "C" void stdsort_transpose(const spasm * A, spasm * R, struct matrix_entr
 #ifdef HAVE_TBB
 #include <tbb/parallel_sort.h>
 #include <tbb/task_scheduler_init.h>
+#include <tbb/tbb_stddef.h>
 extern "C" void tbbsort_compress(const spasm_triplet * T, spasm * A, struct matrix_entry_t * Te, int num_threads);
 extern "C" void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, int num_threads);
+extern "C" void tbb_version();
 #endif
 
 
@@ -175,5 +178,11 @@ void tbbsort_transpose(const spasm * A, spasm * R, struct matrix_entry_t * Te, i
 	printf("        tbb::sort: %.3f\n", c-b);
 	printf("        finalize: %.3f\n", d-c);
 	*/
+}
+
+void tbb_version()
+{
+	std::cout << "TBB version: compiled=" << TBB_INTERFACE_VERSION
+	<< ", runtime=" << tbb::TBB_runtime_interface_version() << '\n';
 }
 #endif

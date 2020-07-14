@@ -1,3 +1,27 @@
-driver
-*.o
+# Prerequisites
+*.d
+.depend
 
+# Object files
+*/*.o
+
+# Object directories
+./obj
+*/obj
+
+# Executables
+*.out
+./main
+./driver
+./driver_wang
+
+# Matrix files
+*/*.mtx
+
+# IDE
+~*
+/.vscode
+
+# Log files
+*/*.log
+*.log

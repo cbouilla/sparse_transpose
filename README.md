@@ -58,13 +58,13 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] donner num_threads à MKL
 - [x] gérer les benchmarks
 - [x] créer un csv
-- [ ] utiliser valgrind pour corriger les fuites mémoire et les erreurs
-- [x] fonctionne avec gcc/g++ ? OUI, mais fuites mémoire non gérables + free(T),R enlevé car segfault/invalid free
+- [ ] utiliser valgrind pour corriger les fuites mémoire et les erreurs de driver_wang
+- [x] fonctionne avec gcc/g++ ? OUI
 - [x] fonctionne avec gcc/g++ et tbb ? OUI, mais fuites mémoire non gérables dues à TBB
-- [ ] fonctionne avec gcc/g++ et MKL ? NON, instruction intel non reconnue dans create_coo
+- [x] fonctionne avec gcc/g++ et MKL ? OUI
 - [x] fonctionne avec icc/icpc? OUI
 - [x] fonctionne avec icc/icpc et tbb ? OUI
-- [ ] fonctionne avec icpc et mkl ? NON, la MKL est bloquante sur ASIC_680k
+- [x] fonctionne avec icpc et mkl ? OUI
 - [x] mettre dans un sous-dossier, makefile qui créer deux executables.
 - [x] créer regle make benchmarks
 - [ ] parallèliser finalize ?
@@ -76,10 +76,5 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [ ] embellir la sortie
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
-à remettre:
-num_threads=2
-repeat=2
-large_matrix
-licence driver_wang
-retiré de wang_sort la vérification avec la MKL
-commenté mkl_set_num_threads
+à remettre:num_threads,repeat,large_matrix,licence driver_wang
+retiré de wang_sort la vérification avec la MKL,commenté mkl_set_num_threads

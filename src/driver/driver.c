@@ -240,7 +240,6 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 	assert(sizeof(MKL_INT) == sizeof(int));
 
 	// mkl_set_num_threads(num_threads);
-
 	status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m, T->nz, T->i, T->j, T->x);
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL create_coo (T) failed");
@@ -253,7 +252,11 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	duration->compress = stop - start;
 	total[MKL].compress += duration->compress;
+#ifdef HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL compress (sequential) [COO->CSR]: %.3fs\n", duration->compress);
+#else
 	fprintf(stderr, "-- MKL compress (%d threads) [COO->CSR]: %.3fs\n", num_threads, duration->compress);
+#endif // HAVE_MKL_SEQUENTIAL
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_A, SPARSE_OPERATION_TRANSPOSE, &mkl_B);
@@ -262,7 +265,11 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	duration->transpose = stop - start;
 	total[MKL].transpose += duration->transpose;
+#ifdef HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL transpose (sequential) [CSR->CSR']: %.3fs\n", duration->compress);
+#else
 	fprintf(stderr, "-- MKL transpose (%d threads) [CSR->CSR']: %.3fs\n", num_threads, duration->transpose);
+#endif //HAVE_MKL_SEQUENTIAL
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_T, SPARSE_OPERATION_TRANSPOSE, &mkl_C);
@@ -271,7 +278,11 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	duration->compress_tr = stop - start;
 	total[MKL].compress_tr += duration->compress_tr;
+#ifdef HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL compress (sequential) [COO'->CSR']: %.3fs\n", duration->compress);
+#else
 	fprintf(stderr, "-- MKL compress (%d threads) [COO'->CSR']: %.3fs\n", num_threads, duration->compress_tr);
+#endif // HAVE_MKL_SEQUENTIAL
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_C, SPARSE_OPERATION_TRANSPOSE, &mkl_D);
@@ -280,7 +291,11 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	duration->transpose_tr = stop - start;
 	total[MKL].transpose_tr += duration->transpose_tr;
+#ifdef HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL transpose (sequential) [CSR'->CSR]: %.3fs\n", duration->compress);
+#else
 	fprintf(stderr, "-- MKL transpose (%d threads) [CSR'->CSR]: %.3fs\n", num_threads, duration->transpose_tr);
+#endif // HAVE_MKL_SEQUENTIAL
 
 	status = mkl_sparse_destroy(mkl_T);
 	if (status != SPARSE_STATUS_SUCCESS)
@@ -323,9 +338,9 @@ void write_test_classical(const char *output_filename, const char *matrix_filena
 		err(1, "impossible to open %s", output_filename);
 	int num_thread = 1;
 	const char * name = "Gustavson";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -337,9 +352,9 @@ void write_test_stdsort(const char *output_filename, const char *matrix_filename
 		err(1, "impossible to open %s", output_filename);
 	int num_thread = 1;
 	const char * name = "std::sort";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -350,9 +365,9 @@ void write_test_tbbsort(const char *output_filename, const char *matrix_filename
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
 	const char * name = "tbb::parallel_sort";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -363,9 +378,9 @@ void write_test_MKL(const char *output_filename, const char *matrix_filename, st
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
 	const char * name = "MKL";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -380,7 +395,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	int max_num_threads;
 	#pragma omp parallel
 	max_num_threads = omp_get_num_threads();
-	max_num_threads = 1;
+	max_num_threads = 2;
 #endif // defined HAVE_TBB || defined HAVE_MKL
 	
 	struct bench_time duration[N_REPEAT];
@@ -391,8 +406,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	spasm_triplet *T = spasm_load_mm(f);
 	fclose(f);
 
-	spasm_triplet *R = T;
-	// transpose of T
+	spasm_triplet *R = malloc(sizeof(spasm_triplet));
 	spasm_triplet_transpose(T, R);
 
 	for (int i = 0; i < N_REPEAT; ++i)
@@ -454,7 +468,8 @@ void run_test(const char *matrix_filename, const char * output_filename)
 #endif // HAVE_MKL
 
 	fflush(stdout);
-//	spasm_triplet_free(T); // R is now invalid
+	spasm_triplet_free(T);
+	free(R);
 }
 
 void show_grand_totals(void)
@@ -507,8 +522,8 @@ int main(void)
 #endif // HAVE_MKL
 
 #ifdef BENCHMARK_SMALL_MATRICES
-	for (int i = 0; i < N; i++) {
-	 	char matrix_filename[128];
+	for (int i = 0; i < N_SMALL_MATRICES; i++) {
+	 	char matrix_filename[FILENAME_LENGTH];
 	 	sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);
@@ -520,8 +535,8 @@ int main(void)
 #endif // BENCHMARK_SMAL_MATRICES
 
 #ifdef BENCHMARK_LARGE_MATRICES
-	for (int i = 1; i <= 58; i++) {  // just this one is enough to exhibit the crash
-	 	char matrix_filename[128];
+	for (int i = 1; i <= N_LARGE_MATRICES; i++) {  // just this one is enough to exhibit the crash
+	 	char matrix_filename[FILENAME_LENGTH];
 	 	sprintf(matrix_filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);

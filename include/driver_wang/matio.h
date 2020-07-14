@@ -47,7 +47,7 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
         return -3;
     }
 
-    if ( mm_is_pattern( matcode ) )  { isPattern = 1; /*cout << "type = Pattern" << endl;*/ }
+    if ( mm_is_pattern( matcode ) )  { isPattern = 1; /*std::cout << "type = Pattern" << std::endl;*/ }
     if ( mm_is_real ( matcode) )     { isReal = 1; /*cout << "type = real" << endl;*/ }
     if ( mm_is_integer ( matcode ) ) { isInteger = 1; /*cout << "type = integer" << endl;*/ }
 

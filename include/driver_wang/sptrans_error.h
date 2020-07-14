@@ -11,14 +11,14 @@
 *                                                                              
 */
 
-
-#ifndef _SPTRANS_H
-#define _SPTRANS_H
+#ifndef INCLUDE_SPTRANS_H
+#define INCLUDE_SPTRANS_H
 
 #include <omp.h>
 #include <algorithm>
 #include <numeric>
 #include <immintrin.h>
+#include <cstring>
 
 #define NBLOCKS(_n,_bsize) (1 + ((_n)-1)/(_bsize))
 #define _SCAN_BSIZE 2048
@@ -163,9 +163,9 @@ void scan_kernel(int *in, int *out, int N, bool inclusive, int base) {
 }
 
 void scan_omp(int *in, int *out, int N, bool inclusive, int base) {
-    int p = 1;
-#pragma omp parallel
-    p = omp_get_num_threads();
+//  int p = 1;
+//  #pragma omp parallel
+//  p = omp_get_num_threads();
     int nblocks = NBLOCKS(N, _SCAN_BSIZE);
     if (nblocks <= 2) {
         scan_kernel(in, out, N, inclusive, base);
@@ -200,7 +200,7 @@ void sptrans_scanTrans(int  m,
                        iT  *cscColPtr,
                        vT  *cscVal)
 {
-    int i, j, k, ii, jj, procs; 
+    int i, j, /*k,*/ ii, jj, procs; 
 
 #pragma omp parallel
     procs = omp_get_num_threads();
@@ -245,7 +245,7 @@ void sptrans_scanTrans(int  m,
     }
 
 #pragma omp parallel for default(shared) private(i) //schedule(dynamic)
-#pragma ivdep
+//#pragma ivdep
     for (i = 0; i < n; i++) {
         cscColPtr[i + 1] = inter[n * procs + i];
     }
@@ -290,7 +290,7 @@ void sptrans_scanTrans(int  m,
         {
             int offset = 0;
             int tid = omp_get_thread_num();
-            int inter_start = tid * n; 
+//          int inter_start = tid * n; 
             int intra_start = size * tid;
             int len = size;
 
@@ -314,7 +314,7 @@ void sptrans_scanTrans(int  m,
         {
             int offset = 0;
             int tid = omp_get_thread_num();
-            int inter_start = tid * n; 
+//          int inter_start = tid * n; 
             int intra_start = size * tid;
             int len = size;
 
@@ -365,7 +365,7 @@ void segment_merge_csr(int len,
         int startc = csrRowPtrC[i];
         int lena   = csrRowPtrA[i + 1] - csrRowPtrA[i];
         int lenb   = csrRowPtrB[i + 1] - csrRowPtrB[i];
-        int lenc   = csrRowPtrC[i + 1] - csrRowPtrC[i];
+//      int lenc   = csrRowPtrC[i + 1] - csrRowPtrC[i];
         
         for (j = 0; j < lena; j++) {
             csrColIdxC[startc + j] = csrColIdxA[starta + j];
@@ -446,7 +446,7 @@ void segment_merge_csr_multithreads(int begin,
         int startc = csrRowPtrC[i];
         int lena   = csrRowPtrA[i + 1] - csrRowPtrA[i];
         int lenb   = csrRowPtrB[i + 1] - csrRowPtrB[i];
-        int lenc   = csrRowPtrC[i + 1] - csrRowPtrC[i];
+//      int lenc   = csrRowPtrC[i + 1] - csrRowPtrC[i];
         
         for (j = 0; j < lena; j++) {
             csrColIdxC[startc + j] = csrColIdxA[starta + j];
@@ -464,7 +464,7 @@ void segment_merge_csr_multithreads(int begin,
         int startc = csrRowPtrA[end] + csrRowPtrB[end];
         int lena   = csrRowPtrA[end + 1] - csrRowPtrA[end];
         int lenb   = csrRowPtrB[end + 1] - csrRowPtrB[end];
-        int lenc   = lena + lenb;
+//      int lenc   = lena + lenb;
         
         for (j = 0; j < lena; j++) {
             csrColIdxC[startc + j] = csrColIdxA[starta + j];
@@ -488,7 +488,7 @@ void sptrans_mergeTrans(int  m,
                         iT  *cscColPtr,
                         vT  *cscVal)
 {
-    int i, j, k, ii, jj, kk, procs;
+    int i, j, k, ii, jj, /*kk,*/ procs;
  
 #pragma omp parallel
     procs = omp_get_num_threads();
@@ -963,4 +963,5 @@ void sptrans_mergeTrans(int  m,
     free(cscRowIdxAux);
     free(cscValAux);
 }
-#endif
+
+#endif /* INCLUDE_SPTRANS_H */

@@ -91,6 +91,7 @@ ifeq ($(CC),gcc)
 
 	# Sequential MKL
 	ifeq ($(USE_MKL),sequential)
+		CPPFLAGS += -DHAVE_MKL_SEQUENTIAL
 		LDLIBS += -lmkl_sequential -lmkl_core
 	endif # Sequential MKL
 
@@ -112,7 +113,7 @@ else ifeq ($(CC),icc)
 
 	# Sequential MKL
 	ifeq ($(USE_MKL),sequential)
-		CPPFLAGS += -mkl=sequential
+		CPPFLAGS += -mkl=sequential -DHAVE_MKL_SEQUENTIAL
 		LDLIBS += -mkl=sequential -lpthread -lm -ldl
 	endif # Sequential MKL
 
@@ -218,7 +219,7 @@ all: $(EXE)
 	@printf "%b\n" "$(OK_COLOR)Successful compilation$(WHITE)"
 
 benchmarks: all
-	@rm -i benchmarks.csv && ./$(DRIVER) && ./$(DRIVER_WANG)
+	@./$(DRIVER) ; ./$(DRIVER_WANG)
 
 memcheck: all
 	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(DRIVER)

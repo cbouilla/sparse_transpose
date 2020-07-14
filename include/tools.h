@@ -2,8 +2,8 @@
 #define INCLUDE_TOOLS_H
 
 #define N_REPEAT 1
-#define BENCHMARK_SMALL_MATRICES
-// #define BENCHMARK_LARGE_MATRICES
+//#define BENCHMARK_SMALL_MATRICES
+#define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
 #define GUSTAVSON 0      
@@ -23,35 +23,39 @@ struct bench_time total[N_METHOD];
 
 #define OUTPUT_FILENAME "benchmarks.csv"
 
-const char * output_format = "%s,%s,%d,%.15f,%.15f,%.15f,%.15f,%d\n";
+#define OUTPUT_FORMAT "%s,%s,%d,%.15f,%.15f,%.15f,%.15f,%d\n"
 
-const char * MATRIX_PATH="/Infos/lmd/2019/master/ue/MU4IN903-2020fev";
+#define MATRIX_PATH "/Infos/lmd/2019/master/ue/MU4IN903-2020fev"
+
+#define FILENAME_LENGTH 128
 
 /* the matrices in "Parallel Transposition of Sparse Data Structures" by Wang, Liu, Hou and Feng */
-#define N 2
-const char *matrices[N] = {
+#define N_SMALL_MATRICES 2
+const char *matrices[N_SMALL_MATRICES] = {
 	"language",
 	"ASIC_680k",
-//	"circuit5M",
-//	"flickr",
-//	"memchip",
-//	"rajat21",
-//	"sme3Dc",
-//	"stomach",
-//	"transient",
-//	"webbase-1M",
-//	"wiki-Talk",
-//	"cage14",
-//	"eu-2005",
-//	"FullChip",
-//	"mac_econ_fwd500",
-//	"para-4",
-//	"rajat29",
-//	"Stanford_Berkeley",
-//	"torso1",
-//	"venkat01",
-//	"web-Google"
-};
+/*	"circuit5M",
+	"flickr",
+	"memchip",
+	"rajat21",
+	"sme3Dc",
+	"stomach",
+	"transient",
+	"webbase-1M",
+	"wiki-Talk",
+	"cage14",
+	"eu-2005",
+	"FullChip",
+	"mac_econ_fwd500",
+	"para-4",
+	"rajat29",
+	"Stanford_Berkeley",
+	"torso1",
+	"venkat01",
+	"web-Google"
+*/};
+
+#define N_LARGE_MATRICES 2 // 58
 
 void clear_bench_time(struct bench_time *duration)
 {

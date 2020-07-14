@@ -1,3 +1,4 @@
+
 #include <cstdio>
 #include <err.h>
 #include <algorithm>
@@ -7,7 +8,8 @@
 #include "matio.h"
 #include "sptrans.h"
 #include "tools.h"
-
+//#include "mini_spasm_wang.h"
+//#include "classical_sort_wang.h"
 double spasm_wtime() {
 	struct timeval ts;
 	gettimeofday(&ts, NULL);
@@ -19,8 +21,19 @@ double spasm_wtime() {
 void run_test_scanTrans(const char *filename, struct bench_time *duration, int num_threads)
 {
 	omp_set_num_threads(num_threads);
+	/*FILE *f = fopen(filename ,"r");
+	spasm_triplet *T = spasm_load_mm(f);
+	fclose(f);
+	spasm *A = spasm_csr_alloc(T->n, T->m, T->nz);
+	int *W = (int*)spasm_malloc((spasm_max(T->n,T->m)+1) * sizeof(*W));
+	classical_compress(T,A,W);
+//	spasm_csr_free(A);
+//	spasm_triplet_free(T);
+//	free(W);*/
 // input
-    int m, n, nnzA;
+    int m;
+    int n;
+    int nnzA;
     int *csrRowPtrA;
     int *csrColIdxA;
     double *csrValA;
@@ -29,6 +42,7 @@ void run_test_scanTrans(const char *filename, struct bench_time *duration, int n
 		{
 			err(1, "Failed to read the matrix from %s.", filename);
     }
+		for(unsigned long int i =0; i < 100; ++i) std::cout << csrRowPtrA[i] << " ";
 
     double start, stop; 
     
@@ -127,9 +141,9 @@ void write_test_scanTrans(const char *output_filename, const char *matrix_filena
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
 	const char * name = "ScanTrans";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, 0, duration[i].transpose, 0, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -140,9 +154,9 @@ void write_test_mergeTrans(const char *output_filename, const char *matrix_filen
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
 	const char * name = "MergeTrans";
-	for (size_t i = 0; i < N_REPEAT; i++)
+	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, output_format, name, matrix_filename, num_thread, 0, duration[i].transpose, 0, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -209,7 +223,7 @@ void show_grand_totals()
 int main()
 {
 	const char *output_filename = OUTPUT_FILENAME;
-	//printf("Output file: %s\n", output_filename);
+	printf("Output file: %s\n", output_filename);
 
 	for (int i = 0; i < N_METHOD; i++)
 	{
@@ -217,8 +231,8 @@ int main()
 	}
 
 #ifdef BENCHMARK_SMALL_MATRICES
-	for (int i = 0; i < N; i++) {
-	 	char matrix_filename[128];
+	for (int i = 0; i < N_SMALL_MATRICES; i++) {
+	 	char matrix_filename[FILENAME_LENGTH];
 	 	sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);
@@ -228,6 +242,19 @@ int main()
 	
 	show_grand_totals();
 #endif // BENCHMARK_SMAL_MATRICES
+
+#ifdef BENCHMARK_LARGE_MATRICES
+  for (int i = 1; i <= N_LARGE_MATRICES; i++) {  // just this one is enough to exhibit the crash
+    char matrix_filename[FILENAME_LENGTH];
+    sprintf(matrix_filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
+
+    printf("#---------------------------------------- %s\n", matrix_filename);
+    run_test(matrix_filename, output_filename);
+    fprintf(stderr, "\n");
+
+  }
+  show_grand_totals();
+#endif // BENCHMARK_LARGE_MATRICES
 
 	return EXIT_SUCCESS;
 }

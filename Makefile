@@ -56,7 +56,8 @@ else
 		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -qopenmp -xCORE-AVX2
 	endif
 endif
-
+CPPFLAGS += "-DCFLAGS=\"$(CC) $(CFLAGS)\"" "-DCXXFLAGS=\"$(CXX) $(CXXFLAGS)\""
+#CPPFLAGS += "-DCFLAGS=\"-wall -wextra\"" "-DCXXFLAGS=\"-fopenmp -qopenmp\""
 # Linker
 LDFLAGS :=
 ifeq ($(CC),gcc)
@@ -70,7 +71,7 @@ LDLIBS += -lm
 # USE_MKL :=
 ifdef USE_MKL
 ifeq ($(CC),gcc)
-	CPPFLAGS += -DHAVE_MKL -m64 -I${MKLROOT}/include
+	CPPFLAGS += -DHAVE_MKL=\"$(USE_MKL)\" -m64 -I${MKLROOT}/include
 	LDFLAGS += -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed
 	LDLIBS += -lmkl_intel_lp64
 
@@ -221,8 +222,11 @@ all: $(EXE)
 benchmarks: all
 	@./$(DRIVER) ; ./$(DRIVER_WANG)
 
-memcheck: all
+memcheck_driver: $(DRIVER)
 	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(DRIVER)
+
+memcheck_driver_wang: $(DRIVER_WANG)
+	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(DRIVER_WANG)
 
 $(DRIVER): $(OBJ_DRIVER)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))

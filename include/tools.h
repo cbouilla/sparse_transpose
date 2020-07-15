@@ -2,7 +2,7 @@
 #define INCLUDE_TOOLS_H
 
 #define N_REPEAT 1
-//#define BENCHMARK_SMALL_MATRICES
+#define BENCHMARK_SMALL_MATRICES
 #define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
@@ -23,7 +23,7 @@ struct bench_time total[N_METHOD];
 
 #define OUTPUT_FILENAME "benchmarks.csv"
 
-#define OUTPUT_FORMAT "%s,%s,%d,%.15f,%.15f,%.15f,%.15f,%d\n"
+#define OUTPUT_FORMAT "%s,%s,%s,%d, %s,%.15f,%.15f,%.15f,%.15f,%d\n"
 
 #define MATRIX_PATH "/Infos/lmd/2019/master/ue/MU4IN903-2020fev"
 
@@ -55,7 +55,7 @@ const char *matrices[N_SMALL_MATRICES] = {
 	"web-Google"
 */};
 
-#define N_LARGE_MATRICES 2 // 58
+#define N_LARGE_MATRICES 58
 
 void clear_bench_time(struct bench_time *duration)
 {

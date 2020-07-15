@@ -101,7 +101,7 @@ spasm *spasm_csr_alloc(int n, int m, int nzmax)
 /* add an entry to a triplet matrix; enlarge it if necessary */
 static inline void spasm_add_entry(spasm_triplet * T, int i, int j, double x) 
 {
-	assert((i >= 0) && (j >= 0));
+	assert((i >= 0) && (i < T->n) && (j >= 0) && (j < T->m));
 	int nz = T->nz;
 	assert(nz < T->nzmax);
 	
@@ -110,8 +110,8 @@ static inline void spasm_add_entry(spasm_triplet * T, int i, int j, double x)
 	T->x[nz] = x;
 	
 	T->nz = nz + 1;
-	T->n = spasm_max(T->n, i + 1);
-	T->m = spasm_max(T->m, j + 1);
+	// T->n = spasm_max(T->n, i + 1);
+	// T->m = spasm_max(T->m, j + 1);
 }
 
 /*
@@ -154,7 +154,8 @@ spasm_triplet *spasm_load_mm(FILE * f)
 	free(typecode); // mm_typecode_to_str return a malloc'd char*
 
 	spasm_triplet *T = spasm_triplet_alloc(nnz);
-	
+	T->n = n;
+	T->m = m;
 	for (int i = 0; i < nnz; i++) {
 		int u, v;
 		double x;

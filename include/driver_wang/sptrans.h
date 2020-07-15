@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <numeric>
 #include <immintrin.h>
+#include <cassert>
 
 #define NBLOCKS(_n,_bsize) (1 + ((_n)-1)/(_bsize))
 #define _SCAN_BSIZE 2048
@@ -247,10 +248,22 @@ void sptrans_scanTrans(int  m,
 #pragma omp parallel for default(shared) private(i) //schedule(dynamic)
 #pragma ivdep
     for (i = 0; i < n; i++) {
-        cscColPtr[i + 1] = inter[n * procs + i];
+    		assert(inter[n * procs + i] >= 0);
+        cscColPtr[i + 1] = inter[n * procs + i]; // error ?
     }
 
-    scan_omp(cscColPtr,cscColPtr,n+1,true,0);
+    scan_omp(cscColPtr,cscColPtr,n+1,true,0); // error in scan_omp ?
+
+#pragma omp parallel for
+    for (int idx = 0; idx < n + 1; ++idx)
+    {
+    	try {
+    		assert(cscColPtr[idx] >= 0);
+	    } catch (const std::exception &e) {
+			#pragma omp critical
+  	  std::cerr << idx << std::endl;
+  	  }
+    }
 
 #pragma omp parallel for default(shared) private(i, j, ii, jj) //schedule(dynamic)
     for (i = 0 ; i < m; i++) {
@@ -279,8 +292,17 @@ void sptrans_scanTrans(int  m,
         }
 
         for (i = 0; i < len; i++) {
+						assert(csrColIdx[intra_start + i] >= 0 && csrColIdx[intra_start + i] < n);
             colIdx = csrColIdx[intra_start + i];
+ 		        if(cscColPtr[colIdx] < 0) {
+ 		        #pragma omp critical
+ 		        std::cerr << "colptr= " << cscColPtr[colIdx] << "at" << i << std::endl;
+ 		        }
+						assert(cscColPtr[colIdx] >= 0); // fail
+						assert(inter[inter_start + colIdx] >= 0);
+						assert(intra[intra_start + i] >= 0);
             offset = cscColPtr[colIdx] + inter[inter_start + colIdx] + intra[intra_start + i];
+            // if(offset < 0) std::cout << i << '\n';
             wb_index[intra_start + i] = offset;
         }
     }
@@ -304,6 +326,7 @@ void sptrans_scanTrans(int  m,
             }
 
             for (i = 0; i < len; i++) {
+		            //if(wb_index[intra_start+i] < 0) std::cout << i << '\n';
                 offset            = wb_index[intra_start + i];
                 cscVal[offset]    = csrVal[intra_start + i];
                 cscRowIdx[offset] = csrRowUnroll[intra_start + i];

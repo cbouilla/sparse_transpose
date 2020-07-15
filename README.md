@@ -58,7 +58,6 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] donner num_threads à MKL
 - [x] gérer les benchmarks
 - [x] créer un csv
-- [ ] utiliser valgrind pour corriger les fuites mémoire et les erreurs de driver_wang
 - [x] fonctionne avec gcc/g++ ? OUI
 - [x] fonctionne avec gcc/g++ et tbb ? OUI, mais fuites mémoire non gérables dues à TBB
 - [x] fonctionne avec gcc/g++ et MKL ? OUI
@@ -67,9 +66,13 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] fonctionne avec icpc et mkl ? OUI
 - [x] mettre dans un sous-dossier, makefile qui créer deux executables.
 - [x] créer regle make benchmarks
-- [ ] parallèliser finalize ?
-- [ ] options de O3 defavorables ?
-- [ ] enlever le chemin d'accès des matrices RSA dans le csv
+- [x] modifications des entetes fallacieux des matrices RSA.
+- [x] utiliser valgrind pour corriger les fuites mémoire et les erreurs de driver_wang : sptrans -> segfault, vec -> segfault?
+- [x] mettre un assert dans la fonction load en supposant que l'entête est faux à la place de spasm_max
+- [x] afficher dans le csv lire use_mkl,compiler_flags
+- [ ] améliorer la ligne de compilation (les sauts de lignes dus à -D)
+- [ ] essayer avec O2 et O3, O3 defavorables ?
+- [ ] enlever le chemin d'accès des matrices dans le csv
 - [ ] traiter le csv et afficher des graphes (boxplot pour la variance, courbe de l'accélération)
 - [ ] commenter le code
 - [ ] reformater le code
@@ -78,3 +81,6 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] décrire le fonctionnement de std::sort
 à remettre:num_threads,repeat,large_matrix,licence driver_wang
 retiré de wang_sort la vérification avec la MKL,commenté mkl_set_num_threads
+
+GCC, MKL sequentielle, MKL iomp
+name,cflags,cxxflags,threads,matrix,compress,transport,compress_tr,tranpose_tr,étape

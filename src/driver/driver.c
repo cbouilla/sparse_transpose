@@ -321,13 +321,7 @@ void mkl_version()
 	mkl_get_version_string(buf, len);
 	printf("MKL version: %s\n", buf);
 	int max_num_threads = mkl_get_max_threads();
-	if (max_num_threads == 1)
-	{
-		printf("MKL: sequential\n");
-	} else
-	{
-		printf("MKL: parallel, maximum %d threads\n", max_num_threads);
-	}
+	printf("MKL: %s, maximum %d threads\n", HAVE_MKL, max_num_threads);
 }
 #endif // HAVE_MKL
 
@@ -336,11 +330,11 @@ void write_test_classical(const char *output_filename, const char *matrix_filena
 	FILE* file = fopen(output_filename, "a");
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
-	int num_thread = 1;
+	int num_threads = 1;
 	const char * name = "Gustavson";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -350,16 +344,16 @@ void write_test_stdsort(const char *output_filename, const char *matrix_filename
 	FILE* file = fopen(output_filename, "a");
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
-	int num_thread = 1;
+	int num_threads = 1;
 	const char * name = "std::sort";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
 
-void write_test_tbbsort(const char *output_filename, const char *matrix_filename, struct bench_time *duration, int num_thread)
+void write_test_tbbsort(const char *output_filename, const char *matrix_filename, struct bench_time *duration, int num_threads)
 {
 	FILE* file = fopen(output_filename, "a");
 	if (file == NULL)
@@ -367,12 +361,12 @@ void write_test_tbbsort(const char *output_filename, const char *matrix_filename
 	const char * name = "tbb::parallel_sort";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
 
-void write_test_MKL(const char *output_filename, const char *matrix_filename, struct bench_time *duration, int num_thread)
+void write_test_MKL(const char *output_filename, const char *matrix_filename, struct bench_time *duration, int num_threads)
 {
 	FILE* file = fopen(output_filename, "a");
 	if (file == NULL)
@@ -380,7 +374,7 @@ void write_test_MKL(const char *output_filename, const char *matrix_filename, st
 	const char * name = "MKL";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, matrix_filename, num_thread, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
 	}
 	fclose(file);
 }
@@ -537,7 +531,7 @@ int main(void)
 #ifdef BENCHMARK_LARGE_MATRICES
 	for (int i = 1; i <= N_LARGE_MATRICES; i++) {  // just this one is enough to exhibit the crash
 	 	char matrix_filename[FILENAME_LENGTH];
-	 	sprintf(matrix_filename, "%s/RSA/pre_transpose%d.mtx", MATRIX_PATH, i);
+	 	sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);
 		run_test(matrix_filename, output_filename);

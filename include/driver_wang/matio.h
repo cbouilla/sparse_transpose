@@ -16,7 +16,7 @@
 
 #include <iostream>
 #include <cstring>
-
+#include <cassert>
 #include "mmio_wang.h"
 
 /* A customized MTX matrix loader to handle values in different sparse matrices */
@@ -67,8 +67,7 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
     }
 
     int *csrRowPtrA_counter = (int *)malloc((m+1) * sizeof(int));
-    memset(csrRowPtrA_counter, 0, (m+1) * sizeof(int));
-
+		memset(csrRowPtrA_counter, 0, (m+1) * sizeof(int));
     int *csrRowIdxA_tmp = (int *)malloc(nnzA_mtx_report * sizeof(int));
     int *csrColIdxA_tmp = (int *)malloc(nnzA_mtx_report * sizeof(int));
     valT *csrValA_tmp    = (valT *)malloc(nnzA_mtx_report * sizeof(valT));
@@ -99,7 +98,10 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
         // adjust from 1-based to 0-based
         idxi--;
         idxj--;
-
+        assert(idxi >= 0);
+        assert(idxi < m);
+        assert(idxj >= 0);
+        assert(idxj < n);
         csrRowPtrA_counter[idxi]++;
         csrRowIdxA_tmp[i] = idxi;
         csrColIdxA_tmp[i] = idxj;
@@ -134,7 +136,6 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
     csrRowPtrA = (int *)malloc((m+1) * sizeof(int));
     memcpy(csrRowPtrA, csrRowPtrA_counter, (m+1) * sizeof(int));
     memset(csrRowPtrA_counter, 0, (m+1) * sizeof(int));
-
     csrColIdxA = (int *)malloc(nnzA * sizeof(int));
     csrValA    = (valT *)malloc(nnzA * sizeof(valT));
 
@@ -156,11 +157,11 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA, 
             }
             else
             {
-                int offset = csrRowPtrA[csrRowIdxA_tmp[i]] + csrRowPtrA_counter[csrRowIdxA_tmp[i]];
-                csrColIdxA[offset] = csrColIdxA_tmp[i];
-                csrValA[offset] = csrValA_tmp[i];
-                csrRowPtrA_counter[csrRowIdxA_tmp[i]]++;
-            }
+							int offset = csrRowPtrA[csrRowIdxA_tmp[i]] + csrRowPtrA_counter[csrRowIdxA_tmp[i]];
+              csrColIdxA[offset] = csrColIdxA_tmp[i];
+              csrValA[offset] = csrValA_tmp[i];
+              csrRowPtrA_counter[csrRowIdxA_tmp[i]]++;
+           }
         }
     }
     else

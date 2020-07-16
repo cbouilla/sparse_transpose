@@ -1,9 +1,9 @@
 #ifndef INCLUDE_TOOLS_H
 #define INCLUDE_TOOLS_H
 
-#define N_REPEAT 1
+#define N_REPEAT 7
 #define BENCHMARK_SMALL_MATRICES
-#define BENCHMARK_LARGE_MATRICES
+// #define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
 #define GUSTAVSON 0      
@@ -23,19 +23,20 @@ struct bench_time total[N_METHOD];
 
 #define OUTPUT_FILENAME "benchmarks.csv"
 
-#define OUTPUT_FORMAT "%s,%s,%s,%d, %s,%.15f,%.15f,%.15f,%.15f,%d\n"
+// name,cflags,cxxflags,threads,matrix,compress,transpose,compress_tr,transpose_tr,step,total_step
+#define OUTPUT_FORMAT "%s,%s,%s,%d, %s,%.15f,%.15f,%.15f,%.15f,%d,%d\n"
 
 #define MATRIX_PATH "/Infos/lmd/2019/master/ue/MU4IN903-2020fev"
 
 #define FILENAME_LENGTH 128
 
 /* the matrices in "Parallel Transposition of Sparse Data Structures" by Wang, Liu, Hou and Feng */
-#define N_SMALL_MATRICES 2
+#define N_SMALL_MATRICES 3
 const char *matrices[N_SMALL_MATRICES] = {
 	"language",
 	"ASIC_680k",
-/*	"circuit5M",
-	"flickr",
+	"circuit5M",
+/*	"flickr",
 	"memchip",
 	"rajat21",
 	"sme3Dc",

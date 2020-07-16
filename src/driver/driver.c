@@ -239,7 +239,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 
 	assert(sizeof(MKL_INT) == sizeof(int));
 
-	// mkl_set_num_threads(num_threads);
+	mkl_set_num_threads(num_threads);
 	status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m, T->nz, T->i, T->j, T->x);
 	if (status != SPARSE_STATUS_SUCCESS)
 		errx(1, "MKL create_coo (T) failed");
@@ -252,11 +252,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	duration->compress = stop - start;
 	total[MKL].compress += duration->compress;
-#ifdef HAVE_MKL_SEQUENTIAL
-	fprintf(stderr, "-- MKL compress (sequential) [COO->CSR]: %.3fs\n", duration->compress);
-#else
-	fprintf(stderr, "-- MKL compress (%d threads) [COO->CSR]: %.3fs\n", num_threads, duration->compress);
-#endif // HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL compress (%s, %d threads) [COO->CSR]: %.3fs\n", HAVE_MKL, num_threads, duration->compress);
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_A, SPARSE_OPERATION_TRANSPOSE, &mkl_B);
@@ -265,11 +261,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	duration->transpose = stop - start;
 	total[MKL].transpose += duration->transpose;
-#ifdef HAVE_MKL_SEQUENTIAL
-	fprintf(stderr, "-- MKL transpose (sequential) [CSR->CSR']: %.3fs\n", duration->compress);
-#else
-	fprintf(stderr, "-- MKL transpose (%d threads) [CSR->CSR']: %.3fs\n", num_threads, duration->transpose);
-#endif //HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL transpose (%s, %d threads) [CSR->CSR']: %.3fs\n", HAVE_MKL, num_threads, duration->transpose);
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_T, SPARSE_OPERATION_TRANSPOSE, &mkl_C);
@@ -278,11 +270,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (coo->csr) failed");
 	duration->compress_tr = stop - start;
 	total[MKL].compress_tr += duration->compress_tr;
-#ifdef HAVE_MKL_SEQUENTIAL
-	fprintf(stderr, "-- MKL compress (sequential) [COO'->CSR']: %.3fs\n", duration->compress);
-#else
-	fprintf(stderr, "-- MKL compress (%d threads) [COO'->CSR']: %.3fs\n", num_threads, duration->compress_tr);
-#endif // HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL compress (%s, %d threads) [COO'->CSR']: %.3fs\n", HAVE_MKL, num_threads, duration->compress_tr);
 
 	start = spasm_wtime();
 	status = mkl_sparse_convert_csr(mkl_C, SPARSE_OPERATION_TRANSPOSE, &mkl_D);
@@ -291,11 +279,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration, int num_t
 		errx(1, "MKL convert_csr (csr->csr) failed");
 	duration->transpose_tr = stop - start;
 	total[MKL].transpose_tr += duration->transpose_tr;
-#ifdef HAVE_MKL_SEQUENTIAL
-	fprintf(stderr, "-- MKL transpose (sequential) [CSR'->CSR]: %.3fs\n", duration->compress);
-#else
-	fprintf(stderr, "-- MKL transpose (%d threads) [CSR'->CSR]: %.3fs\n", num_threads, duration->transpose_tr);
-#endif // HAVE_MKL_SEQUENTIAL
+	fprintf(stderr, "-- MKL transpose (%s, %d threads) [CSR'->CSR]: %.3fs\n", HAVE_MKL, num_threads, duration->transpose_tr);
 
 	status = mkl_sparse_destroy(mkl_T);
 	if (status != SPARSE_STATUS_SUCCESS)
@@ -334,7 +318,7 @@ void write_test_classical(const char *output_filename, const char *matrix_filena
 	const char * name = "Gustavson";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -348,7 +332,7 @@ void write_test_stdsort(const char *output_filename, const char *matrix_filename
 	const char * name = "std::sort";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -361,7 +345,7 @@ void write_test_tbbsort(const char *output_filename, const char *matrix_filename
 	const char * name = "tbb::parallel_sort";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -371,10 +355,13 @@ void write_test_MKL(const char *output_filename, const char *matrix_filename, st
 	FILE* file = fopen(output_filename, "a");
 	if (file == NULL)
 		err(1, "impossible to open %s", output_filename);
-	const char * name = "MKL";
+	char name[15] = "MKL";
+#ifdef HAVE_MKL
+	sprintf(name, "%s %s", name, HAVE_MKL);
+#endif // HAVE_MKL
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, duration[i].compress, duration[i].transpose, duration[i].compress_tr, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -389,7 +376,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	int max_num_threads;
 	#pragma omp parallel
 	max_num_threads = omp_get_num_threads();
-	max_num_threads = 2;
+	max_num_threads = 4;
 #endif // defined HAVE_TBB || defined HAVE_MKL
 	
 	struct bench_time duration[N_REPEAT];

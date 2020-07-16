@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import csv
 import itertools
 import matplotlib.pyplot as plt
@@ -40,6 +42,13 @@ def csv_read(filename):
     with open(filename, newline='') as csvfile:
         csvReader = csv.DictReader(csvfile, fieldnames=fieldnames)
         for row in csvReader:
+            name = row['name']
+            # Remove file path
+            start_index = name.rfind('/')
+            if start_index != -1:
+                name = name[start_index:]
+            # Remove file extension
+            name = name[:-4]
             converted_row = {'name': row['name'],
                              'cflags': row['cflags'],
                              'cxxflags': row['cxxflags'],
@@ -138,16 +147,10 @@ def plot_speed_up(duration, show=True, save=True):
     if show or save:
         for execution in duration:
             name, _, matrix = execution
-            # matrix = matrix[44:-4]
             threads = duration[execution]['threads']
             time_transpose = duration[execution]['transpose']
             time_transpose_tr = duration[execution]['transpose_tr']
             fig, ax = plt.subplots(figsize=(8, 8))
-            # ax.set_xlim(( 0, 1))
-            # ax.set_ylim((,))
-            # ax.set_title(name + matrix)
-            # ax.set_ylabel('duration (s)')
-            # ax.set_xlabel("threads")
             # ax.set_aspect('equal')
             ax.set(xlabel='threads', xlim=(threads[0], threads[-1]),
                    xticks=range(threads[0], threads[-1] + 1), ylabel='duration (s)',
@@ -227,6 +230,7 @@ def plot_boxplot(data, available, show=True, save=True):
                     time_transpose.append([0]*N_repeat)
                     time_transpose_tr.append([0]*N_repeat)
                     labels.append(data[i]['name'])
+                    # labels.append(data[i]['name'])
                     for k in range(N_repeat):
                         # print(name, cflags, row['step'])
                         time_transpose[j][k] = data[i+k]['transpose']
@@ -235,8 +239,8 @@ def plot_boxplot(data, available, show=True, save=True):
                     j = j + 1
             # print(time_transpose)
             ax.boxplot(time_transpose)
-            plt.setp(ax, xticklabels=labels)
-            # ax.boxplot(time_transpose_tr)
+            ax.boxplot(time_transpose_tr)
+            plt.setp(ax, xticklabels=2*labels)
             # line_transpose, = ax.boxplot(time_transpose)
             # line_transpose_tr, = ax.boxplot(time_transpose_tr)
             # line_transpose.set_label("transpose")
@@ -264,7 +268,7 @@ def main():
     # print(data_parallel_means)
     duration = create_parallel_duration(new_available)
     fill_parallel_duration(data_parallel_means, duration)
-    plot_speed_up(duration, show=False, save=False)
+    plot_speed_up(duration, save=False)
     best = find_minima(duration)
     # print(best)
     faster_parallel = keep_faster_parallel(data_parallel, best)

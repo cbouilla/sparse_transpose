@@ -8,14 +8,13 @@
 #include "matio.h"
 #include "sptrans.h"
 #include "tools.h"
-#include "mini_spasm_wang.h"
-#include "classical_sort_wang.h"
-/*double spasm_wtime() {
+
+double spasm_wtime() {
 	struct timeval ts;
 	gettimeofday(&ts, NULL);
 	return (double)ts.tv_sec + ts.tv_usec / 1E6;
 }
-*/
+
 #ifdef _OPENMP
 
 void run_test_scanTrans(const char *filename, struct bench_time *duration, int num_threads)
@@ -133,7 +132,7 @@ void write_test_scanTrans(const char *output_filename, const char *matrix_filena
 	const char * name = "ScanTrans";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -146,7 +145,7 @@ void write_test_mergeTrans(const char *output_filename, const char *matrix_filen
 	const char * name = "MergeTrans";
 	for (unsigned short i = 0; i < N_REPEAT; i++)
 	{
-		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i);
+		fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads, matrix_filename, 0.0, duration[i].transpose, 0.0, duration[i].transpose_tr, i, N_REPEAT);
 	}
 	fclose(file);
 }
@@ -163,7 +162,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	int max_num_threads;
 	#pragma omp parallel
 	max_num_threads = omp_get_num_threads();
-	max_num_threads = 1;
+	max_num_threads = 4;
 
 	for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
 	{
@@ -179,7 +178,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 		clear_bench_time(&duration[i]);
 	}
 
-/*		for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
+		for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
 	{
 		for (int i = 0; i < N_REPEAT; ++i)
 		{
@@ -188,7 +187,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 		}
 		write_test_mergeTrans(output_filename, matrix_filename, duration, i_thread);
 	}
-*/	for (int i = 0; i < N_REPEAT; i++)
+	for (int i = 0; i < N_REPEAT; i++)
 	{
 		clear_bench_time(&duration[i]);
 	}
@@ -204,9 +203,9 @@ void show_grand_totals()
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[SCANTRANS].transpose);
 	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[SCANTRANS].transpose_tr);
 
-//	fprintf(stderr, "  MergeTrans:\n");
-//	fprintf(stderr, "    transpsose:    %.3fs\n", total[MERGETRANS].transpose);
-//	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MERGETRANS].transpose_tr);
+	fprintf(stderr, "  MergeTrans:\n");
+	fprintf(stderr, "    transpsose:    %.3fs\n", total[MERGETRANS].transpose);
+	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MERGETRANS].transpose_tr);
 #endif // _OPENMP
 }
 

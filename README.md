@@ -70,17 +70,20 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] utiliser valgrind pour corriger les fuites mémoire et les erreurs de driver_wang : sptrans -> segfault, vec -> segfault?
 - [x] mettre un assert dans la fonction load en supposant que l'entête est faux à la place de spasm_max
 - [x] afficher dans le csv lire use_mkl,compiler_flags
-- [ ] améliorer la ligne de compilation (les sauts de lignes dus à -D)
-- [ ] essayer avec O2 et O3, O3 defavorables ?
+- [ ] mettre Have_mkl dans le name dans le csv
 - [ ] enlever le chemin d'accès des matrices dans le csv
-- [ ] traiter le csv et afficher des graphes (boxplot pour la variance, courbe de l'accélération)
+- [x] prendre les algo parallel, moyenner les algo parallel, parcourir les matrices, parcourir les moyennes d'algo parallel (choisir un algo et parcourir le même sur les threads), tracer transpose en fonction de threads, idem pour transpose_tr, récupérer thread = argmax, **au lieu de tracer les moyennes, tracer avec barre d'erreur ?**
+- [ ] parcourir les matrices, parcourir les algo, tracer les boites à moustaches, moyenner les algo sequentiel
+- [ ] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), **dataframe panda** ?
+- [ ] essayer avec O2 et O3, O3 defavorables ?
 - [ ] commenter le code
 - [ ] reformater le code
 - [ ] embellir la sortie
+- [ ] améliorer la ligne de compilation (les sauts de lignes dus à -D)
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 à remettre:num_threads,repeat,large_matrix,licence driver_wang
 retiré de wang_sort la vérification avec la MKL,commenté mkl_set_num_threads
 
 GCC, MKL sequentielle, MKL iomp
-name,cflags,cxxflags,threads,matrix,compress,transport,compress_tr,tranpose_tr,étape
+keep_better_parallel ne regarde que les threads de la première transpose

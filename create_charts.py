@@ -4,8 +4,10 @@ import csv
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import sys
 
-filename = "benchmarks.csv"
+plt.rcParams.update({'font.size': 12})
+
 save_path = "charts/"
 fieldnames = ["name", "cflags", "cxxflags", "threads", "matrix", "compress",
               "transpose", "compress_tr", "transpose_tr", "step", "total_step"]
@@ -42,18 +44,18 @@ def csv_read(filename):
     with open(filename, newline='') as csvfile:
         csvReader = csv.DictReader(csvfile, fieldnames=fieldnames)
         for row in csvReader:
-            name = row['name']
+            matrix = row['matrix']
             # Remove file path
-            start_index = name.rfind('/')
+            start_index = matrix.rfind('/')
             if start_index != -1:
-                name = name[start_index:]
+                matrix = matrix[start_index + 1:]
             # Remove file extension
-            name = name[:-4]
+            matrix = matrix[:-4]
             converted_row = {'name': row['name'],
                              'cflags': row['cflags'],
                              'cxxflags': row['cxxflags'],
                              'threads': int(row['threads']),
-                             'matrix': row['matrix'][44:-4],
+                             'matrix': matrix,
                              'compress': float(row['compress']),
                              'transpose': float(row['transpose']),
                              'compress_tr': float(row['compress_tr']),
@@ -71,7 +73,7 @@ def csv_read(filename):
 def compute_means(data):
     N_repeat = int(data[0]['total_step'])
     means = list()
-    for i in range(0, len(data), N_repeat):  # rendre plus propre
+    for i in range(0, len(data), N_repeat):
         duration = [0, 0, 0, 0]
         for j in range(0, N_repeat):
             duration[0] += data[i+j]['compress']
@@ -150,17 +152,18 @@ def plot_speed_up(duration, show=True, save=True):
             threads = duration[execution]['threads']
             time_transpose = duration[execution]['transpose']
             time_transpose_tr = duration[execution]['transpose_tr']
-            fig, ax = plt.subplots(figsize=(8, 8))
-            # ax.set_aspect('equal')
-            ax.set(xlabel='threads', xlim=(threads[0], threads[-1]),
-                   xticks=range(threads[0], threads[-1] + 1), ylabel='duration (s)',
-                   title=name + " on " + matrix)
-            ax.grid(True, linestyle='-.')
-            line_transpose, = ax.plot(threads, time_transpose)
-            line_transpose_tr, = ax.plot(threads, time_transpose_tr, 'r--')
+            fig, axes = plt.subplots(figsize=(8, 8))
+            # , xlim=(threads[0], threads[-1])
+            axes.set(xlabel='threads',
+                     xticks=range(threads[0], threads[-1] + 1),
+                     ylabel='duration (s)', title=name + " on " + matrix)
+            axes.grid(True, linestyle='-.')
+            line_transpose, = axes.plot(
+                threads, time_transpose, linestyle=(0, (5, 7)), marker='o')
+            line_transpose_tr, = axes.plot(threads, time_transpose_tr, 'ro--')
             line_transpose.set_label("transpose")
             line_transpose_tr.set_label("transpose_tr")
-            ax.legend()
+            axes.legend()
             output = save_path + name+"_"+matrix+"_speed_up.svg"
             if save:
                 fig.savefig(output)
@@ -168,7 +171,7 @@ def plot_speed_up(duration, show=True, save=True):
                 plt.show()
 
 
-def minima(x):  # a ameliorer
+def minima(x):
     minimum = x[0]
     indices = set()
     for i in range(len(x)):
@@ -205,13 +208,10 @@ def keep_faster_parallel(data_parallel, best):
 
 
 def plot_boxplot(data, available, show=True, save=True):
-    # version = set()
     if show or save:
         matrixs = set()
         for (name, cflags, matrix, threads) in available:
-            # version.add((name, cflags, threads))
             matrixs.add(matrix)
-        # print(version)
         for matrix in matrixs:
             fig, ax = plt.subplots(figsize=(8, 8))
             ax.set(xlabel='name',
@@ -221,30 +221,27 @@ def plot_boxplot(data, available, show=True, save=True):
             time_transpose = list()
             time_transpose_tr = list()
             labels = list()
-            # for (name, cflags, threads) in version:
             N_repeat = data[0]['total_step']
             j = 0
             for i in range(0, len(data), N_repeat):
-                # if row['name'] == name and row['cflags'] == cflags and row['matrix'] == matrix and row['threads'] == threads:
                 if data[i]['matrix'] == matrix:
                     time_transpose.append([0]*N_repeat)
                     time_transpose_tr.append([0]*N_repeat)
                     labels.append(data[i]['name'])
-                    # labels.append(data[i]['name'])
                     for k in range(N_repeat):
-                        # print(name, cflags, row['step'])
                         time_transpose[j][k] = data[i+k]['transpose']
                         time_transpose_tr[j][k] = data[i+k]['transpose_tr']
-                        # time_transpose_tr[row['step']].append(row['transpose_tr'])
                     j = j + 1
             # print(time_transpose)
-            ax.boxplot(time_transpose)
-            ax.boxplot(time_transpose_tr)
+            bplot = ax.boxplot(time_transpose, sym="k+", patch_artist=True,
+                               medianprops={'color': "blue"})
+            bplot_tr = ax.boxplot(time_transpose_tr, sym="k+")
+            bplot['medians'][0].set_label("transpose")
+            bplot_tr['medians'][0].set_label("transpose_tr")
             plt.setp(ax, xticklabels=2*labels)
-            # line_transpose, = ax.boxplot(time_transpose)
-            # line_transpose_tr, = ax.boxplot(time_transpose_tr)
-            # line_transpose.set_label("transpose")
-            # line_transpose_tr.set_label("transpose_tr")
+            ax.legend()
+            # for patch in bplot_tr['boxes']:
+            #     patch.set_facecolor("grey")
             output = save_path + matrix + "_boxplot.svg"
             if save:
                 fig.savefig(output)
@@ -253,6 +250,13 @@ def plot_boxplot(data, available, show=True, save=True):
 
 
 def main():
+    filename = "benchmarks.csv"
+    argc = len(sys.argv)
+    if argc == 2:
+        filename = sys.argv[1]
+    elif argc > 2:
+        print("Usage: create_charts [input_filename].\nThe default filename is", filename)
+        return
     data, new_available = csv_read(filename)
     # print(data)
     # print(available)
@@ -262,22 +266,22 @@ def main():
     #     print("seq", row)
     # print("para", data_parallel)
     # # print('all',all_available)
-    data_parallel_means = compute_means(data_parallel)
+    # data_parallel_means = compute_means(data_parallel)
     # for row in data_parallel_means:
     #     print(row)
     # print(data_parallel_means)
-    duration = create_parallel_duration(new_available)
-    fill_parallel_duration(data_parallel_means, duration)
-    plot_speed_up(duration, save=False)
-    best = find_minima(duration)
+    # duration = create_parallel_duration(new_available)
+    # fill_parallel_duration(data_parallel_means, duration)
+    # plot_speed_up(duration, save=False)
+    # best = find_minima(duration)
     # print(best)
-    faster_parallel = keep_faster_parallel(data_parallel, best)
+    # faster_parallel = keep_faster_parallel(data_parallel, best)
     # for row in faster_parallel:
     #     print(row)
     # for row in itertools.chain(data_sequential, faster_parallel):
     #     print(row)
-    new_data = data_sequential + faster_parallel
-    plot_boxplot(new_data, new_available, save=False)
+    new_data = data # data_sequential + faster_parallel
+    plot_boxplot(new_data, new_available, show=False, save=True)
 
 
 if __name__ == "__main__":

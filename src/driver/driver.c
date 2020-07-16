@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include <inttypes.h>
 #include <err.h>
@@ -400,7 +401,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	{
 		clear_bench_time(&duration[i]);
 	}
-
+/*
 	for (int i = 0; i < N_REPEAT; ++i)
 	{
 		fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
@@ -411,7 +412,7 @@ void run_test(const char *matrix_filename, const char * output_filename)
 	{
 		clear_bench_time(&duration[i]);
 	}
-
+*/
 #ifdef HAVE_TBB
 
 	for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
@@ -461,13 +462,13 @@ void show_grand_totals(void)
 	fprintf(stderr, "    compress_tr:   %.3fs\n", total[GUSTAVSON].compress_tr);
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[GUSTAVSON].transpose);
 	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[GUSTAVSON].transpose_tr);
-
+/*
 	fprintf(stderr, "  std::sort:\n");
 	fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
 	fprintf(stderr, "    compress_tr:   %.3fs\n", total[STDSORT].compress_tr);
 	fprintf(stderr, "    transpsose:    %.3fs\n", total[STDSORT].transpose);
 	fprintf(stderr, "    transpsose_tr: %.3fs\n", total[STDSORT].transpose_tr);
-	
+*/
 #ifdef HAVE_TBB
 	fprintf(stderr, "  tbb::parallel_sort:\n");
 	fprintf(stderr, "    compress:      %.3fs\n", total[TBBSORT].compress);
@@ -485,9 +486,22 @@ void show_grand_totals(void)
 #endif // HAVE_MKL
 }
 
-int main(void)
+int main(int argc, char **argv)
 {
-	const char *output_filename = OUTPUT_FILENAME;
+	char output_filename[FILENAME_MAX];
+	if (argc == 1)
+	{
+		strcpy(output_filename, OUTPUT_FILENAME);
+	}
+	else if (argc == 2)
+	{
+		strcpy(output_filename, argv[1]);
+	} else
+	{
+		fprintf(stderr, "Usage: ./driver [output_filename]\nThe default filename is '%s'\n", OUTPUT_FILENAME);
+		return EXIT_FAILURE;
+	}
+
 	printf("Output file: %s\n", output_filename);
 
 	for (int i = 0; i < N_METHOD; i++)
@@ -504,7 +518,7 @@ int main(void)
 
 #ifdef BENCHMARK_SMALL_MATRICES
 	for (int i = 0; i < N_SMALL_MATRICES; i++) {
-	 	char matrix_filename[FILENAME_LENGTH];
+	 	char matrix_filename[FILENAME_MAX];
 	 	sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);
@@ -517,7 +531,7 @@ int main(void)
 
 #ifdef BENCHMARK_LARGE_MATRICES
 	for (int i = 1; i <= N_LARGE_MATRICES; i++) {  // just this one is enough to exhibit the crash
-	 	char matrix_filename[FILENAME_LENGTH];
+	 	char matrix_filename[FILENAME_MAX];
 	 	sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);

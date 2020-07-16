@@ -3,7 +3,7 @@
 
 #define N_REPEAT 7
 #define BENCHMARK_SMALL_MATRICES
-// #define BENCHMARK_LARGE_MATRICES
+#define BENCHMARK_LARGE_MATRICES
 
 /* offsets in the "total" array below */
 #define GUSTAVSON 0      
@@ -28,15 +28,13 @@ struct bench_time total[N_METHOD];
 
 #define MATRIX_PATH "/Infos/lmd/2019/master/ue/MU4IN903-2020fev"
 
-#define FILENAME_LENGTH 128
-
 /* the matrices in "Parallel Transposition of Sparse Data Structures" by Wang, Liu, Hou and Feng */
-#define N_SMALL_MATRICES 3
+#define N_SMALL_MATRICES 21
 const char *matrices[N_SMALL_MATRICES] = {
 	"language",
 	"ASIC_680k",
 	"circuit5M",
-/*	"flickr",
+	"flickr",
 	"memchip",
 	"rajat21",
 	"sme3Dc",
@@ -54,7 +52,7 @@ const char *matrices[N_SMALL_MATRICES] = {
 	"torso1",
 	"venkat01",
 	"web-Google"
-*/};
+};
 
 #define N_LARGE_MATRICES 58
 

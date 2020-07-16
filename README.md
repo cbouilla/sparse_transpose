@@ -72,14 +72,14 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] afficher dans le csv lire use_mkl,compiler_flags
 - [x] mettre Have_mkl dans le name dans le csv
 - [x] enlever le chemin d'accès des matrices dans le csv
-- [x] prendre les algo parallel, moyenner les algo parallel, parcourir les matrices, parcourir les moyennes d'algo parallel (choisir un algo et parcourir le même sur les threads), tracer transpose en fonction de threads, idem pour transpose_tr, récupérer thread = argmax, **au lieu de tracer les moyennes, tracer avec barre d'erreur ?**
+- [x] prendre les algo parallel, moyenner les algo parallel, parcourir les matrices, parcourir les moyennes d'algo parallel (choisir un algo et parcourir le même sur les threads), tracer transpose en fonction de threads, idem pour transpose_tr, récupérer thread = argmax
 - [x] parcourir les matrices, parcourir les algo, tracer les boites à moustaches
-- [x] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), **dataframe panda** ?
-- [x] tracer les boxplot de transpose et transpose_tr cote à cote avec les memes limites ?
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ?
+- [x] améliorer la ligne de compilation (les sauts de lignes dus à -D)
+- [ ] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), **dataframe panda** ?
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK,
+- [ ] calculer l'accélération avec un algo séquentiel : Gustavson -O2, Mkl ?
 - [ ] commenter le code
 - [ ] reformater le code
-- [ ] améliorer la ligne de compilation (les sauts de lignes dus à -D)
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 à remettre:num_threads,repeat,large_matrix,licence driver_wang

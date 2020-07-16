@@ -3,7 +3,7 @@
 #include <err.h>
 #include <algorithm>
 #include <stdlib.h>
-
+#include <cstring>
 #include <sys/time.h> // timing
 #include "matio.h"
 #include "sptrans.h"
@@ -209,9 +209,22 @@ void show_grand_totals()
 #endif // _OPENMP
 }
 
-int main()
+int main(int argc, char **argv)
 {
-	const char *output_filename = OUTPUT_FILENAME;
+	char output_filename[FILENAME_MAX];
+	if (argc == 1)
+	{
+		strcpy(output_filename, OUTPUT_FILENAME);
+	}
+	else if (argc == 2)
+	{
+		strcpy(output_filename, argv[1]);
+	} else
+	{
+		fprintf(stderr, "Usage: ./driver [output_filename]\nThe default filename is '%s'", OUTPUT_FILENAME);
+		return EXIT_FAILURE;
+	}
+
 	printf("Output file: %s\n", output_filename);
 
 	for (int i = 0; i < N_METHOD; i++)
@@ -221,7 +234,7 @@ int main()
 
 #ifdef BENCHMARK_SMALL_MATRICES
 	for (int i = 0; i < N_SMALL_MATRICES; i++) {
-	 	char matrix_filename[FILENAME_LENGTH];
+	 	char matrix_filename[FILENAME_MAX];
 	 	sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
 		
 		printf("#---------------------------------------- %s\n", matrix_filename);
@@ -234,7 +247,7 @@ int main()
 
 #ifdef BENCHMARK_LARGE_MATRICES
   for (int i = 1; i <= N_LARGE_MATRICES; i++) {  // just this one is enough to exhibit the crash
-    char matrix_filename[FILENAME_LENGTH];
+    char matrix_filename[FILENAME_MAX];
     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 
     printf("#---------------------------------------- %s\n", matrix_filename);

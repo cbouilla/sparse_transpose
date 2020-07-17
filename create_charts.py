@@ -233,7 +233,7 @@ def plot_boxplot(data, available, show=True, save=True):
                         time_transpose_tr[j][k] = data[i+k]['transpose_tr']
                     j = j + 1
             # print(time_transpose)
-            bplot = ax.boxplot(time_transpose, sym="k+", patch_artist=True,
+            bplot = ax.boxplot(time_transpose, sym="k+", #patch_artist=True,
                                medianprops={'color': "blue"})
             bplot_tr = ax.boxplot(time_transpose_tr, sym="k+")
             bplot['medians'][0].set_label("transpose")

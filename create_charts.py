@@ -1,14 +1,17 @@
 #!/usr/bin/env python3
 
+"""Creates charts (boxplot, speed up) from a CSV file.
+    """
+
 import csv
 import itertools
 import matplotlib.pyplot as plt
 import numpy as np
+import os
 import sys
 
 plt.rcParams.update({'font.size': 12})
 
-save_path = "charts/"
 fieldnames = ["name", "cflags", "cxxflags", "threads", "matrix", "compress",
               "transpose", "compress_tr", "transpose_tr", "step", "total_step"]
 matrices = [
@@ -39,6 +42,19 @@ names = ["Gustavson", "std::sort", "tbb::sort",
 
 
 def csv_read(filename):
+    """Reads `filename` as a CSV file, assuming that the columns of the CSV file
+    correspond to `fieldnames`.
+
+    Args:
+        filename (str): The CSV file.
+
+    Returns:
+        [(list of dict, set)]: The first variable is all data in `filename`.
+        This is a list where every element corresponds to a dictionary
+        containing the values of a row of `filename`. The second variable
+        represents the different executions of algorithms. This is a set where
+        keys are tuples made of (name, cflags, matrix, threads).
+    """
     data = list()
     available = set()
     with open(filename, newline='') as csvfile:
@@ -51,7 +67,7 @@ def csv_read(filename):
                 matrix = matrix[start_index + 1:]
             # Remove file extension
             matrix = matrix[:-4]
-            converted_row = {'name': row['name'],
+            processed_row = {'name': row['name'],
                              'cflags': row['cflags'],
                              'cxxflags': row['cxxflags'],
                              'threads': int(row['threads']),
@@ -63,24 +79,34 @@ def csv_read(filename):
                              'step': int(row['step']),
                              'total_step': int(row['total_step'])
                              }
-            data.append(converted_row)
-            key = (converted_row['name'], converted_row['cflags'],
-                   converted_row['matrix'], converted_row['threads'])
+            data.append(processed_row)
+            key = (processed_row['name'], processed_row['cflags'],
+                   processed_row['matrix'], processed_row['threads'])
             available.add(key)
     return data, available
 
 
 def compute_means(data):
+    """Computes the means of the several repetitions of the executions of each
+    algorithm in `data`.
+
+    Args:
+        data (list of dict): Data shaped like the output of `csv_read`.
+
+    Returns:
+        list of dict: The several repetitions of the executions of each
+    algorithm are replaced by the mean of these repetitions.
+    """
     N_repeat = int(data[0]['total_step'])
     means = list()
     for i in range(0, len(data), N_repeat):
         duration = [0, 0, 0, 0]
-        for j in range(0, N_repeat):
-            duration[0] += data[i+j]['compress']
-            duration[1] += data[i+j]['transpose']
-            duration[2] += data[i+j]['compress_tr']
-            duration[3] += data[i+j]['transpose_tr']
-        for j in range(0, 4):
+        for j in range(N_repeat):
+            duration[0] += data[i + j]['compress']
+            duration[1] += data[i + j]['transpose']
+            duration[2] += data[i + j]['compress_tr']
+            duration[3] += data[i + j]['transpose_tr']
+        for j in range(len(duration)):
             duration[j] = duration[j] / N_repeat
         row = {'name': data[i]['name'], 'cflags': data[i]['cflags'],
                'cxxflags': data[i]['cxxflags'], 'threads': data[i]['threads'],
@@ -92,19 +118,39 @@ def compute_means(data):
     return means
 
 
-def is_sequential(name, cflags):
-    is_gustavson = name == "Gustavson"
-    is_std_sort = name == "std::sort"
-    is_mkl_sequential = (name[:3] == "MKL") and (name[4:] == "sequential")
+def is_sequential(name):
+    """Returns whether or not algorithm `name` is sequential.
+
+    Args:
+        name (str): The name of the algorithm.
+
+    Returns:
+        bool: Whether or not algorithm `name` is sequential.
+    """
+    is_gustavson = name.find("Gustavson") != -1
+    is_std_sort = name .find("std::sort") != -1
+    is_mkl_sequential = (name.find("MKL") != -
+                         1) and (name.find("sequential") != -1)
     is_sequential = is_gustavson or is_std_sort or is_mkl_sequential
     return is_sequential
 
 
 def split(data):
+    """Splits `data` between those from sequential algorithms and those from
+    parallel algorithms.
+
+    Args:
+        data (list of dict): Data shaped like the output of `csv_read`.
+
+    Returns:
+        (list of dict, list of dict): The first variable contains the elements
+        of `data` where algorithms are sequential. The second variable contains
+        those where algorithms are parallel.
+    """
     sequential = list()
     parallel = list()
     for row in data:
-        if is_sequential(row['name'], row['cflags']):
+        if is_sequential(row['name']):
             sequential.append(row)
         else:
             parallel.append(row)
@@ -112,6 +158,16 @@ def split(data):
 
 
 def create_parallel_duration(available):
+    """Returns a dictionary where keys are parallel algorithms (ignoring the
+    number of threads) in `available` and values are empty lists.
+
+    Args:
+        available (set): Data shaped like the output of `csv_read`.
+
+    Returns:
+        dict: A dictionary where keys are parallel algorithms in `available`
+    and values are empty lists.
+    """
     duration = dict()
     # value = {'threads': list(), 'compress': list(), 'transpose': list(),
     #                  'compress_tr': list(), 'transpose_tr': list()}
@@ -119,12 +175,22 @@ def create_parallel_duration(available):
     for key in available:
         name, cflags, matrix, _ = key
         short_key = (name, cflags, matrix)
-        if not is_sequential(name, cflags):
+        if not is_sequential(name):
             duration[short_key] = value
     return duration
 
 
 def fill_parallel_duration(data_parallel_means, duration):
+    """Fills `duration` with the mean time (from `data_parallel_means`) of
+    each execution of each algorithm, puts the executions with different number
+    of threads together.
+
+    Args:
+        data_parallel_means (list of dict): Data shaped like the output of
+        `compute_means`.
+        duration (dict): Data shaped like the output of
+        `create_parallel_duration.
+    """
     a = True  # horrible
     for row in data_parallel_means:
         key = (row['name'], row['cflags'], row['matrix'])
@@ -145,7 +211,17 @@ def fill_parallel_duration(data_parallel_means, duration):
         previous_key = key  # horrible
 
 
-def plot_speed_up(duration, show=True, save=True):
+def plot_duration(duration, show=True, save=True, save_path=""):
+    """Plots duration charts for each algorithm for each matrix.
+
+    Args:
+        duration (dict): Data shaped like the output of
+        `fill_parallel_duration`
+        show (bool, optional): Whether or not showing plots. Defaults to True.
+        save (bool, optional): Whether or not saving plots. Defaults to True.
+        save_path (str, optional): The path where charts are saved. Defaults to
+        "".
+    """
     if show or save:
         for execution in duration:
             name, _, matrix = execution
@@ -164,14 +240,64 @@ def plot_speed_up(duration, show=True, save=True):
             line_transpose.set_label("transpose")
             line_transpose_tr.set_label("transpose_tr")
             axes.legend()
-            output = save_path + name+"_"+matrix+"_speed_up.svg"
             if save:
+                output = save_path + name + "_" + matrix + "_duration.svg"
+                fig.savefig(output)
+            if show:
+                plt.show()
+
+
+def plot_speed_up(duration, duration_seq, show=True, save=True, save_path=""):
+    """Plots speed up charts for each algorithm for each matrix.
+
+    Args:
+        duration (dict): Data shaped like the output of
+        `fill_parallel_duration`
+        show (bool, optional): Whether or not showing plots. Defaults to True.
+        save (bool, optional): Whether or not saving plots. Defaults to True.
+        save_path (str, optional): The path where charts are saved. Defaults to
+        "".
+    """
+    if show or save:
+        for execution in duration:
+            name, _, matrix = execution
+            threads = duration[execution]['threads']
+            time_transpose = duration[execution]['transpose']
+            time_transpose_tr = duration[execution]['transpose_tr']
+            time_ref = duration_seq[matrix]
+            for time in time_transpose:
+                time = time_ref / time
+            for time in time_transpose_tr:
+                time = time_ref / time
+            fig, axes = plt.subplots(figsize=(8, 8))
+            # , xlim=(threads[0], threads[-1])
+            axes.set(xlabel='threads',
+                     xticks=range(threads[0], threads[-1] + 1),
+                     ylabel='duration (s)', title=name + " on " + matrix)
+            axes.grid(True, linestyle='-.')
+            line_transpose, = axes.plot(
+                threads, time_transpose, linestyle=(0, (5, 7)), marker='o')
+            line_transpose_tr, = axes.plot(threads, time_transpose_tr, 'ro--')
+            line_transpose.set_label("transpose")
+            line_transpose_tr.set_label("transpose_tr")
+            axes.legend()
+            if save:
+                output = save_path + name + "_" + matrix + "_speed_up.svg"
                 fig.savefig(output)
             if show:
                 plt.show()
 
 
 def minima(x):
+    """Returns the minimum of `x` and the set of argmin.
+
+    Args:
+        x : 
+
+    Returns:
+        (, set): The first variable is the minimum of `x`. The second variable
+        is the set of argmin.
+    """
     minimum = x[0]
     indices = set()
     for i in range(len(x)):
@@ -185,6 +311,18 @@ def minima(x):
 
 
 def find_minima(duration):
+    """Finds minima (according to the number of threads) of each execution of
+    algorithm in `duration` and returns a dictionary where the keys are the
+    executions and values are the minima.
+
+    Args:
+        duration (dict): Data shaped like the output of
+        `fill_parallel_duration`
+
+    Returns:
+        dict: Keys are execution of algorithm, values are the best duration and
+        the according number of threads.
+    """
     best = dict()
     for execution in duration:
         time_transpose = duration[execution]['transpose']
@@ -199,6 +337,17 @@ def find_minima(duration):
 
 
 def keep_faster_parallel(data_parallel, best):
+    """Returns a copy of `data_parallel` where only the best execution
+    (according to the number of threads) of each algorithm is kept.
+
+    Args:
+        data_parallel (list of dict): Data shaped like the output of `split`.
+        best (dict): Data shaped like the output of `find_minima`.
+
+    Returns:
+        list of dict: A copy of `data_parallel` where only the best execution
+    (according to the number of threads) of each algorithm is kept.
+    """
     faster_parallel = list()
     for row in data_parallel:
         key = (row['name'], row['cflags'], row['matrix'])
@@ -207,10 +356,20 @@ def keep_faster_parallel(data_parallel, best):
     return faster_parallel
 
 
-def plot_boxplot(data, available, show=True, save=True):
+def plot_boxplot(data, available, show=True, save=True, save_path=""):
+    """Plots boxplot for each algorithm for each matrix.
+
+    Args:
+        data (list of dict): Data shaped like the output of `csv_read`.
+        available (set): Data shaped like the output of `csv_read`.
+        show (bool, optional): Whether or not showing plots. Defaults to True.
+        save (bool, optional): Whether or not saving plots. Defaults to True.
+        save_path (str, optional): The path where charts are saved. Defaults to
+        "".
+    """
     if show or save:
         matrixs = set()
-        for (name, cflags, matrix, threads) in available:
+        for (_, _, matrix, _) in available:
             matrixs.add(matrix)
         for matrix in matrixs:
             fig, ax = plt.subplots(figsize=(8, 8))
@@ -233,7 +392,7 @@ def plot_boxplot(data, available, show=True, save=True):
                         time_transpose_tr[j][k] = data[i+k]['transpose_tr']
                     j = j + 1
             # print(time_transpose)
-            bplot = ax.boxplot(time_transpose, sym="k+", #patch_artist=True,
+            bplot = ax.boxplot(time_transpose, sym="k+",  # patch_artist=True,
                                medianprops={'color': "blue"})
             bplot_tr = ax.boxplot(time_transpose_tr, sym="k+")
             bplot['medians'][0].set_label("transpose")
@@ -242,46 +401,63 @@ def plot_boxplot(data, available, show=True, save=True):
             ax.legend()
             # for patch in bplot_tr['boxes']:
             #     patch.set_facecolor("grey")
-            output = save_path + matrix + "_boxplot.svg"
             if save:
+                output = save_path + matrix + "_boxplot.svg"
                 fig.savefig(output)
             if show:
                 plt.show()
 
 
+def create_ref_duration(data):
+    """Returns a dictionary where keys are reference sequential algorithms in
+    `data` and values mean durations.
+
+    Args:
+        data (list of dict): Data shaped like the output of `csv_read`
+
+    Returns:
+        dict: A dictionary where keys are reference sequential algorithms in
+        `data` and values mean durations.
+    """
+    data_means = compute_means(data)  # list of dict
+    duration = dict()
+    for row in data_means:
+        key = row["matrix"]  # (row['name'], row['cflags'], row["matrix"])
+        value = {'compress': row['compress'], 'transpose': row['transpose'],
+                 'compress_tr': row['compress_tr'],
+                 'transpose_tr': row['transpose_tr']}
+        duration[key] = value
+    return duration
+
+
 def main():
     filename = "benchmarks.csv"
+    save_path = "charts/"
     argc = len(sys.argv)
     if argc == 2:
         filename = sys.argv[1]
+        start_index = filename.find("/") + 1
+        save_path = save_path + filename[start_index:-4] + "/"
+        os.mkdir(save_path)
     elif argc > 2:
-        print("Usage: create_charts [input_filename].\nThe default filename is", filename)
+        print(
+            "Usage: create_charts [input_filename].\nThe default filename is",
+            filename)
         return
-    data, new_available = csv_read(filename)
-    # print(data)
-    # print(available)
-    # data_sequential, data_parallel, available, all_available = split(data)
+    data, available = csv_read(filename)
     data_sequential, data_parallel = split(data)
-    # for row in data_sequential:
-    #     print("seq", row)
-    # print("para", data_parallel)
-    # # print('all',all_available)
+    # data_ref = csv_read("csv/classical_O2.csv")
+    # duration_seq = create_ref_duration(data_ref)
     # data_parallel_means = compute_means(data_parallel)
-    # for row in data_parallel_means:
-    #     print(row)
-    # print(data_parallel_means)
-    # duration = create_parallel_duration(new_available)
+    # duration = create_parallel_duration(available)
     # fill_parallel_duration(data_parallel_means, duration)
-    # plot_speed_up(duration, save=False)
+    # plot_duration(duration, save=False, save_path=save_path)
+    # plot_speed_up(duration, duration_seq, save=False, save_path=save_path)
     # best = find_minima(duration)
-    # print(best)
     # faster_parallel = keep_faster_parallel(data_parallel, best)
-    # for row in faster_parallel:
-    #     print(row)
-    # for row in itertools.chain(data_sequential, faster_parallel):
-    #     print(row)
-    new_data = data # data_sequential + faster_parallel
-    plot_boxplot(new_data, new_available, show=False, save=True)
+    new_data = data  # data_sequential + faster_parallel
+    plot_boxplot(new_data, available, show=False,
+                 save=True, save_path=save_path)
 
 
 if __name__ == "__main__":

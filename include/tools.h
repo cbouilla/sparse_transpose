@@ -14,10 +14,10 @@
 #define MERGETRANS 5
 #define N_METHOD 6
 struct bench_time {
-	double compress;           // duration to "compress" the matrix    (convert   COO  -> CSR) 
-	double compress_tr;        // duration to "compress" the transpose (convert   COO' -> CSR') 
-	double transpose;          // duration to transpose the matrix     (transpose CSR  -> CSR')
-	double transpose_tr;       // duration to transpose the transpose  (transpose CSR' -> CSR)
+	double compress;     // duration to "compress" the matrix    (convert   COO  -> CSR) 
+	double compress_tr;  // duration to "compress" the transpose (convert   COO' -> CSR') 
+	double transpose;    // duration to transpose the matrix     (transpose CSR  -> CSR')
+	double transpose_tr; // duration to transpose the transpose  (transpose CSR' -> CSR)
 };
 struct bench_time total[N_METHOD];
 

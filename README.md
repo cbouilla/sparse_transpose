@@ -76,14 +76,15 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] parcourir les matrices, parcourir les algo, tracer les boites à moustaches
 - [x] améliorer la ligne de compilation (les sauts de lignes dus à -D)
 - [ ] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), **dataframe panda** ?
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK,
-- [ ] calculer l'accélération avec un algo séquentiel : Gustavson -O2, Mkl ?
-- [ ] commenter le code
-- [ ] reformater le code
+- [x] créer un sous-dossier dans charts automatiquement
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK
+- [ ] graphique accélération, calculer l'accélération avec un algo séquentiel pour chaque matrice : Gustavson -O2
+- [ ] commenter le code, python OK
+- [x] reformater le code
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 à remettre:num_threads,repeat,large_matrix,licence driver_wang
 retiré de wang_sort la vérification avec la MKL
 
 GCC, MKL sequentielle, MKL iomp
-keep_better_parallel ne regarde que les threads de la première transpose
+keep_better_parallel ne regarde que les threads de la première transpose, semble OK

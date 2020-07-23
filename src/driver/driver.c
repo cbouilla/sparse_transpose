@@ -1,6 +1,6 @@
 ///
 /// \file driver.c
-/// \author Charles Bouillaguet & Jérôme Bonacchi
+/// \author Charles Bouillaguet and Jérôme Bonacchi
 /// \brief Run test bench.
 /// \date 2020-07-09
 ///
@@ -268,7 +268,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
   status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m,
                                    T->nnz, T->i, T->j, T->x);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL create_coo (T) failed");
+    err(1, "MKL create_coo (T) failed");
 
   // COO --> CSR
   start = spasm_wtime();
@@ -276,7 +276,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
       mkl_sparse_convert_csr(mkl_T, SPARSE_OPERATION_NON_TRANSPOSE, &mkl_A);
   stop = spasm_wtime();
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL convert_csr (coo->csr) failed");
+    err(1, "MKL convert_csr (coo->csr) failed");
   duration->compress = stop - start;
   total[MKL].compress += duration->compress;
   fprintf(stderr, "-- MKL compress (%s, %d threads) [COO->CSR]: %.3fs\n",
@@ -286,7 +286,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
   status = mkl_sparse_convert_csr(mkl_A, SPARSE_OPERATION_TRANSPOSE, &mkl_B);
   stop = spasm_wtime();
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL convert_csr (csr->csr) failed");
+    err(1, "MKL convert_csr (csr->csr) failed");
   duration->transpose = stop - start;
   total[MKL].transpose += duration->transpose;
   fprintf(stderr, "-- MKL transpose (%s, %d threads) [CSR->CSR']: %.3fs\n",
@@ -296,7 +296,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
   status = mkl_sparse_convert_csr(mkl_T, SPARSE_OPERATION_TRANSPOSE, &mkl_C);
   stop = spasm_wtime();
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL convert_csr (coo->csr) failed");
+    err(1, "MKL convert_csr (coo->csr) failed");
   duration->compress_tr = stop - start;
   total[MKL].compress_tr += duration->compress_tr;
   fprintf(stderr, "-- MKL compress (%s, %d threads) [COO'->CSR']: %.3fs\n",
@@ -306,7 +306,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
   status = mkl_sparse_convert_csr(mkl_C, SPARSE_OPERATION_TRANSPOSE, &mkl_D);
   stop = spasm_wtime();
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL convert_csr (csr->csr) failed");
+    err(1, "MKL convert_csr (csr->csr) failed");
   duration->transpose_tr = stop - start;
   total[MKL].transpose_tr += duration->transpose_tr;
   fprintf(stderr, "-- MKL transpose (%s, %d threads) [CSR'->CSR]: %.3fs\n",
@@ -314,19 +314,19 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
 
   status = mkl_sparse_destroy(mkl_T);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL destroy (T) failed");
+    err(1, "MKL destroy (T) failed");
   status = mkl_sparse_destroy(mkl_A);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL destroy (A) failed");
+    err(1, "MKL destroy (A) failed");
   status = mkl_sparse_destroy(mkl_B);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL destroy (B) failed");
+    err(1, "MKL destroy (B) failed");
   status = mkl_sparse_destroy(mkl_C);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL destroy (C) failed");
+    err(1, "MKL destroy (C) failed");
   status = mkl_sparse_destroy(mkl_D);
   if (status != SPARSE_STATUS_SUCCESS)
-    errx(1, "MKL destroy (D) failed");
+    err(1, "MKL destroy (D) failed");
 }
 
 void mkl_version()
@@ -419,10 +419,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
 #if defined HAVE_TBB || defined HAVE_MKL
-  int max_num_threads;
+  int max_num_threads = 1;
 #pragma omp parallel
   max_num_threads = omp_get_num_threads();
-  max_num_threads = 4;
 #endif // defined HAVE_TBB || defined HAVE_MKL
 
   algorithm_times duration[N_REPEAT];

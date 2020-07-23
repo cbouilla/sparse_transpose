@@ -1,33 +1,44 @@
+///
+/// \file mini_spasm.h
+/// \author // TODO
+/// \brief This file implements structures and functions to manage sparse matrix
+/// formats.
+/// \date 2020-07-23
+///
+/// @copyright // TODO
+///
+
 #ifndef INCLUDE_DRIVER_MINI_SPASM_H
 #define INCLUDE_DRIVER_MINI_SPASM_H
 
 #include <stdint.h>
 #include <stdio.h>
 
-typedef uint32_t u32;
+#include "tools.h"
 
 ///
 /// \brief A triplet corresponding to a matrix entry.
 ///
 struct matrix_entry_t
 {
-  u32 i;    /// row index
-  u32 j;    /// column index
-  double x; /// numerical value
+  u32 i;    ///< the row index
+  u32 j;    ///< the column index
+  double x; ///< the numerical value
 };
 
 ///
-/// \brief Matrix in triplet format
+/// \brief Matrix in triplet (COO) format
 ///
 typedef struct
 {
-  u32 nnz_max; /// maximum number of entries
-  u32 nnz;     /// # entries
-  u32 n;       /// number of rows
-  u32 m;       /// number of columns
-  u32 *i;      /// row indices, size nzmax
-  u32 *j;      /// column indices (size nzmax)
-  double *x;   /// numerical values, size nzmax (optional)
+  u32 nnz_max; ///< the maximum number of entries (only nonzero entries are
+               ///< usually stored, but explicit zero entries are allowed)
+  u32 nnz;     ///< the actual number of entries
+  u32 n;       ///< the number of rows
+  u32 m;       ///< the number of columns
+  u32 *i;      ///< the row indices (size == `nnz_max`)
+  u32 *j;      ///< the column indices (size == `nnz_max`)
+  double *x;   ///< the numerical values (size == `nnz_max`)
 } spasm_triplet;
 
 ///
@@ -35,12 +46,13 @@ typedef struct
 ///
 typedef struct
 {
-  u32 nnz_max; /// maximum number of entries
-  u32 n;       /// number of rows
-  u32 m;       /// number of columns
-  u32 *p;      /// row pointers (size n+1)
-  u32 *j;      /// column indices, size nzmax
-  double *x;   /// numerical values, size nzmax (optional)
+  u32 nnz_max; ///< the maximum number of entries (only nonzero entries are
+               ///< usually stored, but explicit zero entries are allowed)
+  u32 n;       ///< the number of rows
+  u32 m;       ///< the number of columns
+  u32 *p;      ///< the row pointers (size == `n` + 1)
+  u32 *j;      ///< the column indices (size == `nnz_max`)
+  double *x;   ///< the numerical values (size == `nnz_max`)
 } spasm;
 
 /* example (this is Matrix/t1)
@@ -71,101 +83,139 @@ The numerical values are optional (useful for storing a sparse graph, or the
 pattern of a matrix). */
 
 ///
-/// \brief Returns the number of entries in a matrix in CSR format. This is
-/// usually the number of nonzero entries, but explicit zero entries are
-/// allowed.
+/// \brief Returns the number of entries in a matrix in CSR format.
+/// Usually, only nonzero entries are stored, hence this is the number of
+/// nonzero entries, but explicit zero entries are allowed.
 ///
-/// \param A The matrix in CSR format
-/// \return int The number of entries in `A`
+/// \param[in] A the matrix in CSR format
+/// \return u32 the number of entries in the matrix
 ///
-int spasm_nnz(const spasm *A);
-
-///
-/// \brief Allocates a vector of size `size`.
-///
-/// \param size The size to allocate
-/// \return void* The pointer returned by `malloc`
-///
-void *spasm_malloc(size_t size);
-
-///
-/// \brief Frees a matrix in triplet format
-///
-/// \param A The matrix in triplet format
-///
-void spasm_triplet_free(spasm_triplet *A);
-
-///
-/// \brief Allocates a matrix in CSR format
-///
-/// \param n The number of rows
-/// \param m The number of columns
-/// \param nzmax The maximum number of entries
-/// \return spasm* The allocated matrix in CSR format
-///
-spasm *spasm_csr_alloc(int n, int m, int nzmax);
-
-///
-/// \brief Frees a matrix in CSR format
-///
-/// \param A The matrix in CSR format
-///
-void spasm_csr_free(spasm *A);
-
-///
-/// \brief Loads the matrix from a file in Matrix Market format
-///
-/// \param f The file in Matrix Market format
-/// \return spasm_triplet* The allocated matrix in triplet format
-///
-spasm_triplet *spasm_load_mm(FILE *f);
+u32 spasm_nnz(const spasm *A);
 
 ///
 /// \brief Gets the time.
 ///
-/// \return double The current time.
+/// \return double the current time.
 ///
-double spasm_wtime();
+double spasm_wtime(void);
 
 ///
-/// \brief Mutiplies a matrix in CSR format with a vector
+/// \brief Returns a string representing `n` in 4 bytes.
 ///
-/// \param A The matrix in CSR format
-/// \param x The input vector
-/// \param y The resulting vector
+/// \param[in] n the integer to print
+/// \param[out] target the string representing the integer in human readable
+/// format
+///
+void spasm_human_format(const int64_t n, char *target);
+
+///
+/// \brief Allocates a vector.
+///
+/// \param[in] size the size of the vector to allocate
+/// \return void* the pointer returned by `malloc`
+///
+void *spasm_malloc(const u32 size);
+
+///
+/// \brief Allocates a matrix in triplet format.
+///
+/// \param[in] nnz_max the maximum number of nonzero entries
+/// \return spasm_triplet* the allocated matrix in triplet format
+///
+spasm_triplet *spasm_triplet_alloc(const u32 nnz_max);
+
+///
+/// \brief Frees a matrix in triplet format.
+///
+/// \param[in] A the matrix in triplet format
+///
+void spasm_triplet_free(spasm_triplet *A);
+
+///
+/// \brief Allocates a matrix in CSR format.
+///
+/// \param[in] n the number of rows
+/// \param[in] m the number of columns
+/// \param[in] nnz_max the maximum number of nonzero entries
+/// \return spasm* the allocated matrix in CSR format
+///
+spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max);
+
+///
+/// \brief Frees a matrix in CSR format.
+///
+/// \param[in] A the matrix in CSR format
+///
+void spasm_csr_free(spasm *A);
+
+///
+/// \brief Adds an entry to a matrix in triplet format.
+/// The dimensions of the matrix must be greater than both i and j. Dimensions
+/// are not enlarge.
+///
+/// \param[in, out] T the input matrix in triplet format
+/// \param[in] i the row index
+/// \param[in] j the column index
+/// \param[in] x the numerical value
+///
+inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j,
+                            const double x);
+
+///
+/// \brief Loads the matrix from a file in Matrix Market format.
+/// Heavily inspired by the example program:
+/// http://math.nist.gov/MatrixMarket/mmio/c/example_read.c
+///
+/// \param[in] f the file descriptor of a file in Matrix Market format
+/// \return spasm_triplet* the allocated matrix in triplet format
+///
+spasm_triplet *spasm_load_mm(FILE *f);
+
+///
+/// \brief Mutiplies a matrix in CSR format with a vector. //TODO assert dim
+///
+/// \param[in] A the input matrix in CSR format
+/// \param[in] x the input vector
+/// \param[out] y the product vector
 ///
 void spasm_csr_gemv(const spasm *A, const double *x, double *y);
 
 ///
-/// \brief Mutiplies a matrix in triplet format with a vector
+/// \brief Mutiplies a matrix in triplet format with a vector.//TODO assert dim
 ///
-/// \param T The matrix in triplet format
-/// \param x The input vector
-/// \param y The resulting vector
+/// \param[in] T the input matrix in triplet format
+/// \param[in] x the input vector
+/// \param[out] y the product vector
 ///
 void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y);
 
 ///
-/// \brief Transposes a matrix in triplet format
+/// \brief Transposes a matrix in triplet format.
 ///
-/// \param T The input matrix in triplet format
-/// \param R The output matrix in triplet format
+/// \param[in] T the input matrix in triplet format
+/// \param[out] R the output matrix in triplet format
 ///
 void spasm_triplet_transpose(const spasm_triplet *T, spasm_triplet *R);
 
 ///
-/// \brief Returns the maximum between two integers
+/// \brief Returns the maximum between two integers.
 ///
-/// \return int `a` if it is greater than `b`, `b` otherwise
+/// \return u32 `a` if it is greater than `b`, `b` otherwise
 ///
-static inline int spasm_max(int a, int b) { return (a > b) ? a : b; }
+static inline u32 spasm_max(const u32 a, const u32 b)
+{
+  return (a > b) ? a : b;
+}
 
 ///
 /// \brief Returns the minimum between two integers
 ///
-/// \return int `a` if it is lesser than `b`, `b` otherwise
+/// \return u32 `a` if it is lesser than `b`, `b` otherwise
 ///
-static inline int spasm_min(int a, int b) { return (a < b) ? a : b; }
+static inline u32 spasm_min(const u32 a, const u32 b)
+{
+  return (a < b) ? a : b;
+}
 
 // static inline void spasm_swap(int *a, int i, int j) {
 // 	int x = a[i];

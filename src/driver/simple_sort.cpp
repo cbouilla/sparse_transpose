@@ -1,9 +1,8 @@
 ///
 /// \file simple_sort.cpp
-/// \author Charles Bouillaguet & Jérôme Bonacchi
-/// \brief simple compress/transpose algorithms that directly rely on explicit
-/// sorting, using off-the-shelf sort functions (std::sort from the STL or
-/// Intel's parallel sort).
+/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \brief This files uses std::sort and tbb::parallel_sort algorithms to
+/// convert and to tranpose matrices.
 /// \date 2020-07-09
 ///
 /// @copyright Copyright (c) 2020
@@ -40,8 +39,8 @@ extern "C" void tbb_version();
 ///
 /// \brief Compares the row of the matrix_entry_t data type.
 ///
-/// \return true If the row index of a is less than the row index of b
-/// \return false If the row index of a is greater than, or equal to, the row
+/// \return true if the row index of `a` is lesser than the row index of b
+/// \return false if the row index of `a` is greater than, or equal to, the row
 /// index of b
 ///
 inline bool operator<(const struct matrix_entry_t &a,
@@ -50,27 +49,20 @@ inline bool operator<(const struct matrix_entry_t &a,
   return a.i < b.i;
 }
 
-///
-/// \brief Converts a sparse matrix in triplet format into CSR format.
-///
-/// \param n Number of rows
-/// \param nnz Number of non-zero entries
-/// \param Te Input sparse matrix in triplet format to convert
-/// \param A Output sparse matrix in CSR format
-///
-static void finalize(int n, int nnz, const matrix_entry_t *Te, spasm *A)
+void finalize(const u32 n, const u32 nnz, const matrix_entry_t *Te,
+                     spasm *A)
 {
-  int *Ap = A->p;
-  int *Aj = A->j;
+  u32 *Ap = A->p;
+  u32 *Aj = A->j;
   double *Ax = A->x;
 
   // scanning, copying and setting pointers
   // could be parallelized (but this is not completely trivial)
   int i = -1;
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
-    int next_i = Te[k].i;
-    int next_j = Te[k].j;
+    u32 next_i = Te[k].i;
+    u32 next_j = Te[k].j;
     double next_x = Te[k].x;
     if (i < next_i)
     {
@@ -95,24 +87,16 @@ static void finalize(int n, int nnz, const matrix_entry_t *Te, spasm *A)
   }
 }
 
-///
-/// \brief Converts a sparse matrix in triplet format into a matrix in CSR
-/// format by using std::sort.
-///
-/// \param T Input sparse matrix in triplet format to convert
-/// \param A Output sparse matrix in CSR format
-/// \param Te Input sparse matrix into another triplet format
-///
 void stdsort_compress(const spasm_triplet *T, spasm *A,
                       struct matrix_entry_t *Te)
 {
-  int n = T->n;
-  int nnz = T->nnz;
-  int *Ti = T->i;
-  int *Tj = T->j;
+  u32 n = T->n;
+  u32 nnz = T->nnz;
+  u32 *Ti = T->i;
+  u32 *Tj = T->j;
   double *Tx = T->x;
 
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
     Te[k].i = Ti[k];
     Te[k].j = Tj[k];
@@ -123,29 +107,19 @@ void stdsort_compress(const spasm_triplet *T, spasm *A,
   finalize(n, nnz, Te, A);
 }
 
-///
-/// \brief Converts a sparse matrix in CSR format into a matrix in triplet
-/// format. Then, uses std::sort to transpose it. Finally, converts it into a
-/// matrix in CSR format
-///
-/// \param A Input sparse matrix in CSR format to transpose
-/// \param R Input sparse matrix in CSR format that is the transpose of A
-/// \param Te Output sparse matrix in triplet format that is the transpose of A
-/// \param num_threads Number of threads used in TBB's parallel sort
-///
 void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
 {
-  int n = A->n;
-  int m = A->m;
-  int nnz = spasm_nnz(A);
-  const int *Ap = A->p;
-  const int *Aj = A->j;
+  u32 n = A->n;
+  u32 m = A->m;
+  u32 nnz = spasm_nnz(A);
+  const u32 *Ap = A->p;
+  const u32 *Aj = A->j;
   const double *Ax = A->x;
 
-  for (int i = 0; i < n; i++)
-    for (int k = Ap[i]; k < Ap[i + 1]; k++)
+  for (u32 i = 0; i < n; i++)
+    for (u32 k = Ap[i]; k < Ap[i + 1]; k++)
     {
-      int j = Aj[k];
+      u32 j = Aj[k];
       double x = Ax[k];
       Te[k].i = j;
       Te[k].j = i;
@@ -158,83 +132,58 @@ void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
 
 #ifdef HAVE_TBB
 
-///
-/// \brief Convert the sparse matrix T in triplet format into A in CSR format by
-/// using TBB's parallel_sort.
-///
-/// \param T Sparse matrix in triplet format to convert
-/// \param A T converted into CSR format
-/// \param Te T converted into another triplet format
-/// \param num_threads Number of threads used in TBB's parallel sort
-///
 void tbbsort_compress(const spasm_triplet *T, spasm *A,
-                      struct matrix_entry_t *Te, int num_threads)
+                      struct matrix_entry_t *Te, const u32 num_threads)
 {
   tbb::task_scheduler_init tsi(num_threads);
 
-  int n = T->n;
-  int nnz = T->nnz;
-  int *Ti = T->i;
-  int *Tj = T->j;
+  u32 n = T->n;
+  u32 nnz = T->nnz;
+  u32 *Ti = T->i;
+  u32 *Tj = T->j;
   double *Tx = T->x;
 
   // double a = spasm_wtime();
   omp_set_num_threads(num_threads);
 #pragma omp parallel for
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
     Te[k].i = Ti[k];
     Te[k].j = Tj[k];
     Te[k].x = Tx[k];
   }
-
   // double b = spasm_wtime();
-
   tbb::parallel_sort(Te, Te + nnz);
-
   // double c = spasm_wtime();
-
   finalize(n, nnz, Te, A);
 
-  /*
   // extra timing
-  double d = spasm_wtime();
-  printf("      Subtimes:\n");
-  printf("        Fill_Te: %.3f\n", b-a);
-  printf("        tbb::sort: %.3f\n", c-b);
-  printf("        finalize: %.3f\n", d-c);
-  */
+  // double d = spasm_wtime();
+  // printf("      Subtimes:\n");
+  // printf("        Fill_Te: %.3f\n", b-a);
+  // printf("        tbb::sort: %.3f\n", c-b);
+  // printf("        finalize: %.3f\n", d-c);
 }
 
-///
-/// \brief Convert the sparse matrix A in CSR format into Te in triplet format.
-/// Then, use TBB's parallel_sort to transpose Te. Finally, convert Te into R
-/// (CSR format)
-///
-/// \param A Sparse matrix in CSR format to transpose
-/// \param R Sparse matrix in CSR format that is the transpose of A
-/// \param Te Sparse matrix in triplet format that is the transpose of A
-/// \param num_threads Number of threads used in TBB's parallel sort
-///
 void tbbsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te,
-                       int num_threads)
+                       const u32 num_threads)
 {
   tbb::task_scheduler_init tsi(num_threads);
 
-  int n = A->n;
-  int m = A->m;
-  int nnz = spasm_nnz(A);
-  const int *Ap = A->p;
-  const int *Aj = A->j;
+  u32 n = A->n;
+  u32 m = A->m;
+  u32 nnz = spasm_nnz(A);
+  const u32 *Ap = A->p;
+  const u32 *Aj = A->j;
   const double *Ax = A->x;
 
   // double a = spasm_wtime();
   omp_set_num_threads(num_threads);
 #pragma omp parallel for
-  for (int i = 0; i < n; i++)
-    for (int k = Ap[i]; k < Ap[i + 1]; k++)
+  for (u32 i = 0; i < n; i++)
+    for (u32 k = Ap[i]; k < Ap[i + 1]; k++)
     {
-      int j = Aj[k];
+      u32 j = Aj[k];
       double x = Ax[k];
       Te[k].j = i;
       Te[k].i = j;
@@ -242,25 +191,18 @@ void tbbsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te,
     }
 
   // double b = spasm_wtime();
-
   tbb::parallel_sort(Te, Te + nnz);
-
   // double c = spasm_wtime();
-
   finalize(m, nnz, Te, R);
-  /*
+
   // extra timing
-  double d = spasm_wtime();
-  printf("      Subtimes:\n");
-  printf("        Fill_Te: %.3f\n", b-a);
-  printf("        tbb::sort: %.3f\n", c-b);
-  printf("        finalize: %.3f\n", d-c);
-  */
+  // double d = spasm_wtime();
+  // printf("      Subtimes:\n");
+  // printf("        Fill_Te: %.3f\n", b-a);
+  // printf("        tbb::sort: %.3f\n", c-b);
+  // printf("        finalize: %.3f\n", d-c);
 }
 
-///
-/// \brief Print the version of TBB use for compilation and at runtime.
-///
 void tbb_version()
 {
   std::cout << "TBB version: compiled=" << TBB_INTERFACE_VERSION

@@ -1,10 +1,33 @@
+///
+/// \file driver_wang.cpp
+/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \brief This files implements the ScanTrans and MergeTrans algorithms from
+/// Wang et al. (2016).
+/// The `run_test_scanTrans` and `run_test_mergeTrans` functions are heavily
+/// based on their code (`main.cpp` ). \date 2020-07-23
+///
+/// @copyright Copyright (c) 2020
+///
+
+/*
+ * (c) 2017 Virginia Polytechnic Institute & State University (Virginia Tech)
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU Lesser General Public License Version 2.1.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *   LICENSE in the root of the repository for details.
+ *
+ */
 
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
 #include <err.h>
 #include <stdlib.h>
-#include <sys/time.h> // timing
+#include <sys/time.h>
 
 #include "matio.h"
 #include "sptrans.h"
@@ -181,10 +204,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
 
 #ifdef _OPENMP
-  int max_num_threads;
+  int max_num_threads = 1;
 #pragma omp parallel
   max_num_threads = omp_get_num_threads();
-  max_num_threads = 4;
 
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {

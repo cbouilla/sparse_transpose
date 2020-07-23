@@ -249,9 +249,8 @@ int mm_write_mtx_array_size(FILE *f, int M, int N)
 /* use when I[], J[], and val[]J, and val[] are already allocated */
 /******************************************************************/
 
-int mm_read_mtx_crd_data(FILE *f, __attribute__((unused)) int M,
-                         __attribute__((unused)) int N, int nz, int I[],
-                         int J[], double val[], MM_typecode matcode)
+int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
+                         double val[], MM_typecode matcode)
 {
   int i;
   if (mm_is_complex(matcode))
@@ -439,7 +438,7 @@ char *mm_typecode_to_str(MM_typecode matcode)
   char buffer[MM_MAX_LINE_LENGTH];
   char *types[4];
   char *mm_strdup(const char *);
-  int __attribute__((unused)) error = 0;
+  int error = 0;
 
   /* check for MTX type */
   if (mm_is_matrix(matcode))

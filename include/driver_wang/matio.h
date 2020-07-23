@@ -22,7 +22,6 @@
 
 /* A customized MTX matrix loader to handle values in different sparse matrices
  */
-// Added const to filename, and assert
 template <class valT>
 int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA,
                  valT *&csrValA, const char *filename)
@@ -110,10 +109,6 @@ int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA,
     // adjust from 1-based to 0-based
     idxi--;
     idxj--;
-    assert(idxi >= 0);
-    assert(idxi < m);
-    assert(idxj >= 0);
-    assert(idxj < n);
     csrRowPtrA_counter[idxi]++;
     csrRowIdxA_tmp[i] = idxi;
     csrColIdxA_tmp[i] = idxj;

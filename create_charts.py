@@ -3,7 +3,6 @@
 """Creates charts (duration, speed up, boxplot...) from a CSV file.
 """
 
-import csv
 import matplotlib._color_data as mcd
 import matplotlib.pyplot as plt
 import numpy as np

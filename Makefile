@@ -11,7 +11,8 @@ CXX := g++
 INCLUDE_DIR := ./include
 #INCLUDES := $(addprefix -I,$(INCLUDES))
 OBJ_DIR := ./obj
-OBJ_SUB_DIR := $(patsubst $(INCLUDE_DIR)/%, ./obj/%, $(shell find $(INCLUDE_DIR) -type d))
+OBJ_SUB_DIR := $(patsubst $(INCLUDE_DIR)/%, ./obj/%, \
+$(shell find $(INCLUDE_DIR) -type d))
 SRC_DIR := ./src
 EXE_DIR = .
 
@@ -23,7 +24,8 @@ EXE := $(DRIVER) $(DRIVER_WANG)
 SRC_C := $(shell find . -name "*.c" -print)
 SRC_CXX := $(shell find . -name "*.cpp" -print)
 SRC := $(SRC_C) $(SRC_CXX)
-DEPENDS := $(SRC_C:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.d) $(SRC_CXX:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
+DEPENDS := $(SRC_C:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.d) \
+$(SRC_CXX:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
 OBJ_C := $(SRC_C:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 OBJ_CXX := $(SRC_CXX:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ := $(OBJ_C) $(OBJ_CXX)
@@ -151,6 +153,7 @@ LINK_STRING = "$(LINK_COLOR)Linking$(WHITE) $(@F)"
 # Functions
 RM := rm -rf
 RM_VERBOSE := $(RM) -v
+VALGRIND = valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all
 
 define execute
 @printf "%-84b" $(2);\
@@ -223,10 +226,10 @@ benchmarks: all
 	@./$(DRIVER) ; ./$(DRIVER_WANG)
 
 memcheck_driver: $(DRIVER)
-	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(DRIVER)
+	@$(VALGRIND) ./$(DRIVER)
 
 memcheck_driver_wang: $(DRIVER_WANG)
-	@valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all ./$(DRIVER_WANG)
+	@$(VALGRIND) ./$(DRIVER_WANG)
 
 $(DRIVER): $(OBJ_DRIVER)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
@@ -251,7 +254,8 @@ clean_log:
 	$(call clean_files,$(CLEAN_LOG_TARGETS),"$(CLEAN_STRING) log files")
 
 clean: clean_log
-	$(call clean_files,$(CLEAN_TARGETS),"$(CLEAN_STRING) object and dependency files")
+	$(call clean_files,$(CLEAN_TARGETS),"$(CLEAN_STRING) object and dependency \
+	files")
 
 distclean: clean
 	$(call clean_files,$(DISTCLEAN_TARGETS),"$(CLEAN_STRING) executable files")

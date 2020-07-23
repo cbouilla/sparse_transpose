@@ -1,4 +1,15 @@
+///
+/// \file mini_spasm.c
+/// \author // TODO
+/// \brief This file implements structures and functions to manage sparse matrix
+/// formats.
+/// \date 2020-07-23
+///
+/// @copyright // TODO
+///
+
 #include <assert.h>
+#include <stdbool.h>
 #include <err.h>
 #include <math.h>
 #include <sys/time.h>
@@ -13,9 +24,9 @@ double spasm_wtime()
   return (double)ts.tv_sec + ts.tv_usec / 1E6;
 }
 
-int spasm_nnz(const spasm *A) { return A->p[A->n]; }
+u32 spasm_nnz(const spasm *A) { return A->p[A->n]; }
 
-void *spasm_malloc(size_t size)
+void *spasm_malloc(const u32 size)
 {
   void *x = aligned_alloc(64, size);
   if (x == NULL)
@@ -23,37 +34,35 @@ void *spasm_malloc(size_t size)
   return x;
 }
 
-/* return a string representing n in 4 bytes */
-static void spasm_human_format(int64_t n, char *target)
+void spasm_human_format(int64_t n, char *target)
 {
-  if (n < 1000)
+  if (n < 1000) // 10^3
   {
     sprintf(target, "%d", (int)n);
     return;
   }
-  if (n < 1000000)
+  if (n < 1000000) // 10^6
   {
     sprintf(target, "%.1fk", n / 1e3);
     return;
   }
-  if (n < 1000000000)
+  if (n < 1000000000) // 10^9
   {
     sprintf(target, "%.1fM", n / 1e6);
     return;
   }
-  if (n < 1000000000000ll)
+  if (n < 1000000000000ll) // 10^12
   {
     sprintf(target, "%.1fG", n / 1e9);
     return;
   }
-  if (n < 1000000000000000ll)
+  if (n < 1000000000000000ll) // 10^15
   {
     sprintf(target, "%.1fT", n / 1e12);
     return;
   }
 }
 
-/* free a sparse matrix */
 void spasm_csr_free(spasm *A)
 {
   if (A == NULL)
@@ -72,85 +81,76 @@ void spasm_triplet_free(spasm_triplet *T)
   free(T);
 }
 
-/* allocate a sparse matrix (triplet form) */
-spasm_triplet *spasm_triplet_alloc(int nzmax)
+spasm_triplet *spasm_triplet_alloc(const u32 nnz_max)
 {
-  spasm_triplet *T;
-
-  T = spasm_malloc(sizeof(spasm_triplet));
-  T->m = 0;
-  T->n = 0;
-  T->nnz_max = nzmax;
+  spasm_triplet *T = spasm_malloc(sizeof(spasm_triplet));
+  T->nnz_max = nnz_max;
   T->nnz = 0;
-  T->i = spasm_malloc(nzmax * sizeof(int));
-  T->j = spasm_malloc(nzmax * sizeof(int));
-  T->x = spasm_malloc(nzmax * sizeof(double));
+  T->n = 0;
+  T->m = 0;
+  T->i = spasm_malloc(nnz_max * sizeof(int));
+  T->j = spasm_malloc(nnz_max * sizeof(int));
+  T->x = spasm_malloc(nnz_max * sizeof(double));
   return T;
 }
 
-/* allocate a sparse matrix (compressed-row form) */
-spasm *spasm_csr_alloc(int n, int m, int nzmax)
+spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max)
 {
-  spasm *A;
-
-  A = spasm_malloc(sizeof(spasm)); /* allocate the cs struct */
-  A->m = m;                        /* define dimensions and nzmax */
+  spasm *A = spasm_malloc(sizeof(spasm));
+  A->nnz_max = nnz_max;
   A->n = n;
-  A->nnz_max = nzmax;
+  A->m = m;
   A->p = spasm_malloc((n + 1) * sizeof(A->p));
-  A->j = spasm_malloc(nzmax * sizeof(A->j));
-  A->x = spasm_malloc(nzmax * sizeof(A->x));
+  A->j = spasm_malloc(nnz_max * sizeof(A->j));
+  A->x = spasm_malloc(nnz_max * sizeof(A->x));
   return A;
 }
 
-/* add an entry to a triplet matrix; enlarge it if necessary */
-static inline void spasm_add_entry(spasm_triplet *T, int i, int j, double x)
+inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j, const double x)
 {
+  // Checks the matrix dimensions
   assert((i >= 0) && (i < T->n) && (j >= 0) && (j < T->m));
-  int nz = T->nnz;
-  assert(nz < T->nnz_max);
+  const u32 nnz = T->nnz;
+  assert(nnz < T->nnz_max);
 
-  T->i[nz] = i;
-  T->j[nz] = j;
-  T->x[nz] = x;
-
-  T->nnz = nz + 1;
+  T->i[nnz] = i;
+  T->j[nnz] = j;
+  T->x[nnz] = x;
+  // T->nnz++
+  T->nnz = nnz + 1;
+  
+  // Enlarges the matrix dimensions if necessary
   // T->n = spasm_max(T->n, i + 1);
   // T->m = spasm_max(T->m, j + 1);
 }
 
-/*
- * Load a matrix in MatrixMarket sparse format.
- * Heavily inspired by the example program:
- *     http://math.nist.gov/MatrixMarket/mmio/c/example_read.c
- */
 spasm_triplet *spasm_load_mm(FILE *f)
 {
   MM_typecode matcode;
-  int n, m, nnz;
+  u32 n, m, nnz;
 
   double start = spasm_wtime();
   if (mm_read_banner(f, &matcode) != 0)
-    errx(1, "Could not process Matrix Market banner.\n");
+    err(1, "Could not process Matrix Market banner.\n");
   char *typecode = mm_typecode_to_str(matcode);
 
   if (!mm_is_matrix(matcode) || !mm_is_sparse(matcode))
-    errx(1, "Matrix Market type: [%s] not supported", typecode);
+    err(1, "Matrix Market type: [%s] not supported", typecode);
 
   if (!mm_is_general(matcode))
-    errx(1, "Matrix market type [%s] not supported", typecode);
+    err(1, "Matrix market type [%s] not supported", typecode);
 
   if (mm_is_symmetric(matcode) || mm_is_skew(matcode))
-    errx(1, "Matrix market type [%s] not supported", typecode);
+    err(1, "Matrix market type [%s] not supported", typecode);
 
-  int real = mm_is_real(matcode) || mm_is_integer(matcode);
-  int pattern = mm_is_pattern(matcode);
+  bool real = mm_is_real(matcode) || mm_is_integer(matcode);
+  bool pattern = mm_is_pattern(matcode);
 
   if (!real && !pattern)
-    errx(1, "Matrix market type [%s] not supported", typecode);
+    err(1, "Matrix market type [%s] not supported", typecode);
 
   if (mm_read_mtx_crd_size(f, &n, &m, &nnz) != 0)
-    errx(1, "Cannot read matrix size");
+    err(1, "Cannot read matrix size");
 
   char s_nnz[16];
   spasm_human_format(nnz, s_nnz);
@@ -162,20 +162,20 @@ spasm_triplet *spasm_load_mm(FILE *f)
   spasm_triplet *T = spasm_triplet_alloc(nnz);
   T->n = n;
   T->m = m;
-  for (int i = 0; i < nnz; i++)
+  for (u32 i = 0; i < nnz; i++)
   {
-    int u, v;
+    u32 u, v;
     double x;
     if (real)
     {
       if (3 != fscanf(f, "%d %d %lg\n", &u, &v, &x))
-        errx(1, "parse error entry %d\n", i);
+        err(1, "parse error entry %d\n", i);
       spasm_add_entry(T, u - 1, v - 1, x);
     }
     else
     {
       if (2 != fscanf(f, "%d %d\n", &u, &v))
-        errx(1, "parse error entry %d\n", i);
+        err(1, "parse error entry %d\n", i);
       spasm_add_entry(T, u - 1, v - 1, 1.0);
     }
   }
@@ -186,36 +186,36 @@ spasm_triplet *spasm_load_mm(FILE *f)
 
 void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y)
 {
-  const int *Ti = T->i;
-  const int *Tj = T->j;
+  const u32 *Ti = T->i;
+  const u32 *Tj = T->j;
   const double *Tx = T->x;
-  int m = T->m;
-  int nnz = T->nnz;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
-  for (int j = 0; j < m; j++)
+  for (u32 j = 0; j < m; j++)
     y[j] = 0;
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
-    int i = Ti[k];
-    int j = Tj[k];
+    u32 i = Ti[k];
+    u32 j = Tj[k];
     y[j] += Tx[k] * x[i];
   }
 }
 
 void spasm_csr_gemv(const spasm *A, const double *x, double *y)
 {
-  const int *Ap = A->p;
-  const int *Aj = A->j;
+  const u32 *Ap = A->p;
+  const u32 *Aj = A->j;
   const double *Ax = A->x;
-  int n = A->n;
-  int m = A->m;
+  u32 n = A->n;
+  u32 m = A->m;
 
-  for (int j = 0; j < m; j++)
+  for (u32 j = 0; j < m; j++)
     y[j] = 0;
-  for (int i = 0; i < n; i++)
-    for (int k = Ap[i]; k < Ap[i + 1]; k++)
+  for (u32 i = 0; i < n; i++)
+    for (u32 k = Ap[i]; k < Ap[i + 1]; k++)
     {
-      int j = Aj[k];
+      u32 j = Aj[k];
       y[j] += Ax[k] * x[i];
     }
 }

@@ -11,6 +11,9 @@
  *
  */
 
+// Jérôme Bonacchi's modifications:
+// - comment unused variables
+
 #ifndef INCLUDE_DRIVER_WANG_SPTRANS_H
 #define INCLUDE_DRIVER_WANG_SPTRANS_H
 
@@ -192,7 +195,6 @@ void scan_kernel(int *in, int *out, int N, bool inclusive, int base)
 #endif
 }
 
-// Commented p
 void scan_omp(int *in, int *out, int N, bool inclusive, int base)
 {
   //    int p = 1;
@@ -224,7 +226,6 @@ void scan_omp(int *in, int *out, int N, bool inclusive, int base)
   delete[] sums;
 }
 
-// Commented unused variables
 template <typename iT, typename vT>
 void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
                        vT *csrVal, iT *cscRowIdx, iT *cscColPtr, vT *cscVal)
@@ -284,10 +285,10 @@ void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
 #pragma ivdep
   for (i = 0; i < n; i++)
   {
-    cscColPtr[i + 1] = inter[n * procs + i]; // error ?
+    cscColPtr[i + 1] = inter[n * procs + i];
   }
 
-  scan_omp(cscColPtr, cscColPtr, n + 1, true, 0); // error in scan_omp ?
+  scan_omp(cscColPtr, cscColPtr, n + 1, true, 0);
 
 #pragma omp parallel for default(shared) private(i, j, ii,                     \
                                                  jj) // schedule(dynamic)

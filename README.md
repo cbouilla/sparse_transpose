@@ -1,6 +1,25 @@
 # Transposition de matrices creuses
 
+- [Transposition de matrices creuses](#transposition-de-matrices-creuses)
+  - [Installation](#installation)
+  - [Utilisation](#utilisation)
+    - [Matrices](#matrices)
+    - [Intel Math Kernel Library (MKL)](#intel-math-kernel-library-mkl)
+    - [Intel Threading Building Block (TBB)](#intel-threading-building-block-tbb)
+  - [TODO](#todo)
+  - [Licence](#licence)
+
 ## Installation
+
+Testé avec:
+Python 3.8.3
+matplotlib 3.2.1
+numpy 1.18.5
+pandas 1.0.3
+Intel Math Kernel Library (MKL) 2020.0.166
+Intel Threading Building Block 2020.0.166
+ICC TODO
+GCC 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 
 ## Utilisation
 
@@ -20,8 +39,6 @@ Taille : 14Go. Ces matrices sont plus rectangulaires.
 
 ### Intel Math Kernel Library (MKL)
 
-Version : 2020.0.166
-
 Pour utiliser la MKL sur ppti-gpu-1 :
 
 `source /usr/intel/mkl/bin/mklvars.sh intel64 [ilp64]`
@@ -34,17 +51,11 @@ Après, il y a plusieurs options (séquentiel, parallèle avec OpenMP, etc). Cho
 
 ### Intel Threading Building Block (TBB)
 
-Version : 2020.0.166
-
 Pour utiliser TBB sur ppti-gpu-1 :
 
 `source /usr/intel/tbb/bin/tbbvars.sh intel64`
 
 Ensuite, `make clean` puis recompiler.
-
-### GCC
-
-Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 
 ## TODO
 
@@ -86,13 +97,16 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] mettre une ligne avec plus de pointillés et des symboles plus petits
 - [x] pour résumer : prendre l'addition des medianes par algo sur toutes les matrices
 - [x] graphique accélération, calculer l'accélération avec un algo séquentiel pour chaque matrice : Gustavson -O2
+- [x] refactor code
+- [x] utiliser typedef u32 pour n et m et u32/u64 pour nz
+- [x] finalize,spasm_add_entry, spasm_human_format mis dans .h et sans static
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort
-- [ ] paralleliser finalize
-- [ ] commenter le code
-- [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT
-- [ ] refactor code
-- [x] utiliser typedef u32 pour n et m et u32/u64 pour nz ?
-- [ ] à remettre:licence driver_wang, retiré de wang_sort la vérification avec la MKL, citation/licence SpaSM ou refactor ?
+- [ ] commenter le code **driver et python**
+- [ ] checker les todo
+- [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT (Makefile...)
+- [ ] à remettre: la vérification avec la MKL, citation/licence SpaSM ou refactor ?
+- [ ] la seule utilité de matrix_entry_t est pour finalize, utiliser spasm_triplet ?
+- [ ] taille de W : n, nnz, max(n,m)+1 ?
 - [x] reformater le code
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
@@ -106,3 +120,6 @@ std::sort est plus rapide que classical sur pre-transpose[6,7,8,9,10,11,12]. Son
 Lorsque classical transpose et transpose_tr sont relativement proches, std transpose est plus lent que std transpose_tr
 
 ## Licence
+
+Code from Wang: GNU LGPL 2.1
+Code from SpaSM: GNU GPL 3

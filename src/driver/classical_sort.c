@@ -1,7 +1,8 @@
 ///
 /// \file classical_sort.c
-/// \author Charles Bouillaguet & Jérôme Bonacchi
-/// \brief Implementation of the "classical" sort algorithm from Gustavson.
+/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \brief This file implements the classical algorithms to convert and to
+/// tranpose matrices.
 /// \date 2020-07-09
 ///
 /// @copyright Copyright (c) 2020
@@ -10,46 +11,38 @@
 #include "classical_sort.h"
 #include "mini_spasm.h"
 
-///
-/// \brief Converts a matrix in triplet format into a matrix in CSR formatusing
-/// Gustavon's algorithm.
-///
-/// \param T Input matrix in COO format
-/// \param A Output matrix in CSR format
-/// \param W Scratch space, size == #columns + 1
-///
-void classical_compress(const spasm_triplet *T, spasm *A, int *W)
+void classical_compress(const spasm_triplet *T, spasm *A, u32 *W)
 {
-  const int *Ti = T->i;
-  const int *Tj = T->j;
+  const u32 *Ti = T->i;
+  const u32 *Tj = T->j;
   const double *Tx = T->x;
-  const int n = T->n;
-  const int nnz = T->nnz;
+  const u32 n = T->n;
+  const u32 nnz = T->nnz;
 
-  int *Ap = A->p;
-  int *Aj = A->j;
+  u32 *Ap = A->p;
+  u32 *Aj = A->j;
   double *Ax = A->x;
 
   // initializing W
-  for (int i = 0; i < n; i++) // gcc replaces this with AVX2-optimized memset
+  for (u32 i = 0; i < n; i++) // gcc replaces this with AVX2-optimized memset
     W[i] = 0;
 
   // counting entries on each row
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
     // W[Ti[k]]++
-    int i = Ti[k];
-    int count = W[i];
+    u32 i = Ti[k];
+    u32 count = W[i];
     count += 1;
     W[i] = count;
   }
 
   // prefix-sum on W and initializing Ap
-  int sum = 0;
-  for (int i = 0; i < n; i++)
+  u32 sum = 0;
+  for (u32 i = 0; i < n; i++)
   {
     // W[i], sum = sum, W[i] + sum
-    int count = W[i];
+    u32 count = W[i];
     Ap[i] = sum;
     W[i] = sum;
     sum += count;
@@ -57,14 +50,14 @@ void classical_compress(const spasm_triplet *T, spasm *A, int *W)
   Ap[n] = sum;
 
   // dispatching
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
     // Aj[l = W[Ti[k]]++] = Tj[k]
     // Ax[l] = Tx[k]
-    int i = Ti[k];
-    int j = Tj[k];
+    u32 i = Ti[k];
+    u32 j = Tj[k];
     double x = Tx[k];
-    int l = W[i];
+    u32 l = W[i];
     Aj[l] = j;
     Ax[l] = x;
     l += 1;
@@ -72,44 +65,37 @@ void classical_compress(const spasm_triplet *T, spasm *A, int *W)
   }
 }
 
-///
-/// \brief Transposes a matrix in CSR format using Gustavon's algorithm.
-///
-/// \param A Input matrix in CSR format
-/// \param R Output matrix in CSR format
-/// \param W Scratch space, size == #columns + 1
-///
-void classical_transpose(const spasm *A, spasm *R, int *W)
+void classical_transpose(const spasm *A, spasm *R, u32 *W)
 {
-  const int *Ap = A->p;
-  const int *Aj = A->j;
+  const u32 *Ap = A->p;
+  const u32 *Aj = A->j;
   const double *Ax = A->x;
-  const int n = A->n;
-  const int m = A->m;
+  const u32 n = A->n;
+  const u32 m = A->m;
 
-  int *Rp = R->p;
-  int *Rj = R->j;
+  u32 *Rp = R->p;
+  u32 *Rj = R->j;
   double *Rx = R->x;
 
   // initializing W
-  for (int i = 0; i < m; i++) /* gcc replaces this with AVX2-optimized memset */
+  for (u32 i = 0; i < m; i++) /* gcc replaces this with AVX2-optimized memset */
     W[i] = 0;
 
   // counting entries on each column
-  for (int i = 0; i < n; i++)
-    for (int k = Ap[i]; k < Ap[i + 1]; k++)
+  for (u32 i = 0; i < n; i++)
+    for (u32 k = Ap[i]; k < Ap[i + 1]; k++)
     {
-      int j = Aj[k];
-      int count = W[j];
+      u32 j = Aj[k];
+      u32 count = W[j];
       count += 1;
       W[j] = count;
     }
 
   // prefix-sum on W and initializing Rp
-  int sum = 0;
-  for (int j = 0; j < m; j++)
+  u32 sum = 0;
+  for (u32 j = 0; j < m; j++)
   {
-    int count = W[j];
+    u32 count = W[j];
     Rp[j] = sum;
     W[j] = sum;
     sum += count;
@@ -117,12 +103,12 @@ void classical_transpose(const spasm *A, spasm *R, int *W)
   Rp[m] = sum;
 
   // dispatching
-  for (int i = 0; i < n; i++)
-    for (int k = Ap[i]; k < Ap[i + 1]; k++)
+  for (u32 i = 0; i < n; i++)
+    for (u32 k = Ap[i]; k < Ap[i + 1]; k++)
     {
-      int j = Aj[k];
+      u32 j = Aj[k];
       double x = Ax[k];
-      int l = W[j];
+      u32 l = W[j];
       Rj[l] = i;
       Rx[l] = x;
       l += 1;

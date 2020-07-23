@@ -1,7 +1,8 @@
 ///
 /// \file classical_sort.h
-/// \author Charles Bouillaguet & Jérôme Bonacchi
-/// \brief Classical algorithms to convert et tranpose matrices
+/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \brief This file implements the classical algorithms to convert and to
+/// tranpose matrices.
 /// \date 2020-07-09
 ///
 /// @copyright Copyright (c) 2020
@@ -11,24 +12,25 @@
 #define INCLUDE_DRIVER_CLASSICAL_SORT_H
 
 #include "mini_spasm.h"
+#include "tools.h"
 
 ///
-/// \brief Converts COO format matrix into CSR format matrix using Gustavon's
-/// algorithm.
+/// \brief Converts a matrix in triplet format into a matrix in CSR format by
+/// using the classical algorithm.
 ///
-/// \param T Input matrix in COO format
-/// \param A Output matrix in CSR format
-/// \param W Scratch space, size == #columns + 1
+/// \param[in] T the input matrix in triplet format
+/// \param[out] A the output matrix in CSR format
+/// \param[out] W a scratch space (size == // TODO #columns + 1)
 ///
-void classical_compress(const spasm_triplet *T, spasm *A, int *W);
+void classical_compress(const spasm_triplet *T, spasm *A, u32 *W);
 
 ///
-/// \brief Transposes CSR format matrix using Gustavon's algorithm.
+/// \brief Transposes a matrix in CSR format by using the classical algorithm.
 ///
-/// \param A Input matrix in CSR format
-/// \param R Output matrix in CSR format
-/// \param W Working vector
+/// \param[in] A the input matrix in CSR format
+/// \param[out] R the output matrix in CSR format
+/// \param[out] W a scratch space (size == // TODO #columns + 1)
 ///
-void classical_transpose(const spasm *A, spasm *R, int *W);
+void classical_transpose(const spasm *A, spasm *R, u32 *W);
 
 #endif /* INCLUDE_DRIVER_CLASSICAL_SORT_H */

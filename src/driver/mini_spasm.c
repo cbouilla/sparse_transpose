@@ -80,8 +80,8 @@ spasm_triplet *spasm_triplet_alloc(int nzmax)
   T = spasm_malloc(sizeof(spasm_triplet));
   T->m = 0;
   T->n = 0;
-  T->nzmax = nzmax;
-  T->nz = 0;
+  T->nnz_max = nzmax;
+  T->nnz = 0;
   T->i = spasm_malloc(nzmax * sizeof(int));
   T->j = spasm_malloc(nzmax * sizeof(int));
   T->x = spasm_malloc(nzmax * sizeof(double));
@@ -96,7 +96,7 @@ spasm *spasm_csr_alloc(int n, int m, int nzmax)
   A = spasm_malloc(sizeof(spasm)); /* allocate the cs struct */
   A->m = m;                        /* define dimensions and nzmax */
   A->n = n;
-  A->nzmax = nzmax;
+  A->nnz_max = nzmax;
   A->p = spasm_malloc((n + 1) * sizeof(A->p));
   A->j = spasm_malloc(nzmax * sizeof(A->j));
   A->x = spasm_malloc(nzmax * sizeof(A->x));
@@ -107,14 +107,14 @@ spasm *spasm_csr_alloc(int n, int m, int nzmax)
 static inline void spasm_add_entry(spasm_triplet *T, int i, int j, double x)
 {
   assert((i >= 0) && (i < T->n) && (j >= 0) && (j < T->m));
-  int nz = T->nz;
-  assert(nz < T->nzmax);
+  int nz = T->nnz;
+  assert(nz < T->nnz_max);
 
   T->i[nz] = i;
   T->j[nz] = j;
   T->x[nz] = x;
 
-  T->nz = nz + 1;
+  T->nnz = nz + 1;
   // T->n = spasm_max(T->n, i + 1);
   // T->m = spasm_max(T->m, j + 1);
 }
@@ -190,7 +190,7 @@ void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y)
   const int *Tj = T->j;
   const double *Tx = T->x;
   int m = T->m;
-  int nnz = T->nz;
+  int nnz = T->nnz;
 
   for (int j = 0; j < m; j++)
     y[j] = 0;
@@ -227,6 +227,6 @@ void spasm_triplet_transpose(const spasm_triplet *T, spasm_triplet *R)
   R->x = T->x;
   R->n = T->m;
   R->m = T->n;
-  R->nz = T->nz;
-  R->nzmax = T->nzmax;
+  R->nnz = T->nnz;
+  R->nnz_max = T->nnz_max;
 }

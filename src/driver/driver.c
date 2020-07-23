@@ -32,7 +32,7 @@ void check(const spasm_triplet *T, const spasm *A)
 {
   int n = T->n;
   int m = T->m;
-  int nnz = T->nz;
+  int nnz = T->nnz;
 
   // safety checks
   assert(A->n == n);
@@ -74,12 +74,12 @@ void check(const spasm_triplet *T, const spasm *A)
 
 /* benchmark the "classical" algorithm */
 void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
-                        struct bench_time *duration)
+                        algorithm_times *duration)
 {
   double start, stop;
   int n = T->n;
   int m = T->m;
-  int nnz = T->nz;
+  int nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -131,12 +131,12 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
 }
 
 void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
-                      struct bench_time *duration)
+                      algorithm_times *duration)
 {
   double start, stop;
   int n = T->n;
   int m = T->m;
-  int nnz = T->nz;
+  int nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -191,12 +191,12 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
 #ifdef HAVE_TBB
 
 void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
-                      struct bench_time *duration, int num_threads)
+                      algorithm_times *duration, int num_threads)
 {
   double start, stop;
   int n = T->n;
   int m = T->m;
-  int nnz = T->nz;
+  int nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -255,7 +255,7 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
 
 #ifdef HAVE_MKL
 
-void run_test_MKL(const spasm_triplet *T, struct bench_time *duration,
+void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
                   int num_threads)
 {
   double start, stop;
@@ -266,7 +266,7 @@ void run_test_MKL(const spasm_triplet *T, struct bench_time *duration,
 
   mkl_set_num_threads(num_threads);
   status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m,
-                                   T->nz, T->i, T->j, T->x);
+                                   T->nnz, T->i, T->j, T->x);
   if (status != SPARSE_STATUS_SUCCESS)
     errx(1, "MKL create_coo (T) failed");
 
@@ -342,7 +342,7 @@ void mkl_version()
 
 void write_test_classical(const char *output_filename,
                           const char *matrix_filename,
-                          struct bench_time *duration)
+                          algorithm_times *duration)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -360,7 +360,7 @@ void write_test_classical(const char *output_filename,
 
 void write_test_stdsort(const char *output_filename,
                         const char *matrix_filename,
-                        struct bench_time *duration)
+                        algorithm_times *duration)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -378,7 +378,7 @@ void write_test_stdsort(const char *output_filename,
 
 void write_test_tbbsort(const char *output_filename,
                         const char *matrix_filename,
-                        struct bench_time *duration, int num_threads)
+                        algorithm_times *duration, int num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -394,7 +394,7 @@ void write_test_tbbsort(const char *output_filename,
 }
 
 void write_test_MKL(const char *output_filename, const char *matrix_filename,
-                    struct bench_time *duration, int num_threads)
+                    algorithm_times *duration, int num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -425,10 +425,10 @@ void run_test(const char *matrix_filename, const char *output_filename)
   max_num_threads = 4;
 #endif // defined HAVE_TBB || defined HAVE_MKL
 
-  struct bench_time duration[N_REPEAT];
+  algorithm_times duration[N_REPEAT];
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
   spasm_triplet *T = spasm_load_mm(f);
   fclose(f);
@@ -444,7 +444,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   write_test_classical(output_filename, matrix_filename, duration);
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 /*
         for (int i = 0; i < N_REPEAT; ++i)
@@ -455,7 +455,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
         write_test_stdsort(output_filename, matrix_filename, duration);
         for (int i = 0; i < N_REPEAT; i++)
         {
-                clear_bench_time(&duration[i]);
+                clear_times(&duration[i]);
         }
 */
 #ifdef HAVE_TBB
@@ -471,7 +471,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 
 #endif // HAVE_TBB
@@ -489,7 +489,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 
 #endif // HAVE_MKL
@@ -555,7 +555,7 @@ int main(int argc, char **argv)
 
   for (int i = 0; i < N_METHOD; i++)
   {
-    clear_bench_time(&total[i]);
+    clear_times(&total[i]);
   }
 
 #ifdef HAVE_TBB

@@ -192,6 +192,7 @@ void scan_kernel(int *in, int *out, int N, bool inclusive, int base)
 #endif
 }
 
+// Commented p
 void scan_omp(int *in, int *out, int N, bool inclusive, int base)
 {
   //    int p = 1;
@@ -223,6 +224,7 @@ void scan_omp(int *in, int *out, int N, bool inclusive, int base)
   delete[] sums;
 }
 
+// Commented unused variables
 template <typename iT, typename vT>
 void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
                        vT *csrVal, iT *cscRowIdx, iT *cscColPtr, vT *cscVal)
@@ -282,25 +284,10 @@ void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
 #pragma ivdep
   for (i = 0; i < n; i++)
   {
-    assert(inter[n * procs + i] >= 0);
     cscColPtr[i + 1] = inter[n * procs + i]; // error ?
   }
 
   scan_omp(cscColPtr, cscColPtr, n + 1, true, 0); // error in scan_omp ?
-
-#pragma omp parallel for
-  for (int idx = 0; idx < n + 1; ++idx)
-  {
-    try
-    {
-      assert(cscColPtr[idx] >= 0);
-    }
-    catch (const std::exception &e)
-    {
-#pragma omp critical
-      std::cerr << idx << std::endl;
-    }
-  }
 
 #pragma omp parallel for default(shared) private(i, j, ii,                     \
                                                  jj) // schedule(dynamic)
@@ -337,19 +324,9 @@ void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
 
     for (i = 0; i < len; i++)
     {
-      assert(csrColIdx[intra_start + i] >= 0 && csrColIdx[intra_start + i] < n);
       colIdx = csrColIdx[intra_start + i];
-      if (cscColPtr[colIdx] < 0)
-      {
-#pragma omp critical
-        std::cerr << "colptr= " << cscColPtr[colIdx] << "at" << i << std::endl;
-      }
-      assert(cscColPtr[colIdx] >= 0); // fail
-      assert(inter[inter_start + colIdx] >= 0);
-      assert(intra[intra_start + i] >= 0);
       offset = cscColPtr[colIdx] + inter[inter_start + colIdx] +
                intra[intra_start + i];
-      // if(offset < 0) std::cout << i << '\n';
       wb_index[intra_start + i] = offset;
     }
   }
@@ -379,7 +356,6 @@ void sptrans_scanTrans(int m, int n, int nnz, iT *csrRowPtr, iT *csrColIdx,
 
       for (i = 0; i < len; i++)
       {
-        // if(wb_index[intra_start+i] < 0) std::cout << i << '\n';
         offset = wb_index[intra_start + i];
         cscVal[offset] = csrVal[intra_start + i];
         cscRowIdx[offset] = csrRowUnroll[intra_start + i];

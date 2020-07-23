@@ -7,56 +7,60 @@
 /// @copyright Copyright (c) 2020
 ///
 
-#include <assert.h>
-#include <err.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
 #include "classical_sort.h"
 #include "mini_spasm.h"
 
-// assemble the CSR representation of T
-// W = scratch space, size == #rows + 1
+///
+/// \brief Converts a matrix in triplet format into a matrix in CSR formatusing
+/// Gustavon's algorithm.
+///
+/// \param T Input matrix in COO format
+/// \param A Output matrix in CSR format
+/// \param W Scratch space, size == #columns + 1
+///
 void classical_compress(const spasm_triplet *T, spasm *A, int *W)
 {
   const int *Ti = T->i;
   const int *Tj = T->j;
   const double *Tx = T->x;
+  const int n = T->n;
+  const int nnz = T->nnz;
+
   int *Ap = A->p;
   int *Aj = A->j;
   double *Ax = A->x;
 
-  int n = T->n;
-  int nnz = T->nz;
-
-  // setup
-  for (int i = 0; i < n; i++) /* gcc replaces this with AVX2-optimized memset */
+  // initializing W
+  for (int i = 0; i < n; i++) // gcc replaces this with AVX2-optimized memset
     W[i] = 0;
 
   // counting entries on each row
   for (int k = 0; k < nnz; k++)
   {
+    // W[Ti[k]]++
     int i = Ti[k];
-    int w = W[i];
-    w += 1;
-    W[i] = w;
+    int count = W[i];
+    count += 1;
+    W[i] = count;
   }
 
-  // prefix-sum + setup Ap
-  int s = 0;
+  // prefix-sum on W and initializing Ap
+  int sum = 0;
   for (int i = 0; i < n; i++)
   {
-    int w = W[i];
-    Ap[i] = s;
-    W[i] = s;
-    s += w;
+    // W[i], sum = sum, W[i] + sum
+    int count = W[i];
+    Ap[i] = sum;
+    W[i] = sum;
+    sum += count;
   }
-  Ap[n] = s;
+  Ap[n] = sum;
 
-  // dispatch
+  // dispatching
   for (int k = 0; k < nnz; k++)
   {
+    // Aj[l = W[Ti[k]]++] = Tj[k]
+    // Ax[l] = Tx[k]
     int i = Ti[k];
     int j = Tj[k];
     double x = Tx[k];
@@ -68,20 +72,26 @@ void classical_compress(const spasm_triplet *T, spasm *A, int *W)
   }
 }
 
-// W = scratch space, size == #columns + 1
+///
+/// \brief Transposes a matrix in CSR format using Gustavon's algorithm.
+///
+/// \param A Input matrix in CSR format
+/// \param R Output matrix in CSR format
+/// \param W Scratch space, size == #columns + 1
+///
 void classical_transpose(const spasm *A, spasm *R, int *W)
 {
   const int *Ap = A->p;
   const int *Aj = A->j;
   const double *Ax = A->x;
+  const int n = A->n;
+  const int m = A->m;
+
   int *Rp = R->p;
   int *Rj = R->j;
   double *Rx = R->x;
 
-  int n = A->n;
-  int m = A->m;
-
-  // setup
+  // initializing W
   for (int i = 0; i < m; i++) /* gcc replaces this with AVX2-optimized memset */
     W[i] = 0;
 
@@ -90,23 +100,23 @@ void classical_transpose(const spasm *A, spasm *R, int *W)
     for (int k = Ap[i]; k < Ap[i + 1]; k++)
     {
       int j = Aj[k];
-      int w = W[j];
-      w += 1;
-      W[j] = w;
+      int count = W[j];
+      count += 1;
+      W[j] = count;
     }
 
-  // prefix-sum + setup Rp
-  int s = 0;
+  // prefix-sum on W and initializing Rp
+  int sum = 0;
   for (int j = 0; j < m; j++)
   {
-    int w = W[j];
-    Rp[j] = s;
-    W[j] = s;
-    s += w;
+    int count = W[j];
+    Rp[j] = sum;
+    W[j] = sum;
+    sum += count;
   }
-  Rp[m] = s;
+  Rp[m] = sum;
 
-  // dispatch
+  // dispatching
   for (int i = 0; i < n; i++)
     for (int k = Ap[i]; k < Ap[i + 1]; k++)
     {
@@ -131,7 +141,7 @@ void wang_transpose(const spasm_triplet * A, spasm * T, int *W, int *Z)
         int *Tp = T->p;
         int *Tj = T->j;
         int m = A->m;
-        int nnz = A->nz;
+        int nnz = A->nnz;
 
         for (int j = 0; j < m; j++)
                 Tp[j] = 0;

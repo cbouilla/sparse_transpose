@@ -2,9 +2,8 @@
 /// \file simple_sort.cpp
 /// \author Charles Bouillaguet & Jérôme Bonacchi
 /// \brief simple compress/transpose algorithms that directly rely on explicit
-/// sorting,
-///  using off-the-shelf sort functions (std::sort from the STL or Intel's
-///  parallel sort).
+/// sorting, using off-the-shelf sort functions (std::sort from the STL or
+/// Intel's parallel sort).
 /// \date 2020-07-09
 ///
 /// @copyright Copyright (c) 2020
@@ -39,10 +38,8 @@ extern "C" void tbb_version();
 #endif // HAVE_TBB
 
 ///
-/// \brief Compare the row of the matrix_entry_t data type.
+/// \brief Compares the row of the matrix_entry_t data type.
 ///
-/// \param a Left-hand side object
-/// \param b Right-hand side object
 /// \return true If the row index of a is less than the row index of b
 /// \return false If the row index of a is greater than, or equal to, the row
 /// index of b
@@ -54,12 +51,12 @@ inline bool operator<(const struct matrix_entry_t &a,
 }
 
 ///
-/// \brief Convert a sparse matrix in COO format into CSR format.
+/// \brief Converts a sparse matrix in triplet format into CSR format.
 ///
 /// \param n Number of rows
 /// \param nnz Number of non-zero entries
-/// \param Te Sparse matrix in COO format to convert
-/// \param A Sparse matrix in CSR format
+/// \param Te Input sparse matrix in triplet format to convert
+/// \param A Output sparse matrix in CSR format
 ///
 static void finalize(int n, int nnz, const matrix_entry_t *Te, spasm *A)
 {
@@ -99,18 +96,18 @@ static void finalize(int n, int nnz, const matrix_entry_t *Te, spasm *A)
 }
 
 ///
-/// \brief Convert the sparse matrix T in COO format into A in CSR format by
-/// using std::sort.
+/// \brief Converts a sparse matrix in triplet format into a matrix in CSR
+/// format by using std::sort.
 ///
-/// \param T Sparse matrix in COO format to convert
-/// \param A T converted into CSR format
-/// \param Te T converted into another COO format
+/// \param T Input sparse matrix in triplet format to convert
+/// \param A Output sparse matrix in CSR format
+/// \param Te Input sparse matrix into another triplet format
 ///
 void stdsort_compress(const spasm_triplet *T, spasm *A,
                       struct matrix_entry_t *Te)
 {
   int n = T->n;
-  int nnz = T->nz;
+  int nnz = T->nnz;
   int *Ti = T->i;
   int *Tj = T->j;
   double *Tx = T->x;
@@ -127,15 +124,14 @@ void stdsort_compress(const spasm_triplet *T, spasm *A,
 }
 
 ///
-/// \brief Convert the sparse matrix A in CSR format into Te in COO format.
-/// Then, use std::sort to transpose Te. Finally, convert Te into R (CSR
-/// format)
+/// \brief Converts a sparse matrix in CSR format into a matrix in triplet
+/// format. Then, uses std::sort to transpose it. Finally, converts it into a
+/// matrix in CSR format
 ///
-/// \param A Sparse matrix in CSR format to transpose
-/// \param R Sparse matrix in CSR format that is the transpose of A
-/// \param Te Sparse matrix in COO format that is the transpose of A
+/// \param A Input sparse matrix in CSR format to transpose
+/// \param R Input sparse matrix in CSR format that is the transpose of A
+/// \param Te Output sparse matrix in triplet format that is the transpose of A
 /// \param num_threads Number of threads used in TBB's parallel sort
-///
 ///
 void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
 {
@@ -163,12 +159,12 @@ void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
 #ifdef HAVE_TBB
 
 ///
-/// \brief Convert the sparse matrix T in COO format into A in CSR format by
+/// \brief Convert the sparse matrix T in triplet format into A in CSR format by
 /// using TBB's parallel_sort.
 ///
-/// \param T Sparse matrix in COO format to convert
+/// \param T Sparse matrix in triplet format to convert
 /// \param A T converted into CSR format
-/// \param Te T converted into another COO format
+/// \param Te T converted into another triplet format
 /// \param num_threads Number of threads used in TBB's parallel sort
 ///
 void tbbsort_compress(const spasm_triplet *T, spasm *A,
@@ -177,7 +173,7 @@ void tbbsort_compress(const spasm_triplet *T, spasm *A,
   tbb::task_scheduler_init tsi(num_threads);
 
   int n = T->n;
-  int nnz = T->nz;
+  int nnz = T->nnz;
   int *Ti = T->i;
   int *Tj = T->j;
   double *Tx = T->x;
@@ -211,13 +207,13 @@ void tbbsort_compress(const spasm_triplet *T, spasm *A,
 }
 
 ///
-/// \brief Convert the sparse matrix A in CSR format into Te in COO format.
+/// \brief Convert the sparse matrix A in CSR format into Te in triplet format.
 /// Then, use TBB's parallel_sort to transpose Te. Finally, convert Te into R
 /// (CSR format)
 ///
 /// \param A Sparse matrix in CSR format to transpose
 /// \param R Sparse matrix in CSR format that is the transpose of A
-/// \param Te Sparse matrix in COO format that is the transpose of A
+/// \param Te Sparse matrix in triplet format that is the transpose of A
 /// \param num_threads Number of threads used in TBB's parallel sort
 ///
 void tbbsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te,

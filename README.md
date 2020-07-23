@@ -1,6 +1,10 @@
 # Transposition de matrices creuses
 
-## Matrices
+## Installation
+
+## Utilisation
+
+### Matrices
 
 Le jeu de matrices utilisé par *Wang et. al* est disponible sur la machine ppti-gpu-1 dans le dossier ou dans le fichier `matrices.txt` :
 
@@ -14,7 +18,7 @@ Un autre jeu de matrices (le mien) est disponible dans le dossier :
 
 Taille : 14Go. Ces matrices sont plus rectangulaires.
 
-## Intel Math Kernel Library (MKL)
+### Intel Math Kernel Library (MKL)
 
 Version : 2020.0.166
 
@@ -28,7 +32,7 @@ Il faut l'activer dans le Makefile (`USE_TBB=yes`), puis faire `make clean` et r
 
 Après, il y a plusieurs options (séquentiel, parallèle avec OpenMP, etc). Choisir la bonne dans le Makefile. J'ai utilisé le [Intel® Math Kernel Library Link Line Advisor](https://software.intel.com/content/www/us/en/develop/articles/intel-mkl-link-line-advisor.html) pour les déterminer...
 
-## Intel Threading Building Block (TBB)
+### Intel Threading Building Block (TBB)
 
 Version : 2020.0.166
 
@@ -38,7 +42,7 @@ Pour utiliser TBB sur ppti-gpu-1 :
 
 Ensuite, `make clean` puis recompiler.
 
-## GCC
+### GCC
 
 Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 
@@ -75,16 +79,30 @@ Version : 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
 - [x] prendre les algo parallel, moyenner les algo parallel, parcourir les matrices, parcourir les moyennes d'algo parallel (choisir un algo et parcourir le même sur les threads), tracer transpose en fonction de threads, idem pour transpose_tr, récupérer thread = argmax
 - [x] parcourir les matrices, parcourir les algo, tracer les boites à moustaches
 - [x] améliorer la ligne de compilation (les sauts de lignes dus à -D)
-- [ ] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), **dataframe panda** ?
+- [x] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), dataframe pandas
 - [x] créer un sous-dossier dans charts automatiquement
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK
-- [ ] graphique accélération, calculer l'accélération avec un algo séquentiel pour chaque matrice : Gustavson -O2
-- [ ] commenter le code, python OK
+- [x] pour la durée : regarder le min sur la moyenne des deux ?
+- [x] sauvegarder les fichiers avec des _ au lieux des  
+- [x] mettre une ligne avec plus de pointillés et des symboles plus petits
+- [x] pour résumer : prendre l'addition des medianes par algo sur toutes les matrices
+- [x] graphique accélération, calculer l'accélération avec un algo séquentiel pour chaque matrice : Gustavson -O2
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort
+- [ ] paralleliser finalize
+- [ ] commenter le code
+- [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT
+- [ ] refactor code
+- [x] utiliser typedef u32 pour n et m et u32/u64 pour nz ?
+- [ ] à remettre:licence driver_wang, retiré de wang_sort la vérification avec la MKL, citation/licence SpaSM ou refactor ?
 - [x] reformater le code
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
-à remettre:num_threads,repeat,large_matrix,licence driver_wang
-retiré de wang_sort la vérification avec la MKL
 
 GCC, MKL sequentielle, MKL iomp
+
 keep_better_parallel ne regarde que les threads de la première transpose, semble OK
+
+std::sort est plus rapide que classical sur pre-transpose[6,7,8,9,10,11,12]. Son écart de durée est d'environ 5 ms (< 10ms). La variabilité inter-algo est alors plus petite que la variablité intra-algo.
+
+Lorsque classical transpose et transpose_tr sont relativement proches, std transpose est plus lent que std transpose_tr
+
+## Licence

@@ -22,7 +22,7 @@
 
 /* A customized MTX matrix loader to handle values in different sparse matrices
  */
-// Add const to filename
+// Added const to filename, and assert
 template <class valT>
 int read_mtx_mat(int &m, int &n, int &nnzA, int *&csrRowPtrA, int *&csrColIdxA,
                  valT *&csrValA, const char *filename)

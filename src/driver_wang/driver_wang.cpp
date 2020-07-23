@@ -19,7 +19,7 @@ double spasm_wtime()
 
 #ifdef _OPENMP
 
-void run_test_scanTrans(const char *filename, struct bench_time *duration,
+void run_test_scanTrans(const char *filename, algorithm_times *duration,
                         int num_threads)
 {
   omp_set_num_threads(num_threads);
@@ -78,7 +78,7 @@ void run_test_scanTrans(const char *filename, struct bench_time *duration,
   free(cscValA);
 }
 
-void run_test_mergeTrans(const char *filename, struct bench_time *duration,
+void run_test_mergeTrans(const char *filename, algorithm_times *duration,
                          int num_threads)
 {
   omp_set_num_threads(num_threads);
@@ -140,7 +140,7 @@ void run_test_mergeTrans(const char *filename, struct bench_time *duration,
 
 void write_test_scanTrans(const char *output_filename,
                           const char *matrix_filename,
-                          struct bench_time *duration, int num_threads)
+                          algorithm_times *duration, int num_threads)
 {
   std::FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -157,7 +157,7 @@ void write_test_scanTrans(const char *output_filename,
 
 void write_test_mergeTrans(const char *output_filename,
                            const char *matrix_filename,
-                           struct bench_time *duration, int num_threads)
+                           algorithm_times *duration, int num_threads)
 {
   std::FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -174,10 +174,10 @@ void write_test_mergeTrans(const char *output_filename,
 
 void run_test(const char *matrix_filename, const char *output_filename)
 {
-  struct bench_time duration[N_REPEAT];
+  algorithm_times duration[N_REPEAT];
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 
 #ifdef _OPENMP
@@ -197,7 +197,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
@@ -211,7 +211,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
   for (int i = 0; i < N_REPEAT; i++)
   {
-    clear_bench_time(&duration[i]);
+    clear_times(&duration[i]);
   }
 
 #endif // _OPENMP
@@ -254,7 +254,7 @@ int main(int argc, char **argv)
 
   for (int i = 0; i < N_METHOD; i++)
   {
-    clear_bench_time(&total[i]);
+    clear_times(&total[i]);
   }
 
 #ifdef BENCHMARK_SMALL_MATRICES
@@ -273,7 +273,7 @@ int main(int argc, char **argv)
 
 #ifdef BENCHMARK_LARGE_MATRICES
   for (int i = 1; i <= N_LARGE_MATRICES; i++)
-  { // just this one is enough to exhibit the crash
+  {
     char matrix_filename[FILENAME_MAX];
     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 

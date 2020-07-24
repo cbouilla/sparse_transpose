@@ -1,3 +1,4 @@
+### C / C++ ###
 # Prerequisites
 *.d
 .depend
@@ -7,7 +8,6 @@
 
 # Object directories
 ./obj
-*/obj
 
 # Executables
 *.out
@@ -15,13 +15,22 @@
 ./driver
 ./driver_wang
 
-# Matrix files
+### Emacs ###
+*~
+
+### Python ###
+__pycache__/
+*.py[cod]
+
+### Documentation ###
+docs/
+
+### VisualStudioCode ###
+.vscode/*
+
+### Matrix files ###
 */*.mtx
 
-# IDE
-~*
-/.vscode
-
-# Log files
+### Log files ###
 */*.log
 *.log

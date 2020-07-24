@@ -11,6 +11,8 @@
 #ifndef INCLUDE_TOOLS_H
 #define INCLUDE_TOOLS_H
 
+#include <stdint.h>
+
 #define N_REPEAT 7
 #define BENCHMARK_SMALL_MATRICES
 #define BENCHMARK_LARGE_MATRICES

@@ -11,7 +11,6 @@
 #ifndef INCLUDE_DRIVER_MINI_SPASM_H
 #define INCLUDE_DRIVER_MINI_SPASM_H
 
-#include <stdint.h>
 #include <stdio.h>
 
 #include "tools.h"

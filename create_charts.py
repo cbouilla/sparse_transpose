@@ -466,9 +466,9 @@ def main():
         values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
         observed=True)
     plot_duration(parallel_means_pivot, show=False,
-                  save=False, save_path=save_path)
+                  save=True, save_path=save_path)
     plot_speed_up(parallel_means_pivot, ref_means,
-                  show=False, save=False, save_path=save_path)
+                  show=False, save=True, save_path=save_path)
     best = find_minima(parallel_means_pivot, parallel)
     faster_parallel = parallel.loc[best]
     new_data = pd.concat([sequential, faster_parallel])
@@ -477,7 +477,7 @@ def main():
         columns=['program', 'cflags', 'cxxflags', 'threads', 'total_step'],
         values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
         observed=True)
-    plot_box(new_data_pivot, show=True, save=False, save_path=save_path)
+    plot_box(new_data_pivot, show=False, save=True, save_path=save_path)
 
 
 if __name__ == "__main__":

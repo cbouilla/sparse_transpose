@@ -51,15 +51,17 @@ ifeq ($(DEBUG),0)
 	endif
 else
 	ifeq ($(CC),gcc)
-		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
-		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
+#		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
+#		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
+		CFLAGS := -Wall -Wextra -std=c11 -g -O2 -ftree-vectorize -fopenmp -mavx2
+		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O2 -ftree-vectorize -fopenmp -mavx2
 	else ifeq ($(CC),icc)
 		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -qopenmp -xCORE-AVX2
 		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -qopenmp -xCORE-AVX2
 	endif
 endif
-CPPFLAGS += "-DCFLAGS=\"$(CC) $(CFLAGS)\"" "-DCXXFLAGS=\"$(CXX) $(CXXFLAGS)\""
-#CPPFLAGS += "-DCFLAGS=\"-wall -wextra\"" "-DCXXFLAGS=\"-fopenmp -qopenmp\""
+CPPFLAGS += -D'CFLAGS="$(CC) $(CFLAGS)"' -D'CXXFLAGS="$(CXX) $(CXXFLAGS)"'
+
 # Linker
 LDFLAGS :=
 ifeq ($(CC),gcc)
@@ -158,7 +160,8 @@ VALGRIND = valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all
 define execute
 @printf "%-84b" $(2);\
 if [ $(DEBUG) -eq 1 ]; then\
-	printf "\n%b %s\n" $(ARROW) "$(1)";\
+	echo;\
+	echo $(ARROW) $(1);\
 	$(1) 2> $@.log;\
 	RESULT=$$?;\
 	if [ $$RESULT -ne 0 ]; then \

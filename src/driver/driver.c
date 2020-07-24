@@ -1,7 +1,7 @@
 ///
 /// \file driver.c
 /// \author Charles Bouillaguet and Jérôme Bonacchi
-/// \brief Run test bench.
+/// \brief This files runs benchmarks.
 /// \date 2020-07-09
 ///
 /// @copyright Copyright (c) 2020
@@ -11,7 +11,6 @@
 
 #include <assert.h>
 #include <err.h>
-#include <inttypes.h>
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,23 +26,29 @@
 #include "simple_sort.h"
 #include "tools.h"
 
-/* asserts that T==A by doing a matrix-vector product */
+///
+/// \brief Asserts that a matrix in triplet format is equal to another matrix in
+/// CSR format by doing a matrix-vector product
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] A the matrix in CSR format
+///
 void check(const spasm_triplet *T, const spasm *A)
 {
-  int n = T->n;
-  int m = T->m;
-  int nnz = T->nnz;
+  u32 n = T->n;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
   // safety checks
   assert(A->n == n);
   assert(A->m == m);
-  const int *Ap = A->p;
-  const int *Aj = A->j;
+  const u32 *Ap = A->p;
+  const u32 *Aj = A->j;
   assert(Ap[0] == 0);
-  for (int i = 0; i < n; i++)
+  for (u32 i = 0; i < n; i++)
     assert(Ap[i] <= Ap[i + 1]);
   assert(Ap[n] == nnz);
-  for (int k = 0; k < nnz; k++)
+  for (u32 k = 0; k < nnz; k++)
   {
     assert(0 <= Aj[k]);
     assert(Aj[k] < m);
@@ -53,13 +58,13 @@ void check(const spasm_triplet *T, const spasm *A)
   double *X = (double *)malloc(n * sizeof(double));
   double *Ya = (double *)malloc(m * sizeof(double));
   double *Yb = (double *)malloc(m * sizeof(double));
-  for (int i = 0; i < n; i++)
+  for (u32 i = 0; i < n; i++)
     X[i] = drand48();
   spasm_triplet_gemv(T, X, Ya);
   spasm_csr_gemv(A, X, Yb);
 
   double error = 0;
-  for (int j = 0; j < m; j++)
+  for (u32 j = 0; j < m; j++)
   {
     double x = Ya[j] - Yb[j];
     error += x * x;
@@ -72,20 +77,26 @@ void check(const spasm_triplet *T, const spasm *A)
   free(Yb);
 }
 
-/* benchmark the "classical" algorithm */
+///
+/// \brief Benchmarks the "classical" algorithm.
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] R the transposed matrix in triplet format
+/// \param[in, out] duration the duration of the algorithms
+///
 void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
                         algorithm_times *duration)
 {
   double start, stop;
-  int n = T->n;
-  int m = T->m;
-  int nnz = T->nnz;
+  u32 n = T->n;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
   spasm *C = spasm_csr_alloc(m, n, nnz);
   spasm *D = spasm_csr_alloc(n, m, nnz);
-  int *W = (int *)spasm_malloc((spasm_max(n, m) + 1) * sizeof(*W));
+  u32 *W = (u32 *)spasm_malloc((spasm_max(n, m) + 1) * sizeof(*W));
 
   start = spasm_wtime();
   classical_compress(T, A, W);
@@ -130,13 +141,20 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
   free(W);
 }
 
+///
+/// \brief Benchmarks the std::sort algorithm.
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] R the transposed matrix in triplet format
+/// \param[in, out] duration the duration of the algorithms
+///
 void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
                       algorithm_times *duration)
 {
   double start, stop;
-  int n = T->n;
-  int m = T->m;
-  int nnz = T->nnz;
+  u32 n = T->n;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -190,13 +208,20 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
 
 #ifdef HAVE_TBB
 
+///
+/// \brief Benchmarks the tbb::parallel_sort algorithm.
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] R the transposed matrix in triplet format
+/// \param[in, out] duration the duration of the algorithms
+///
 void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
                       algorithm_times *duration, int num_threads)
 {
   double start, stop;
-  int n = T->n;
-  int m = T->m;
-  int nnz = T->nnz;
+  u32 n = T->n;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -255,6 +280,13 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
 
 #ifdef HAVE_MKL
 
+///
+/// \brief Benchmarks the MKL sort algorithm.
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] R the transposed matrix in triplet format
+/// \param[in, out] duration the duration of the algorithms
+///
 void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
                   int num_threads)
 {
@@ -264,7 +296,10 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
 
   assert(sizeof(MKL_INT) == sizeof(int));
 
+#ifdef _OPENMP
   mkl_set_num_threads(num_threads);
+#endif // _OPENMP
+
   status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m,
                                    T->nnz, T->i, T->j, T->x);
   if (status != SPARSE_STATUS_SUCCESS)
@@ -329,6 +364,10 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
     err(1, "MKL destroy (D) failed");
 }
 
+///
+/// \brief Prints the version of the Intel's MKL, the MKL option used a compile
+/// time and the number of threads available.
+///
 void mkl_version()
 {
   const int len = 198;
@@ -340,6 +379,13 @@ void mkl_version()
 }
 #endif // HAVE_MKL
 
+///
+/// \brief Writes the execution durations of the classical algorithms.
+///
+/// \param[in] output_filename the filename where to write
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] duration the durations to write
+///
 void write_test_classical(const char *output_filename,
                           const char *matrix_filename,
                           algorithm_times *duration)
@@ -358,9 +404,15 @@ void write_test_classical(const char *output_filename,
   fclose(file);
 }
 
+///
+/// \brief Writes the execution durations of the std::sort algorithms.
+///
+/// \param[in] output_filename the filename where to write
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] duration the durations to write
+///
 void write_test_stdsort(const char *output_filename,
-                        const char *matrix_filename,
-                        algorithm_times *duration)
+                        const char *matrix_filename, algorithm_times *duration)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -376,9 +428,17 @@ void write_test_stdsort(const char *output_filename,
   fclose(file);
 }
 
+///
+/// \brief Writes the execution durations of the tbb::parallel_sort algorithms.
+///
+/// \param[in] output_filename the filename where to write
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] duration the durations to write
+/// \param[in] num_threads the number of threads used
+///
 void write_test_tbbsort(const char *output_filename,
-                        const char *matrix_filename,
-                        algorithm_times *duration, int num_threads)
+                        const char *matrix_filename, algorithm_times *duration,
+                        const int num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -393,8 +453,16 @@ void write_test_tbbsort(const char *output_filename,
   fclose(file);
 }
 
+///
+/// \brief Writes the execution durations of the Intel's MKL algorithms.
+///
+/// \param[in] output_filename the filename where to write
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] duration the durations to write
+/// \param[in] num_threads the number of threads used
+///
 void write_test_MKL(const char *output_filename, const char *matrix_filename,
-                    algorithm_times *duration, int num_threads)
+                    algorithm_times *duration, const int num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -412,29 +480,41 @@ void write_test_MKL(const char *output_filename, const char *matrix_filename,
   fclose(file);
 }
 
+///
+/// \brief Runs benchmarks on several algorithms and writes the durations in a
+/// file.
+///
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] output_filename the filename where to write
+///
 void run_test(const char *matrix_filename, const char *output_filename)
 {
   FILE *f = fopen(matrix_filename, "r");
   if (f == NULL)
     err(1, "impossible to open %s", matrix_filename);
 
-#if defined HAVE_TBB || defined HAVE_MKL
+    // Even with TBB, OpenMP is needed to manage the number of threads used
+#ifdef _OPENMP
   int max_num_threads = 1;
 #pragma omp parallel
   max_num_threads = omp_get_num_threads();
-#endif // defined HAVE_TBB || defined HAVE_MKL
+#endif // _OPENMP
 
   algorithm_times duration[N_REPEAT];
   for (int i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
+
+  // Loading matrix
   spasm_triplet *T = spasm_load_mm(f);
   fclose(f);
 
+  // Transposing
   spasm_triplet *R = malloc(sizeof(spasm_triplet));
   spasm_triplet_transpose(T, R);
 
+  // Running classical
   for (int i = 0; i < N_REPEAT; ++i)
   {
     fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
@@ -445,18 +525,20 @@ void run_test(const char *matrix_filename, const char *output_filename)
   {
     clear_times(&duration[i]);
   }
-/*
-        for (int i = 0; i < N_REPEAT; ++i)
-        {
-                fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
-                run_test_stdsort(T, R, &duration[i]);
-        }
-        write_test_stdsort(output_filename, matrix_filename, duration);
-        for (int i = 0; i < N_REPEAT; i++)
-        {
-                clear_times(&duration[i]);
-        }
-*/
+
+  // Running std::sort
+  for (int i = 0; i < N_REPEAT; ++i)
+  {
+    fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+    run_test_stdsort(T, R, &duration[i]);
+  }
+  write_test_stdsort(output_filename, matrix_filename, duration);
+  for (int i = 0; i < N_REPEAT; i++)
+  {
+    clear_times(&duration[i]);
+  }
+
+  // Running TBB
 #ifdef HAVE_TBB
 
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
@@ -475,8 +557,10 @@ void run_test(const char *matrix_filename, const char *output_filename)
 
 #endif // HAVE_TBB
 
+  // Running MKL
 #ifdef HAVE_MKL
 
+#ifdef _OPENMP
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
     for (int i = 0; i < N_REPEAT; ++i)
@@ -486,6 +570,15 @@ void run_test(const char *matrix_filename, const char *output_filename)
     }
     write_test_MKL(output_filename, matrix_filename, duration, i_thread);
   }
+#else
+  for (int i = 0; i < N_REPEAT; ++i)
+  {
+    fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+    run_test_MKL(T, &duration[i], 1);
+  }
+  write_test_MKL(output_filename, matrix_filename, duration, 1);
+#endif // _OPENMP
+
   for (int i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
@@ -498,6 +591,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
   free(R);
 }
 
+///
+/// \brief Prints the values of the global array `total`.
+///
 void show_grand_totals(void)
 {
   fprintf(stderr, "\nGRAND TOTALS:\n");
@@ -506,14 +602,11 @@ void show_grand_totals(void)
   fprintf(stderr, "    compress_tr:   %.3fs\n", total[GUSTAVSON].compress_tr);
   fprintf(stderr, "    transpsose:    %.3fs\n", total[GUSTAVSON].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[GUSTAVSON].transpose_tr);
-/*
-        fprintf(stderr, "  std::sort:\n");
-        fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
-        fprintf(stderr, "    compress_tr:   %.3fs\n",
-   total[STDSORT].compress_tr); fprintf(stderr, "    transpsose:    %.3fs\n",
-   total[STDSORT].transpose); fprintf(stderr, "    transpsose_tr: %.3fs\n",
-   total[STDSORT].transpose_tr);
-*/
+  fprintf(stderr, "  std::sort:\n");
+  fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
+  fprintf(stderr, "    compress_tr:   %.3fs\n", total[STDSORT].compress_tr);
+  fprintf(stderr, "    transpsose:    %.3fs\n", total[STDSORT].transpose);
+  fprintf(stderr, "    transpsose_tr: %.3fs\n", total[STDSORT].transpose_tr);
 #ifdef HAVE_TBB
   fprintf(stderr, "  tbb::parallel_sort:\n");
   fprintf(stderr, "    compress:      %.3fs\n", total[TBBSORT].compress);
@@ -544,10 +637,8 @@ int main(int argc, char **argv)
   }
   else
   {
-    fprintf(stderr,
-            "Usage: ./driver [output_filename]\nThe default filename is '%s'\n",
-            OUTPUT_FILENAME);
-    return EXIT_FAILURE;
+    err(1, "Usage: ./driver [output_filename]\nThe default filename is '%s'\n",
+        OUTPUT_FILENAME);
   }
 
   printf("Output file: %s\n", output_filename);
@@ -574,7 +665,6 @@ int main(int argc, char **argv)
     run_test(matrix_filename, output_filename);
     fprintf(stderr, "\n");
   }
-
   show_grand_totals();
 #endif // BENCHMARK_SMAL_MATRICES
 

@@ -101,7 +101,7 @@ Ensuite, `make clean` puis recompiler.
 - [x] utiliser typedef u32 pour n et m et u32/u64 pour nz
 - [x] finalize,spasm_add_entry, spasm_human_format mis dans .h et sans static
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort
-- [ ] commenter le code **driver et python**
+- [ ] commenter le code **python**
 - [ ] checker les todo
 - [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT (Makefile...)
 - [ ] à remettre: la vérification avec la MKL, citation/licence SpaSM ou refactor ?

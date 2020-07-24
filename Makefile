@@ -225,6 +225,10 @@ all: $(EXE)
 benchmarks: all
 	@./$(DRIVER) ; ./$(DRIVER_WANG)
 
+docs: all
+	@mkdir -p ./docs;
+	$(call execute,doxywizard Doxyfile,"Making documentation files")
+
 memcheck_driver: $(DRIVER)
 	@$(VALGRIND) ./$(DRIVER)
 

@@ -465,10 +465,10 @@ def main():
         index=['program', 'cflags', 'cxxflags', 'matrix'], columns="threads",
         values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
         observed=True)
-    plot_duration(parallel_means_pivot, show=True,
+    plot_duration(parallel_means_pivot, show=False,
                   save=False, save_path=save_path)
     plot_speed_up(parallel_means_pivot, ref_means,
-                  show=True, save=False, save_path=save_path)
+                  show=False, save=False, save_path=save_path)
     best = find_minima(parallel_means_pivot, parallel)
     faster_parallel = parallel.loc[best]
     new_data = pd.concat([sequential, faster_parallel])

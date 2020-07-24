@@ -100,14 +100,14 @@ Ensuite, `make clean` puis recompiler.
 - [x] refactor code
 - [x] utiliser typedef u32 pour n et m et u32/u64 pour nz
 - [x] finalize,spasm_add_entry, spasm_human_format mis dans .h et sans static
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort
-- [ ] commenter le code **python**
-- [ ] checker les todo
+- [x] commenter le code
+- [x] reformater le code
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK
 - [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT (Makefile...)
 - [ ] à remettre: la vérification avec la MKL, citation/licence SpaSM ou refactor ?
 - [ ] la seule utilité de matrix_entry_t est pour finalize, utiliser spasm_triplet ?
 - [ ] taille de W : n, nnz, max(n,m)+1 ?
-- [x] reformater le code
+- [ ] checker les todo
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 

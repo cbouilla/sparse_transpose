@@ -13,7 +13,12 @@
 
 #include <stdio.h>
 
-#include "tools.h"
+#include <stdint.h>
+
+///
+/// \brief Type used for dimensions and entries.
+///
+typedef uint32_t u32;
 
 ///
 /// \brief A triplet corresponding to a matrix entry.
@@ -146,19 +151,6 @@ spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max);
 /// \param[in] A the matrix in CSR format
 ///
 void spasm_csr_free(spasm *A);
-
-///
-/// \brief Adds an entry to a matrix in triplet format.
-/// The dimensions of the matrix must be greater than both i and j. Dimensions
-/// are not enlarge.
-///
-/// \param[in, out] T the input matrix in triplet format
-/// \param[in] i the row index
-/// \param[in] j the column index
-/// \param[in] x the numerical value
-///
-inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j,
-                            const double x);
 
 ///
 /// \brief Loads the matrix from a file in Matrix Market format.

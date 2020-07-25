@@ -9,9 +9,10 @@
 ///
 
 #include <assert.h>
-#include <stdbool.h>
 #include <err.h>
 #include <math.h>
+#include <stdbool.h>
+#include <stdlib.h>
 #include <sys/time.h>
 
 #include "mini_spasm.h"
@@ -106,10 +107,22 @@ spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max)
   return A;
 }
 
-inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j, const double x)
+///
+/// \brief Adds an entry to a matrix in triplet format.
+/// The dimensions of the matrix must be greater than both i and j. Dimensions
+/// are not enlarge.
+///
+/// \param[in, out] T the input matrix in triplet format
+/// \param[in] i the row index
+/// \param[in] j the column index
+/// \param[in] x the numerical value
+///
+inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j,
+                            const double x)
 {
   // Checks the matrix dimensions
-  assert((i >= 0) && (i < T->n) && (j >= 0) && (j < T->m));
+  // assert((i >= 0) && (i < T->n) && (j >= 0) && (j < T->m));
+  assert((i < T->n) && (j < T->m));
   const u32 nnz = T->nnz;
   assert(nnz < T->nnz_max);
 
@@ -118,7 +131,7 @@ inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j, const do
   T->x[nnz] = x;
   // T->nnz++
   T->nnz = nnz + 1;
-  
+
   // Enlarges the matrix dimensions if necessary
   // T->n = spasm_max(T->n, i + 1);
   // T->m = spasm_max(T->m, j + 1);

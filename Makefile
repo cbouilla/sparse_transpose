@@ -160,8 +160,8 @@ VALGRIND = valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all
 define execute
 @printf "%-84b" $(2);\
 if [ $(DEBUG) -eq 1 ]; then\
-	echo;\
-	echo $(ARROW) $(1);\
+	printf "\n %b" $(ARROW);\
+	echo $(1);\
 	$(1) 2> $@.log;\
 	RESULT=$$?;\
 	if [ $$RESULT -ne 0 ]; then \

@@ -11,8 +11,14 @@
 #ifndef INCLUDE_DRIVER_CLASSICAL_SORT_H
 #define INCLUDE_DRIVER_CLASSICAL_SORT_H
 
+#include <stdint.h>
+
+///
+/// \brief Type used for dimensions and entries.
+///
+typedef uint32_t u32;
+
 #include "mini_spasm.h"
-#include "tools.h"
 
 ///
 /// \brief Converts a matrix in triplet format into a matrix in CSR format by

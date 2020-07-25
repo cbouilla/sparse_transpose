@@ -49,8 +49,8 @@ inline bool operator<(const struct matrix_entry_t &a,
   return a.i < b.i;
 }
 
-void finalize(const u32 n, const u32 nnz, const matrix_entry_t *Te,
-                     spasm *A)
+void finalize(const u32 n, const u32 nnz, const struct matrix_entry_t *Te,
+              spasm *A)
 {
   u32 *Ap = A->p;
   u32 *Aj = A->j;
@@ -58,12 +58,24 @@ void finalize(const u32 n, const u32 nnz, const matrix_entry_t *Te,
 
   // scanning, copying and setting pointers
   // could be parallelized (but this is not completely trivial)
-  int i = -1;
+  // int i = -1;
+  u32 i = 0;
+  bool first = true;
   for (u32 k = 0; k < nnz; k++)
   {
     u32 next_i = Te[k].i;
     u32 next_j = Te[k].j;
     double next_x = Te[k].x;
+    if (first)
+    {
+      first = false;
+      while (i < next_i)
+      {
+        Ap[i] = k;
+        i++;
+      }
+      Ap[i] = k;
+    }
     if (i < next_i)
     {
       i++;

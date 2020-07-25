@@ -86,7 +86,7 @@ algorithm_times total[N_METHOD];
 /// 
 /// \param[in, out] duration the data to reset
 ///
-void clear_times(algorithm_times *duration)
+inline void clear_times(algorithm_times *duration)
 {
   duration->compress = 0.0;
   duration->compress_tr = 0.0;

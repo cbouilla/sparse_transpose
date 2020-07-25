@@ -9,6 +9,13 @@
 #ifndef INCLUDE_DRIVER_MMIO_H
 #define INCLUDE_DRIVER_MMIO_H
 
+#include <stdint.h>
+
+///
+/// \brief Type used for dimensions and entries.
+///
+typedef uint32_t u32;
+
 #define MM_MAX_LINE_LENGTH 1025
 #define MatrixMarketBanner "%%MatrixMarket"
 #define MM_MAX_TOKEN_LENGTH 64
@@ -18,12 +25,12 @@ typedef char MM_typecode[4];
 char *mm_typecode_to_str(MM_typecode matcode);
 
 int mm_read_banner(FILE *f, MM_typecode *matcode);
-int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz);
-int mm_read_mtx_array_size(FILE *f, int *M, int *N);
+int mm_read_mtx_crd_size(FILE *f, u32 *M, u32 *N, u32 *nz);
+int mm_read_mtx_array_size(FILE *f, u32 *M, u32 *N);
 
 int mm_write_banner(FILE *f, MM_typecode matcode);
-int mm_write_mtx_crd_size(FILE *f, int M, int N, int nz);
-int mm_write_mtx_array_size(FILE *f, int M, int N);
+int mm_write_mtx_crd_size(FILE *f, u32 M, u32 N, u32 nz);
+int mm_write_mtx_array_size(FILE *f, u32 M, u32 N);
 
 /********************* MM_typecode query fucntions ***************************/
 
@@ -110,14 +117,14 @@ int mm_is_valid(MM_typecode matcode); /* too complex for a macro */
 
 /*  high level routines */
 
-int mm_write_mtx_crd(char fname[], int M, int N, int nz, int I[], int J[],
+int mm_write_mtx_crd(char fname[], u32 M, u32 N, u32 nz, u32 I[], u32 J[],
                      double val[], MM_typecode matcode);
-int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
+int mm_read_mtx_crd_data(FILE *f, u32 M, u32 N, u32 nz, u32 I[], u32 J[],
                          double val[], MM_typecode matcode);
-int mm_read_mtx_crd_entry(FILE *f, int *I, int *J, double *real, double *img,
+int mm_read_mtx_crd_entry(FILE *f, u32 *I, u32 *J, double *real, double *img,
                           MM_typecode matcode);
 
-int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
-                               double **val_, int **I_, int **J_);
+int mm_read_unsymmetric_sparse(const char *fname, u32 *M_, u32 *N_, u32 *nz_,
+                               double **val_, u32 **I_, u32 **J_);
 
 #endif /* INCLUDE_DRIVER_MMIO_H */

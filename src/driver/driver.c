@@ -50,7 +50,7 @@ void check(const spasm_triplet *T, const spasm *A)
   assert(Ap[n] == nnz);
   for (u32 k = 0; k < nnz; k++)
   {
-    assert(0 <= Aj[k]);
+    // assert(0 <= Aj[k]); // useless with u32
     assert(Aj[k] < m);
   }
 
@@ -494,7 +494,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
     // Even with TBB, OpenMP is needed to manage the number of threads used
-#ifdef _OPENMP
+#if defined _OPENMP && (defined HAVE_TBB || defined HAVE_MKL)
   int max_num_threads = 1;
 #pragma omp parallel
   max_num_threads = omp_get_num_threads();

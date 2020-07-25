@@ -23,7 +23,7 @@
 /// \param[in] Te the input matrix in triplet format to convert
 /// \param[out] A the output matrix in CSR format
 ///
-void finalize(const u32 n, const u32 nnz, const matrix_entry_t *Te, spasm *A);
+void finalize(const u32 n, const u32 nnz, const struct matrix_entry_t *Te, spasm *A);
 
 ///
 /// \brief Converts a matrix in triplet format into a matrix in CSR

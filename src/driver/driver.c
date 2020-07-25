@@ -35,9 +35,9 @@
 ///
 void check(const spasm_triplet *T, const spasm *A)
 {
-  u32 n = T->n;
-  u32 m = T->m;
-  u32 nnz = T->nnz;
+  const u32 n = T->n;
+  const u32 m = T->m;
+  const u32 nnz = T->nnz;
 
   // safety checks
   assert(A->n == n);
@@ -88,9 +88,9 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
                         algorithm_times *duration)
 {
   double start, stop;
-  u32 n = T->n;
-  u32 m = T->m;
-  u32 nnz = T->nnz;
+  const u32 n = T->n;
+  const u32 m = T->m;
+  const u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -152,9 +152,9 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
                       algorithm_times *duration)
 {
   double start, stop;
-  u32 n = T->n;
-  u32 m = T->m;
-  u32 nnz = T->nnz;
+  const u32 n = T->n;
+  const u32 m = T->m;
+  const u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -216,12 +216,12 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
 /// \param[in, out] duration the duration of the algorithms
 ///
 void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
-                      algorithm_times *duration, int num_threads)
+                      algorithm_times *duration, const u32 num_threads)
 {
   double start, stop;
-  u32 n = T->n;
-  u32 m = T->m;
-  u32 nnz = T->nnz;
+  const u32 n = T->n;
+  const u32 m = T->m;
+  const u32 nnz = T->nnz;
 
   spasm *A = spasm_csr_alloc(n, m, nnz);
   spasm *B = spasm_csr_alloc(m, n, nnz);
@@ -288,7 +288,7 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
 /// \param[in, out] duration the duration of the algorithms
 ///
 void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
-                  int num_threads)
+                  const u32 num_threads)
 {
   double start, stop;
   sparse_matrix_t mkl_T, mkl_A, mkl_B, mkl_C, mkl_D;
@@ -301,7 +301,7 @@ void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
 #endif // _OPENMP
 
   status = mkl_sparse_d_create_coo(&mkl_T, SPARSE_INDEX_BASE_ZERO, T->n, T->m,
-                                   T->nnz, T->i, T->j, T->x);
+                                   T->nnz, (int *)T->i, (int *)T->j, T->x);
   if (status != SPARSE_STATUS_SUCCESS)
     err(1, "MKL create_coo (T) failed");
 
@@ -374,7 +374,7 @@ void mkl_version()
   char buf[len];
   mkl_get_version_string(buf, len);
   printf("MKL version: %s\n", buf);
-  int max_num_threads = mkl_get_max_threads();
+  const int max_num_threads = mkl_get_max_threads();
   printf("MKL: %s, maximum %d threads\n", HAVE_MKL, max_num_threads);
 }
 #endif // HAVE_MKL
@@ -393,7 +393,7 @@ void write_test_classical(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  int num_threads = 1;
+  const u32 num_threads = 1;
   const char *name = "Gustavson";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
@@ -417,7 +417,7 @@ void write_test_stdsort(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  int num_threads = 1;
+  const u32 num_threads = 1;
   const char *name = "std::sort";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
@@ -438,7 +438,7 @@ void write_test_stdsort(const char *output_filename,
 ///
 void write_test_tbbsort(const char *output_filename,
                         const char *matrix_filename, algorithm_times *duration,
-                        const int num_threads)
+                        const u32 num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -462,7 +462,7 @@ void write_test_tbbsort(const char *output_filename,
 /// \param[in] num_threads the number of threads used
 ///
 void write_test_MKL(const char *output_filename, const char *matrix_filename,
-                    algorithm_times *duration, const int num_threads)
+                    algorithm_times *duration, const u32 num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
@@ -495,13 +495,13 @@ void run_test(const char *matrix_filename, const char *output_filename)
 
     // Even with TBB, OpenMP is needed to manage the number of threads used
 #if defined _OPENMP && (defined HAVE_TBB || defined HAVE_MKL)
-  int max_num_threads = 1;
+  u32 max_num_threads = 1;
 #pragma omp parallel
   max_num_threads = omp_get_num_threads();
 #endif // _OPENMP
 
   algorithm_times duration[N_REPEAT];
-  for (int i = 0; i < N_REPEAT; i++)
+  for (u32 i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
@@ -515,25 +515,25 @@ void run_test(const char *matrix_filename, const char *output_filename)
   spasm_triplet_transpose(T, R);
 
   // Running classical
-  for (int i = 0; i < N_REPEAT; ++i)
+  for (u32 i = 0; i < N_REPEAT; ++i)
   {
     fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_classical(T, R, &duration[i]);
   }
   write_test_classical(output_filename, matrix_filename, duration);
-  for (int i = 0; i < N_REPEAT; i++)
+  for (u32 i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
 
   // Running std::sort
-  for (int i = 0; i < N_REPEAT; ++i)
+  for (u32 i = 0; i < N_REPEAT; ++i)
   {
     fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_stdsort(T, R, &duration[i]);
   }
   write_test_stdsort(output_filename, matrix_filename, duration);
-  for (int i = 0; i < N_REPEAT; i++)
+  for (u32 i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
@@ -541,16 +541,16 @@ void run_test(const char *matrix_filename, const char *output_filename)
   // Running TBB
 #ifdef HAVE_TBB
 
-  for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
+  for (u32 i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
-    for (int i = 0; i < N_REPEAT; ++i)
+    for (u32 i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_tbbsort(T, R, &duration[i], i_thread);
     }
     write_test_tbbsort(output_filename, matrix_filename, duration, i_thread);
   }
-  for (int i = 0; i < N_REPEAT; i++)
+  for (u32 i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
@@ -561,9 +561,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
 #ifdef HAVE_MKL
 
 #ifdef _OPENMP
-  for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
+  for (u32 i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
-    for (int i = 0; i < N_REPEAT; ++i)
+    for (u32 i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_MKL(T, &duration[i], i_thread);
@@ -571,7 +571,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
     write_test_MKL(output_filename, matrix_filename, duration, i_thread);
   }
 #else
-  for (int i = 0; i < N_REPEAT; ++i)
+  for (u32 i = 0; i < N_REPEAT; ++i)
   {
     fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_MKL(T, &duration[i], 1);
@@ -579,7 +579,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   write_test_MKL(output_filename, matrix_filename, duration, 1);
 #endif // _OPENMP
 
-  for (int i = 0; i < N_REPEAT; i++)
+  for (u32 i = 0; i < N_REPEAT; i++)
   {
     clear_times(&duration[i]);
   }
@@ -656,7 +656,7 @@ int main(int argc, char **argv)
 #endif // HAVE_MKL
 
 #ifdef BENCHMARK_SMALL_MATRICES
-  for (int i = 0; i < N_SMALL_MATRICES; i++)
+  for (u32 i = 0; i < N_SMALL_MATRICES; i++)
   {
     char matrix_filename[FILENAME_MAX];
     sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
@@ -669,7 +669,7 @@ int main(int argc, char **argv)
 #endif // BENCHMARK_SMAL_MATRICES
 
 #ifdef BENCHMARK_LARGE_MATRICES
-  for (int i = 1; i <= N_LARGE_MATRICES; i++)
+  for (u32 i = 1; i <= N_LARGE_MATRICES; i++)
   { // just this one is enough to exhibit the crash
     char matrix_filename[FILENAME_MAX];
     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);

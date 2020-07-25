@@ -9,7 +9,6 @@
 ///
 
 #include <algorithm>
-#include <cstdint>
 #include <omp.h>
 
 extern "C"
@@ -29,9 +28,9 @@ extern "C" void stdsort_transpose(const spasm *A, spasm *R,
 #include <tbb/tbb_stddef.h>
 
 extern "C" void tbbsort_compress(const spasm_triplet *T, spasm *A,
-                                 struct matrix_entry_t *Te, int num_threads);
+                                 struct matrix_entry_t *Te, const u32 num_threads);
 extern "C" void tbbsort_transpose(const spasm *A, spasm *R,
-                                  struct matrix_entry_t *Te, int num_threads);
+                                  struct matrix_entry_t *Te, const u32 num_threads);
 extern "C" void tbb_version();
 
 #endif // HAVE_TBB

@@ -96,7 +96,6 @@ ifeq ($(CC),gcc)
 
 	# Sequential MKL
 	ifeq ($(USE_MKL),sequential)
-		CPPFLAGS += -DHAVE_MKL_SEQUENTIAL
 		LDLIBS += -lmkl_sequential -lmkl_core
 	endif # Sequential MKL
 
@@ -160,7 +159,7 @@ VALGRIND = valgrind --leak-check=full --track-origins=yes --show-leak-kinds=all
 define execute
 @printf "%-84b" $(2);\
 if [ $(DEBUG) -eq 1 ]; then\
-	printf "\n %b" $(ARROW);\
+	printf "\n%b " $(ARROW);\
 	echo $(1);\
 	$(1) 2> $@.log;\
 	RESULT=$$?;\

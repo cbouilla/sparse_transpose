@@ -12,7 +12,8 @@
 #define INCLUDE_DRIVER_SIMPLE_SORT_H
 
 #include "mini_spasm.h"
-#include "tools.h"
+
+typedef uint32_t u32;
 
 ///
 /// \brief Converts a sparse matrix in triplet format into a matrix in CSR

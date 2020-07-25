@@ -102,8 +102,7 @@ Ensuite, `make clean` puis recompiler.
 - [x] finalize,spasm_add_entry, spasm_human_format mis dans .h et sans static
 - [x] commenter le code
 - [x] reformater le code
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK
-- [ ] COMPARER AVEC LE CODE SUR PPTI AVANT DE COMMIT (Makefile...)
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL
 - [ ] à remettre: la vérification avec la MKL, citation/licence SpaSM ou refactor ?
 - [ ] la seule utilité de matrix_entry_t est pour finalize, utiliser spasm_triplet ?
 - [ ] taille de W : n, nnz, max(n,m)+1 ?
@@ -121,5 +120,6 @@ Lorsque classical transpose et transpose_tr sont relativement proches, std trans
 
 ## Licence
 
+Code from pandas: BSD
 Code from Wang: GNU LGPL 2.1
 Code from SpaSM: GNU GPL 3

@@ -307,7 +307,6 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
             plt.show()
         plt.close(fig)
         print("done.")
-    print(total)
 
 
 def find_minima(data, parallel):
@@ -455,7 +454,7 @@ def main():
         print(
             "Usage: create_charts [input_filename].\nThe default filename is",
             filename)
-        # return
+        return
     data = read_csv(filename)
     sequential, parallel = split(data)
     parallel_means = means(parallel.iloc[:, :-2])

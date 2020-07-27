@@ -102,15 +102,17 @@ Ensuite, `make clean` puis recompiler.
 - [x] finalize,spasm_add_entry, spasm_human_format mis dans .h et sans static
 - [x] commenter le code
 - [x] reformater le code
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL
-- [ ] à remettre: la vérification avec la MKL, citation/licence SpaSM ou refactor ?
+- [x] à remettre: la vérification avec la MKL, 
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL OK, 
+- [ ] comparer la MKL séquentielle et la parallèle avec 1 threads
+- [ ] citation/licence SpaSM ou refactor ?
 - [ ] la seule utilité de matrix_entry_t est pour finalize, utiliser spasm_triplet ?
 - [ ] taille de W : n, nnz, max(n,m)+1 ?
 - [ ] checker les todo
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-GCC, MKL sequentielle, MKL iomp
+GCC, (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 
 keep_better_parallel ne regarde que les threads de la première transpose, semble OK
 

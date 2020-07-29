@@ -12,14 +12,23 @@
 ## Installation
 
 Testé avec:
-Python 3.8.3
-matplotlib 3.2.1
-numpy 1.18.5
-pandas 1.0.3
-Intel Math Kernel Library (MKL) 2020.0.166
-Intel Threading Building Block 2020.0.166
-ICC TODO
-GCC 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)
+
+- Python 3.8.3: [PSF licence agreement](https://docs.python.org/3/license.html)
+- Matplotlib 3.2.1: [The Matplotlib Development Team](https://matplotlib.org/3.2.1/users/license.html)
+- NumPy 1.18.5: [Copyright (c) 2005, NumPy Developers](https://numpy.org/doc/stable/license.html)
+- pandas 1.0.3: [BSD 3-Clause License](https://pandas.pydata.org/pandas-docs/stable/getting_started/overview.html)
+
+- spTrans: [Wang, Hao and Liu, Weifeng and Hou, Kaixi and Feng, Wu-chun, LGPL-2.1](https://github.com/vtsynergy/sptrans)
+- SpaSM: [The SpaSM group, GPL-3.0](https://github.com/cbouilla/spasm/)
+- Intel Math Kernel Library (MKL) 2020.0.166: [Intel Simplified Software License](https://software.intel.com/content/www/us/en/develop/articles/end-user-license-agreement.html#inpage-nav-3)
+- Intel Threading Building Block (TBB) 2020.0.166: [Intel Simplified Software License](https://software.intel.com/content/www/us/en/develop/articles/end-user-license-agreement.html#inpage-nav-3)
+- ICC
+- C 11
+- C 11 standard librairies
+- C++ 11
+- C++ 11 STL
+- GCC 6.3.0 20170516 (Debian 6.3.0-18+deb9u1) et 10.1.0
+
 
 ## Utilisation
 
@@ -105,11 +114,8 @@ Ensuite, `make clean` puis recompiler.
 - [x] à remettre: la vérification avec la MKL, 
 - [ ] je dois trouver le min de la moyenne des deux transpositions dans find_minima ?
 - [ ] dans boxplot, actualiser le bon numéro de thread
-- [ ] revérifier qu'il n'y a pas de fuites mémoires avec wang+MKL
 - [ ] dans wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
-- [ ] comparer le temps de scan et de merge avec leur version et la mienne
-- [ ] comparer la MKL séquentielle et la parallèle avec 1 threads
 - [ ] citation/licence SpaSM ou refactor ?
 - [ ] comparer matrice par matrice quel algo est le meilleur
 - [ ] taille de W : n, nnz, max(n,m)+1 ?
@@ -152,9 +158,3 @@ TBB:
 	courbe très plate, minimum atteint vers 16 (ou 44 sur les dernières)
 
 ScanTrans est globalement le meilleur algo (overall duration et speed up)
-
-## Licence
-
-Code from pandas: BSD
-Code from Wang: GNU LGPL 2.1
-Code from SpaSM: GNU GPL 3

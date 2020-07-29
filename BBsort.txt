@@ -1,19 +1,84 @@
-Algorithme Trie:
+Algorithme BBsort:
 
 Entrées : 
-	- pointeur sur liste
-	- taille de la liste
-	- taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
-	- nombre de bit maximal
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+	- Unsigned integer: cache_size // taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
+	- Unsigned integer: num_digit // nombre de bit maximal
 
-Début
+Start
 
-	Si taille <= 1 alors
-		Retour
-	Si taille <= 16 alors
-		Timsort/insertionsort/quadsort si presque dejà trié, ou autre
-	Sinon
-		Si est_triée(liste) alors
-			Retour
-		Sinon	parallel_vectorize_radix_sort()
-Fin
+	If size == 0 then
+    Print "Empty array"
+		Return
+	End if
+	If size <= 1 then
+	  Print "Only one element in array"
+		Return
+	End if
+	If size <= 16 then
+		sort_short_array(array, size)
+	Else
+	  If is_sorted(array, size) then
+			Return
+	  Else	parallel_vectorize_radix_sort(array, size, cache_size, num_digit)
+		End if
+	End if
+
+End
+
+___
+
+Procédure is_sorted()
+
+Entrées :
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+
+
+Start
+
+  is_sorted == True
+	For i = 0..(size-2) do
+    If array[i] > array[i+1]
+		  is_sorted = False
+		End if
+	End for
+
+End
+
+___
+
+Procédure sort_short_array(array, size)
+
+Entrées :
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+
+Start 
+
+  insertion_sort(array, size) // OR Sorting Networks with Simple Swap
+
+End
+
+___
+
+Procédure insertion_sort(array, size)
+
+Entrées :
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+
+Start
+
+	For i = 1..(size-1) do
+    key = array[i]; 
+    j = i - 1;
+  
+    While (j >= 0) and (array[j] > key) do
+      array[j + 1] = array[j]; 
+      j = j - 1; 
+    End while
+    array[j + 1] = key; 
+
+End

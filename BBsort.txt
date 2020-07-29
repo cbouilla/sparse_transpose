@@ -1,0 +1,19 @@
+Algorithme Trie:
+
+Entrées : 
+	- pointeur sur liste
+	- taille de la liste
+	- taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
+	- nombre de bit maximal
+
+Début
+
+	Si taille <= 1 alors
+		Retour
+	Si taille <= 16 alors
+		Timsort/insertionsort/quadsort si presque dejà trié, ou autre
+	Sinon
+		Si est_triée(liste) alors
+			Retour
+		Sinon	parallel_vectorize_radix_sort()
+Fin

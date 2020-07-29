@@ -70,11 +70,11 @@ void run_test_scanTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdxA
   total[SCANTRANS].transpose += duration->transpose;
   fprintf(stderr, "-- ScanTrans transpose (%d threads) [CSR->CSR']: %.3fs\n",
           num_threads, duration->transpose);
-
+  /*
   assert(std::equal(cscval, cscval+nnzA, cscValA));
   assert(std::equal((int*)cscidx, (int*)(cscidx+nnzA), cscRowIdxA));
   assert(std::equal((int*)pntrb, (int*)(pntrb+n), cscColPtrA));
-
+  */
   int *new_csrRowPtrA = (int *)malloc((m + 1) * sizeof(int));
   int *new_csrColIdxA = (int *)malloc(nnzA * sizeof(int));
   double *new_csrValA = (double *)malloc(nnzA * sizeof(double));
@@ -91,11 +91,11 @@ void run_test_scanTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdxA
   total[SCANTRANS].transpose_tr += duration->transpose_tr;
   fprintf(stderr, "-- ScanTrans transpose (%d threads) [CSR'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
-
+  /*
   assert(std::equal(new_csrValA, new_csrValA + nnzA, csrValA));
   assert(std::equal(new_csrColIdxA, new_csrColIdxA + nnzA, csrColIdxA));
   assert(std::equal(new_csrRowPtrA, new_csrRowPtrA + m, csrRowPtrA));
-
+  */
   free(new_csrRowPtrA);
   free(new_csrColIdxA);
   free(new_csrValA);
@@ -141,7 +141,7 @@ void run_test_mergeTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdx
 
   start = spasm_wtime();
   sptrans_mergeTrans<int, double>(n, m, nnzA, cscColPtrA, cscRowIdxA, cscValA,
-                                  csrColIdxA, csrRowPtrA, csrValA);
+                                  new_csrColIdxA, new_csrRowPtrA, new_csrValA);
   stop = spasm_wtime();
   duration->transpose_tr = stop - start;
   total[MERGETRANS].transpose_tr += duration->transpose_tr;
@@ -221,7 +221,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "Failed to read the matrix from %s.", matrix_filename);
   }
 
-  mkl_set_num_threads(13); // seems to be the better
+  mkl_set_num_threads(13); // seems a good number
 
   sparse_index_base_t indexing = SPARSE_INDEX_BASE_ZERO;
   sparse_status_t status = SPARSE_STATUS_SUCCESS;
@@ -246,7 +246,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
     free(csrRowPtrA);
     err(1, "Failed to do MKL convert!\n");
   }
-  
+  /*  
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
     for (int i = 0; i < N_REPEAT; ++i)
@@ -260,13 +260,13 @@ void run_test(const char *matrix_filename, const char *output_filename)
   {
     clear_times(&duration[i]);
   }
-/*
+  */
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
     for (int i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
-      run_test_mergeTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntre, cscidx, cscval, &duration[i], i_thread);
+      run_test_mergeTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntrb, cscidx, cscval, &duration[i], i_thread);
     }
     write_test_mergeTrans(output_filename, matrix_filename, duration, i_thread);
   }
@@ -274,7 +274,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   {
     clear_times(&duration[i]);
   }
-*/
+
   free(csrRowPtrA);
   free(csrColIdxA);
   free(csrValA);
@@ -288,13 +288,13 @@ void show_grand_totals()
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  fprintf(stderr, "  ScanTrans:\n");
+  /*  fprintf(stderr, "  ScanTrans:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[SCANTRANS].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[SCANTRANS].transpose_tr);
-/*
+  */
   fprintf(stderr, "  MergeTrans:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[MERGETRANS].transpose);
-  fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MERGETRANS].transpose_tr);*/
+  fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MERGETRANS].transpose_tr);
 #endif // _OPENMP
 }
 

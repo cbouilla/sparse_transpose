@@ -19,10 +19,10 @@ fieldnames = ["program", "cflags", "cxxflags", "threads", "matrix", "compress",
 
 
 def extract_matrix_name(path):
-    """Extracts the matrix name from `path`.
+    """Extracts the name of the matrix from `path`.
 
     Args:
-        path (str): Tha path to the matrix file.
+        path (str): The path to the matrix file.
 
     Returns:
         str: The name of the matrix.
@@ -30,6 +30,19 @@ def extract_matrix_name(path):
     begin = path.rfind('/')
     matrix_name = path[begin + 1:-4]
     return matrix_name
+
+
+def extract_program_name(name):
+    """Extracts the name of the program.
+
+    Args:
+        name (str): The raw name of the program.
+
+    Returns:
+        str: The correct name of the program.
+    """
+    program_name = name.replace('::', ' ', 1)
+    return program_name
 
 
 def read_csv(filename):
@@ -51,23 +64,22 @@ def read_csv(filename):
     return data
 
 
-def is_sequential(name):
-    """Returns whether or not algorithm `name` corresponds to a sequential
+def is_serial(name):
+    """Returns whether or not algorithm `name` corresponds to a serial
     algorithm.
 
     Args:
         name (str): The name of the algorithm.
 
     Returns:
-        bool: Whether or not algorithm `name` corresponds to a sequential
+        bool: Whether or not algorithm `name` corresponds to a serial
         algorithm.
     """
     is_gustavson = name.find("Gustavson") != -1
-    is_std_sort = name .find("std::sort") != -1
-    is_mkl_sequential = (name.find("MKL") != -
-                         1) and (name.find("sequential") != -1)
-    is_sequential = is_gustavson or is_std_sort or is_mkl_sequential
-    return is_sequential
+    is_std_sort = name .find("STL") != -1
+    is_mkl_serial = (name.find("MKL") != -1) and (name.find("serial") != -1)
+    isSerial = is_gustavson or is_std_sort or is_mkl_serial
+    return isSerial
 
 
 def means(data):
@@ -99,7 +111,7 @@ def split(data):
         elements of `data` where algorithms are sequential whereas the second
         contains those where algorithms are parallel.
     """
-    sequential_indices = (data["program"]).apply(is_sequential)
+    sequential_indices = (data["program"]).apply(is_serial)
     sequential = data.loc[sequential_indices]
     parallel = data.loc[sequential_indices == False]
     return sequential, parallel
@@ -122,6 +134,7 @@ def plot_duration(data, show=True, save=True, save_path=""):
     length = len(threads)
     for index in data.index:
         name, cflags, cxxflags, matrix = index
+        name = extract_program_name(name)
         key = (name, cflags, cxxflags)
         if key not in total:
             total[key] = dict(transpose=pd.Series([0] * length, index=threads),
@@ -154,7 +167,8 @@ def plot_duration(data, show=True, save=True, save_path=""):
         plt.close(fig)
         print("done.")
     # Overall
-    for d in total.values():
+    for (k, d) in total.items():
+        name, _, _ = k
         fig, axes = plt.subplots()
         transpose, transpose_tr = d['transpose'], d['transpose_tr']
         print("Plotting overall duration of {}...".format(name), end=' ',
@@ -198,6 +212,7 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
     length = len(threads)
     for index in data.index:
         name, cflags, cxxflags, matrix = index
+        name = extract_program_name(name)
         key = (name, cflags, cxxflags)
         if key not in total:
             total[key] = dict(sequential=0, sequential_tr=0, matrices=set(),
@@ -252,7 +267,7 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
         plt.close(fig)
         print("done.")
     # Mean
-    for k, d in total.items():
+    for (k, d) in total.items():
         name, _, _ = k
         length = len(total[k]['matrices'])
         fig, axes = plt.subplots()
@@ -280,7 +295,7 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
         plt.close(fig)
         print("done.")
     # Overall
-    for k, d in total.items():
+    for (k, d) in total.items():
         name, _, _ = k
         fig, axes = plt.subplots()
         transpose = d['overall_transpose'].rdiv(d['sequential'])
@@ -351,7 +366,11 @@ def plot_box(data, show=True, save=True, save_path=""):
     labels = list()
     columns = data[:1]['transpose'].dropna(axis=1).columns
     for columns_names in columns:
-        labels.append(columns_names[0].replace(" ", "\n", 1))
+        name = columns_names[0].replace(" ", "\n", 1)
+        name = extract_program_name(name)
+        if not is_serial(name):
+            name = name + " (" + str(columns_names[3]) + ")"
+        labels.append(name)
     x = range(1, len(labels) + 1)
     total = [0] * len(x)
     total_tr = [0] * len(x)
@@ -362,7 +381,7 @@ def plot_box(data, show=True, save=True, save_path=""):
         matrix, _ = data.iloc[i].name
         # dropna is needed because other threads appear as NaN
         current_data = data[i:i + N_repeat].dropna(axis=1)
-        fig, axes = plt.subplots()
+        fig, axes = plt.subplots(figsize=(14,7))
         print("Plotting boxes on {}...".format(matrix), end=' ', flush=True)
         color = {'boxes': CSS4_COLORS['dimgrey'], 
                  'whiskers': CSS4_COLORS['dimgrey'],
@@ -400,7 +419,7 @@ def plot_box(data, show=True, save=True, save_path=""):
         plt.close(fig)
         print("done.")
     # Overall
-    fig, axes = plt.subplots()
+    fig, axes = plt.subplots(figsize=(14,7))
     print("Plotting overall boxes...", end=' ', flush=True)
     axes.plot(x, total, label="transpose", linestyle="", color="b", marker='+')
     axes.plot(x, total_tr, label="transpose_tr", linestyle="", color="r",

@@ -103,22 +103,55 @@ Ensuite, `make clean` puis recompiler.
 - [x] commenter le code
 - [x] reformater le code
 - [x] à remettre: la vérification avec la MKL, 
-- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL OK, 
+- [ ] je dois trouver le min de la moyenne des deux transpositions dans find_minima ?
+- [ ] dans boxplot, actualiser le bon numéro de thread
+- [ ] revérifier qu'il n'y a pas de fuites mémoires avec wang+MKL
+- [ ] dans wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
+- [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
+- [ ] comparer le temps de scan et de merge avec leur version et la mienne
 - [ ] comparer la MKL séquentielle et la parallèle avec 1 threads
 - [ ] citation/licence SpaSM ou refactor ?
-- [ ] la seule utilité de matrix_entry_t est pour finalize, utiliser spasm_triplet ?
+- [ ] comparer matrice par matrice quel algo est le meilleur
 - [ ] taille de W : n, nnz, max(n,m)+1 ?
 - [ ] checker les todo
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
+- [ ] comparer la compression ?
 
 GCC, (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
+
+## Remarques
 
 keep_better_parallel ne regarde que les threads de la première transpose, semble OK
 
 std::sort est plus rapide que classical sur pre-transpose[6,7,8,9,10,11,12]. Son écart de durée est d'environ 5 ms (< 10ms). La variabilité inter-algo est alors plus petite que la variablité intra-algo.
 
 Lorsque classical transpose et transpose_tr sont relativement proches, std transpose est plus lent que std transpose_tr
+
+MKL iomp:
+ s'arrete au nombre de coeurs physique (44)
+
+MKL iomp 2PV:
+ est idéal entre 8 et 24 threads (voire souvent entre 8 et 15, se confirme sur le graphique grobal). Pour les matrices RSA: vers 8 pour les premières puis vers 12 pour les dernières. Pour les matrices de Wang, la courbe atteint parfois un minimum plus tard vers 20-24.
+ grande différence selon la forme du rectangle
+ plus la matrice est (petite ou dense (première de pre-transpose)) plus le passage à l'echelle est mauvais
+
+MergeTrans:
+	est idéal entre 12 et 32 (souvent vers 16, plutôt entre 20 et 32 sur le graphique global)
+	peu de différence selon la forme du rectangle sur les matrices de Wang, très grandes différence sur les 10 premières de pre-transpose (pas le même algo ?)
+
+ScanTrans:
+	ressemble à MergeTrans, mais le passage à l'échelle semble meilleur car le minimum est atteint un peu plus loin (la décroissance est plus applati jusqu'à 40 et la croissance est moins semble forte)
+	sur les 10 premières de pre-transpose les deux transpositions utilisent le même algo
+	encore moins de différences entre les deux transpositions que MergeTrans
+
+transient est spéciale ?
+
+TBB:
+	sur les 10 premières de pre-transpose, il se passe quelque chose à partir de 80 et grand écart entre les deux transpositions
+	courbe très plate, minimum atteint vers 16 (ou 44 sur les dernières)
+
+ScanTrans est globalement le meilleur algo (overall duration et speed up)
 
 ## Licence
 

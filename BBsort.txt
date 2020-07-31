@@ -5,31 +5,55 @@ Entrées :
 	- Unsigned integer: size // taille de la liste
 	- Unsigned integer: cache_size // taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
 	- Unsigned integer: num_digit // nombre de bit maximal
+	- Unsigned integer: num_threads // nombre de threads
+	- String: vector_flag // vector instruction set
+	
 
 Start
 
 	If size == 0 then
     Print "Empty array"
+		Exit
+	End if
+	If size == 1 then
 		Return
 	End if
-	If size <= 1 then
-	  Print "Only one element in array"
-		Return
-	End if
+	/ mettre des fonctions plus optimisées pour les tailles entre
 	If size <= 16 then
-		sort_short_array(array, size)
-	Else
-	  If is_sorted(array, size) then
-			Return
-	  Else	parallel_vectorize_radix_sort(array, size, cache_size, num_digit)
+		If vector_flag is not None then
+			vectorized_sort_short_array_uint(array, size, vector_flag)
+		Else
+			sort_short_array_uint(array, size)
+		Return
 		End if
+	End if
+  If is_sorted(array, size) then // Ce cas n'arrive jamais pour la transposition de matrices creuses
+		Return
+	End if
+	If num_threads == 0 then
+		Print "The number of threads must be greater or equal to 1."
+		Exit
+	End if
+	If num_threads == 1 then
+		If vector_flag is not None then
+			vectorized_radix_sort_uint(array, size, radix, cache_size, num_digits, vector_flag)
+		Else
+			radix_sort_uint(array, size, radix, cache_size, num_digits)
+		Return
+		Enf if
+	End if
+	If vector_flag is not None then
+		parallel_vectorized_radix_sort_uint(array, size, radix, cache_size, num_digits, num_threads, vector_flag)
+	Else
+		parallel_radix_sort_uint(array, size, radix, cache_size, num_digits, num_threads)
+	Return
 	End if
 
 End
 
 ___
 
-Procédure is_sorted()
+Procedure is_sorted()
 
 Entrées :
 	- Array of unsigned integers : array // pointeur sur liste
@@ -38,10 +62,10 @@ Entrées :
 
 Start
 
-  is_sorted == True
-	For i = 0..(size-2) do
+  is_sorted <- True
+	For i from 0 to (size-2) do
     If array[i] > array[i+1]
-		  is_sorted = False
+		  is_sorted <- False
 		End if
 	End for
 
@@ -49,7 +73,7 @@ End
 
 ___
 
-Procédure sort_short_array(array, size)
+Procedure sort_short_array_uint(array, size)
 
 Entrées :
 	- Array of unsigned integers : array // pointeur sur liste
@@ -57,13 +81,13 @@ Entrées :
 
 Start 
 
-  insertion_sort(array, size) // OR Sorting Networks with Simple Swap
+  insertion_sort(array, size) // OR Sorting Networks 
 
 End
 
 ___
 
-Procédure insertion_sort(array, size)
+Procedure insertion_sort(array, size)
 
 Entrées :
 	- Array of unsigned integers : array // pointeur sur liste
@@ -71,14 +95,74 @@ Entrées :
 
 Start
 
-	For i = 1..(size-1) do
-    key = array[i]; 
-    j = i - 1;
-  
+	For i from 1 to (size-1) do
+    key <- array[i]; 
+    j <- i - 1;
+
     While (j >= 0) and (array[j] > key) do
-      array[j + 1] = array[j]; 
-      j = j - 1; 
+      array[j + 1] <- array[j]; 
+      j <- j - 1; 
     End while
-    array[j + 1] = key; 
+		array[j + 1] <- key; 
+	End for
+
+End
+
+___
+
+Procedure radix_sort_uint(array, size, radix, cache_size, num_digits)
+
+Entrées : 
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+	- Unsigned integer: radix
+	- Unsigned integer: cache_size // taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
+	- Unsigned integer: num_digits // nombre de bit maximal
+
+Start
+
+	level <- 1
+	recursive_radix_sort_uint(array, size, radix, cache_size, num_digits, level)
+	
+End
+
+___
+
+Procedure recursive_radix_sort_uint(array, size, radix, cache_size, num_digits, level) // in-place
+
+Entrées : 
+	- Array of unsigned integers : array // pointeur sur liste
+	- Unsigned integer: size // taille de la liste
+	- Unsigned integer: radix
+	- Unsigned integer: cache_size // taille du cache (optionel, défaut : 2^16=64*512=4*16*512=256*256)
+	- Unsigned integer: num_digit // nombre de bit maximal
+	- Unsigned integer: level 
+
+Start
+
+	B <- 2^radix
+	count = O, ..., O // length-B array storing per-bucket counts
+	For a in array do
+		bucket <- extract_bits(a, radix, level)
+		count[bucket] <- count[bucket] + 1
+	End for
+	prefix_sum(count, head, tail)
+	For bucket_i from 0 to (B-1) do
+		While head[bucket_i] < tail[bucket_i] do
+			bucket <- extract_bits(array[head[bucket_i]], radix, level)
+			While bucket != bucket_i do
+				swap(array[head[bucket_i]], array[head[bucket]++])
+			End while
+			head[bucket_i] <- head[bucket_i] + 1
+		End while
+	End for
+	If radix * level < num_digits then
+	  For bucket_i from 0 to (B-1) do
+			If count[bucket_i] > 0 then
+				level <- level + 1
+				recursive_radix_sort_uint(array_i, count[bucket_i], radix, cache_size, num_digits, level) // array_i : element in bucket_i
+			End if
+		End for
+	End if
 
 End

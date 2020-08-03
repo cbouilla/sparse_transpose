@@ -95,7 +95,7 @@ ifeq ($(CC),gcc)
 	endif # Parallel MKL using iomp5
 
 	# Sequential MKL
-	ifeq ($(USE_MKL),sequential)
+	ifeq ($(USE_MKL),serial)
 		LDLIBS += -lmkl_sequential -lmkl_core
 	endif # Sequential MKL
 

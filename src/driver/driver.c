@@ -418,7 +418,7 @@ void write_test_stdsort(const char *output_filename,
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
   const u32 num_threads = 1;
-  const char *name = "std::sort";
+  const char *name = "STL::sort";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,
@@ -443,7 +443,7 @@ void write_test_tbbsort(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  const char *name = "tbb::parallel_sort";
+  const char *name = "TBB::sort";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,

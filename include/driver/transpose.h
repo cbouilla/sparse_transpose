@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "mini_spasm.h"
 
 // #include "typedefs.h"
 
@@ -29,6 +30,7 @@ struct ctx_t
   index_t mask[MAX_PASSES];
   index_t *OUTi[MAX_PASSES];
   index_t *OUTj[MAX_PASSES];
+  double *OUTx[MAX_PASSES];
   int seq_count_size;
   int par_count_size;
 };
@@ -42,16 +44,22 @@ struct cacheline_t
 {
   index_t row[CACHELINE_SIZE];
   index_t col[CACHELINE_SIZE];
+  double value[CACHELINE_SIZE];
 };
 
 struct half_cacheline_t
 {
   index_t row[CACHELINE_SIZE];
+  double value[CACHELINE_SIZE];
 };
 
 /* copy 64 bytes from src to dst using non-temporal store instructions
    if available (this bypasses the cache). */
-static inline void store_nontemp_64B(void *dst, void *src);
+static inline void store_nontemp_int(void *dst, void *src);
+
+/* copy 128 bytes from src to dst using non-temporal store instructions
+   if available (this bypasses the cache). */
+static inline void store_nontemp_double(void *dst, void *src);
 
 /* converts a sparse matrix in COOrdinate format to the CSR format.
    INPUT:  COO sparse matrix in Ai, Aj (both of size nnz), with n rows
@@ -64,12 +72,11 @@ static inline void store_nontemp_64B(void *dst, void *src);
    Ai, Aj, Ri MUST be aligned on a 64-byte boundary (for good cache behavior).
    The input arrays are expendable (i.e. they might be destroyed).
    The current code only reads them though. */
-void transpose(uint64_t nnz, index_t *Ai, index_t *Aj, double *Ax, index_t n, index_t *Rp,
-               index_t *Ri, double *Rx);
+void transpose(spasm_triplet *A, spasm *R);
 
 #if __AVX__
 #include <immintrin.h>
-static inline void store_nontemp_64B(void *dst, void *src)
+static inline void store_nontemp_int(void *dst, void *src)
 {
   register __m256i *d1 = (__m256i *)dst;
   register __m256i s1 = *((__m256i *)src);
@@ -79,26 +86,49 @@ static inline void store_nontemp_64B(void *dst, void *src)
   _mm256_stream_si256(d2, s2);
   /* note : it can also be done using SSE for non-AVX machines */
 }
+
+static inline void store_nontemp_double(void *dst, void *src)
+{
+  register __m256d *d1 = (__m256d *)dst;
+  register __m256d s1 = *((__m256d *)src);
+  register __m256d *d2 = d1 + 1;
+  register __m256d s2 = *(((__m256d *)src) + 1);
+  register __m256d *d3 = d1 + 2;
+  register __m256d s3 = *(((__m256d *)src) + 2);
+  register __m256d *d4 = d1 + 3;
+  register __m256d s4 = *(((__m256d *)src) + 3);
+  _mm256_stream_sd(d1, s1);
+  _mm256_stream_sd(d2, s2);
+  _mm256_stream_sd(d3, s3);
+  _mm256_stream_sd(d4, s4);
+  /* note : it can also be done using SSE for non-AVX machines */
+}
 #else
-static inline void store_nontemp_64B(void *dst, void *src)
+static inline void store_nontemp_int(void *dst, void *src)
 {
   index_t *in = src;
   index_t *out = dst;
   for (int i = 0; i < CACHELINE_SIZE; i++)
     out[i] = in[i];
 }
+
+static inline void store_nontemp_double(void *dst, void *src)
+{
+  double *in = src;
+  double *out = dst;
+  for (int i = 0; i < CACHELINE_SIZE; i++)
+    out[i] = in[i];
+}
 #endif
 
-static inline void* malloc_aligned(int size, int alignment) {
+static inline void *malloc_aligned(int size, int alignment)
+{
   void *x = aligned_alloc(alignment, size);
   if (x == NULL)
     err(1, "malloc failed");
   return x;
 }
 
-static inline void free_aligned(void* ptr)
-{
-  free(ptr);
-}
+static inline void free_aligned(void *ptr) { free(ptr); }
 
 #endif /* INCLUDE_DRIVER_BB_TRANSPOSE_H */

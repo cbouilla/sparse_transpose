@@ -32,6 +32,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 
 // #include "portability.h"
+#include "mini_spasm.h"
 #include "transpose.h"
 // #include "typedefs.h"
 // #include "utils.h"
@@ -99,7 +100,7 @@ static inline void wc_prime(struct cacheline_t *buffer, const index_t *COUNT,
 /* Transfer data stored in this buffer to the output arrays.
    Assumption: this bucket is filled to the end */
 static inline void wc_flush(struct cacheline_t *self, index_t count,
-                            index_t start, index_t *OUTi, index_t *OUTj)
+                            index_t start, index_t *OUTi, index_t *OUTj, double *OUTx)
 {
   index_t target = count & ~(CACHELINE_SIZE - 1);
   if (start != 0)
@@ -108,19 +109,21 @@ static inline void wc_flush(struct cacheline_t *self, index_t count,
     {
       OUTi[target + i] = self->row[i];
       OUTj[target + i] = self->col[i];
+      OUTx[target + i] = self->value[i];
     }
   }
   else
   { /* complete cache line flush */
-    store_nontemp_64B(OUTi + target, self->row);
-    store_nontemp_64B(OUTj + target, self->col);
+    store_nontemp_int(OUTi + target, self->row);
+    store_nontemp_int(OUTj + target, self->col);
+    store_nontemp_double(OUTx + target, self->value);
   }
   self->col[CACHELINE_SIZE - 1] = 0;
 }
 
 /* push an (i,j) pair into the buffer */
-static inline void wc_push(index_t i, index_t j, struct cacheline_t *buffer,
-                           index_t bucket_idx, index_t *OUTi, index_t *OUTj)
+static inline void wc_push(index_t i, index_t j, double x, struct cacheline_t *buffer,
+                           index_t bucket_idx, index_t *OUTi, index_t *OUTj, double *OUTx)
 {
   struct cacheline_t *self = buffer + bucket_idx;
   index_t count = self->row[CACHELINE_SIZE - 1];
@@ -128,14 +131,15 @@ static inline void wc_push(index_t i, index_t j, struct cacheline_t *buffer,
   index_t slot = count & (CACHELINE_SIZE - 1);
   self->row[slot] = i;
   self->col[slot] = j;
+  self->value[slot] = x;
   if (slot == CACHELINE_SIZE - 1)
-    wc_flush(self, count, start, OUTi, OUTj);
+    wc_flush(self, count, start, OUTi, OUTj, OUTx);
   self->row[CACHELINE_SIZE - 1] = count + 1;
 }
 
 /* flush all buffer entries to the OUT arrays */
 static inline void wc_purge(struct cacheline_t *buffer, int n_buckets,
-                            index_t *OUTi, index_t *OUTj)
+                            index_t *OUTi, index_t *OUTj, double *OUTx)
 {
   for (int i = 0; i < n_buckets; i++)
   {
@@ -146,6 +150,7 @@ static inline void wc_purge(struct cacheline_t *buffer, int n_buckets,
     {
       OUTi[j] = buffer[i].row[j - target];
       OUTj[j] = buffer[i].col[j - target];
+      OUTx[j] = buffer[i].value[j - target];
     }
   }
 }
@@ -164,31 +169,36 @@ static inline void wc_half_prime(struct half_cacheline_t *buffer, char *start,
 /* Transfer data stored in this buffer to the output arrays.
    Assumption: this buckget is filled to the end */
 static inline void wc_half_flush(struct half_cacheline_t *self, index_t count,
-                                 char start, index_t *OUTi)
+                                 char start, index_t *OUTi, double *OUTx)
 {
   index_t target = count & ~(CACHELINE_SIZE - 1);
   if (start == 0)
   { /* complete cache line flush */
-    store_nontemp_64B(OUTi + target, self->row);
+    store_nontemp_int(OUTi + target, self->row);
+    store_nontemp_double(OUTx + target, self->value);
   }
   else
   { /* incomplete flush */
     for (int i = start; i < CACHELINE_SIZE; i++)
+    {
       OUTi[target + i] = self->row[i];
+      OUTx[target + i] = self->value[i];
+    }
   }
 }
 
 /* push an (i,j) pair into the buffer */
-static inline void wc_half_push(index_t i, struct half_cacheline_t *buffer,
-                                char *start, index_t bucket_idx, index_t *OUTi)
+static inline void wc_half_push(index_t i, double x, struct half_cacheline_t *buffer,
+                                char *start, index_t bucket_idx, index_t *OUTi, double *OUTx)
 {
   struct half_cacheline_t *self = buffer + bucket_idx;
   index_t count = self->row[CACHELINE_SIZE - 1];
   index_t slot = count & (CACHELINE_SIZE - 1);
   self->row[slot] = i;
+  self->value[slot] = x;
   if (slot == CACHELINE_SIZE - 1)
   {
-    wc_half_flush(self, count, start[bucket_idx], OUTi);
+    wc_half_flush(self, count, start[bucket_idx], OUTi, OUTx);
     start[bucket_idx] = 0;
   }
   self->row[CACHELINE_SIZE - 1] = count + 1;
@@ -196,7 +206,7 @@ static inline void wc_half_push(index_t i, struct half_cacheline_t *buffer,
 
 /* flush all buffer entries to the OUT arrays */
 static inline void wc_half_purge(struct half_cacheline_t *buffer, char *start,
-                                 int n_buckets, index_t *OUTi)
+                                 int n_buckets, index_t *OUTi, double *OUTx)
 {
   for (int i = 0; i < n_buckets; i++)
   {
@@ -204,14 +214,20 @@ static inline void wc_half_purge(struct half_cacheline_t *buffer, char *start,
     index_t target = count & ~(CACHELINE_SIZE - 1);
     index_t start_ptr = start[i];
     for (index_t j = target + start_ptr; j < count; j++)
+    {
       OUTi[j] = buffer[i].row[j - target];
+      OUTx[j] = buffer[i].value[j - target];
+    }
   }
 }
 
 /* prepare the ctx object with information needed for all passes */
-static void planification(struct ctx_t *ctx, index_t Rn, index_t nnz,
-                          index_t *scratch, index_t *Ri)
+static void planification(struct ctx_t *ctx, spasm *R, index_t *scratch, double *scratch2)
 {
+  index_t Rn = R->n;
+  index_t nnz = R->nnz_max;
+  index_t *Ri = R->j;
+  double *Rx = R->x;
   int bits = 0;
   int tmp = Rn;
   while (tmp > 0)
@@ -255,11 +271,13 @@ static void planification(struct ctx_t *ctx, index_t Rn, index_t nnz,
     {
       ctx->OUTi[p] = Ri;
       ctx->OUTj[p] = scratch;
+      ctx->OUTx[p] = Rx;
     }
     else
     {
       ctx->OUTi[p] = scratch + ((nnz | 63) + 1);
       ctx->OUTj[p] = scratch + 2 * ((nnz | 63) + 1);
+      ctx->OUTx[p] = scratch2;
     }
 
     /* check alignment: the hardcoded value of 63 corresponds to the
@@ -268,22 +286,28 @@ static void planification(struct ctx_t *ctx, index_t Rn, index_t nnz,
     assert((check & 63) == 0);
     check = (unsigned long)ctx->OUTj[p];
     assert((check & 63) == 0);
+    check = (unsigned long)ctx->OUTx[p];
+    assert((check & 63) == 0);
   }
   ctx->par_count_size = ctx->n_buckets[0];
   ctx->seq_count_size = s_count;
 }
 
 /* returns k such that buckets [0:k] are non-empty. */
-static int partitioning(const struct ctx_t *ctx, const index_t *Ai,
-                        const index_t *Aj, index_t nnz,
+static int partitioning(const struct ctx_t *ctx, spasm_triplet *A,
                         struct cacheline_t *buffer, index_t *tCOUNT,
                         index_t *gCOUNT)
 {
+  const index_t *Ai = A->i;
+  const index_t *Aj = A->j;
+  const double *Ax = A->x;
+  index_t nnz = A->nnz;
   index_t mask = ctx->mask[0];
   index_t size = ctx->n_buckets[0];
   index_t shift = ctx->shift[0];
   index_t *OUTi = ctx->OUTi[0];
   index_t *OUTj = ctx->OUTj[0];
+  double *OUTx = ctx->OUTx[0];
   assert(size == mask + 1);
 
   /* parallel partitioning */
@@ -330,10 +354,11 @@ static int partitioning(const struct ctx_t *ctx, const index_t *Ai,
   {
     index_t i = Ai[k];
     index_t j = Aj[k];
+    double x = Ax[k];
     index_t b = (j >> shift) & mask;
-    wc_push(i, j, buffer, b, OUTi, OUTj);
+    wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
   }
-  wc_purge(buffer, size, OUTi, OUTj);
+  wc_purge(buffer, size, OUTi, OUTj, OUTx);
 
   // correctness check
   //   #pragma omp barrier
@@ -426,6 +451,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer, index_t lo,
 
   index_t *INi = ctx->OUTi[0];
   index_t *INj = ctx->OUTj[0];
+  double *INx = ctx->OUTx[0];
 
   // printf("histograming [%d:%d] with %d passes\n", lo, hi, n);
   memset(COUNT, 0, csize * sizeof(*COUNT));
@@ -437,6 +463,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer, index_t lo,
     index_t mask = ctx->mask[p];
     index_t *OUTi = ctx->OUTi[p];
     index_t *OUTj = ctx->OUTj[p];
+    double *OUTx = ctx->OUTx[p];
 
     /* prefix-sum */
     index_t s = lo;
@@ -456,10 +483,11 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer, index_t lo,
       {
         index_t i = INi[k];
         index_t j = INj[k];
+        double x = INx[k];
         int b = (j >> shift) & mask;
-        wc_push(i, j, buffer, b, OUTi, OUTj);
+        wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
       }
-      wc_purge(buffer, size, OUTi, OUTj);
+      wc_purge(buffer, size, OUTi, OUTj, OUTx);
     }
     else
     {
@@ -472,10 +500,11 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer, index_t lo,
       {
         index_t i = INi[k];
         index_t j = INj[k];
+        double x = INx[k];
         int b = (j >> shift) & mask;
-        wc_half_push(i, half_buffer, start, b, OUTi);
+        wc_half_push(i, x, half_buffer, start, b, OUTi, OUTx);
       }
-      wc_half_purge(half_buffer, start, size, OUTi);
+      wc_half_purge(half_buffer, start, size, OUTi, OUTx);
     }
 
     /* check
@@ -492,18 +521,30 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer, index_t lo,
     */
     INi = OUTi;
     INj = OUTj;
+    INx = OUTx;
   }
 }
 
-void transpose(uint64_t nnz, index_t *Ai, index_t *Aj, double *Ax, index_t Rn, index_t *Rp,
-               index_t *Ri, double *Rx)
+void transpose(spasm_triplet *A, spasm *R)
 {
+  u32 nnz = A->nnz;
+  index_t *Ai = A->i;
+  index_t *Aj = A->j;
+  double *Ax = A->x;
+  index_t Rn = R->n;
+  index_t Rm = R->m;
+  index_t *Rp = R->p;
+  index_t *Ri = R->j;
+  double *Rx = R->x;
   (void)Rp;
 
   struct ctx_t ctx;
   index_t *scratch =
       (index_t *)malloc_aligned(3 * ((nnz | 63) + 1) * sizeof(index_t), 64);
-  planification(&ctx, Rn, nnz, scratch, Ri);
+  double *scratch2 =
+      (double *)malloc_aligned(((nnz | 63) + 1) * sizeof(double), 64);
+
+  planification(&ctx, R, scratch, scratch2);
 
 #ifdef BIG_BROTHER
   printf("$$$     transpose:\n");
@@ -526,7 +567,7 @@ void transpose(uint64_t nnz, index_t *Ai, index_t *Aj, double *Ax, index_t Rn, i
 #ifdef BIG_BROTHER
     double start = wct_seconds();
 #endif
-    int tmp = partitioning(&ctx, Ai, Aj, nnz, buffer, tCOUNT, gCOUNT);
+    int tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
 
 #pragma omp master
     {
@@ -570,6 +611,7 @@ void transpose(uint64_t nnz, index_t *Ai, index_t *Aj, double *Ax, index_t Rn, i
     }
   }
   free_aligned(scratch);
+  free_aligned(scratch2);
 
   if (ctx.n_passes == 1)
   {
@@ -580,7 +622,10 @@ void transpose(uint64_t nnz, index_t *Ai, index_t *Aj, double *Ax, index_t Rn, i
   }
   else
   {
-    index_t *W = (index_t *)malloc_aligned((Rn + 1) * sizeof(*W), 64);
+    u32 length = spasm_max(Rn, Rm) + 1;
+    index_t *W = (index_t *)malloc_aligned(length * sizeof(*W), 64);
+    for (u32 i = 0; i < length; ++i)
+      W[i] = 0;
     for (index_t k = 0; k < nnz; k++)
     {
       // W[Ti[k]]++

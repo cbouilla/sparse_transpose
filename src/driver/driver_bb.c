@@ -16,6 +16,7 @@
 #include "mini_spasm.h"
 #include "mmio.h"
 #include "transpose.h"
+#include "tools.h"
 
 void run_test(const char *matrix_filename, const char *output_filename)
 {
@@ -27,22 +28,24 @@ void run_test(const char *matrix_filename, const char *output_filename)
   spasm_triplet *T = spasm_load_mm(f);
   fclose(f);
 
-  spasm *A = spasm_csr_alloc(T->n, T->m, T->nnz);
-  spasm *B = spasm_csr_alloc(T->m, T->n, T->nnz);
-  spasm *C = spasm_csr_alloc(T->m, T->n, T->nnz);
-  C->x = T->x; // TODO
+  spasm *A = spasm_csr_alloc(T->n, T->m, T->nnz); // T in CSR
+  spasm *B = spasm_csr_alloc(T->m, T->n, T->nnz); // T transposed with the classical algorithm
+  spasm *C = spasm_csr_alloc(T->m, T->n, T->nnz); // T transposed with the new algorithm
+  // C->x = T->x; // TODO
   u32 *W = (u32 *)spasm_malloc((spasm_max(T->m, T->n) + 1) * sizeof(*W));
   classical_compress(T, A, W);
   classical_transpose(A, B, W);
 
-  transpose(T->nnz, T->i, T->j, T->x, C->n, C->p, C->j, C->x);
+  transpose(T, C);
 
   for (u32 i = 0; i < C->n; i++)
   {
     for (u32 j = C->p[i]; j < C->p[i + 1]; j++)
     {
+    	// if (B->j[j] != C->j[j] || B->x[j] != C->x[j])
+    	// 	printf("(%d, %d) %f\t| (%d, %d) %f\n", i, B->j[j], B->x[j], i, C->j[j], C->x[j]);
       assert(B->j[j] == C->j[j]);
-      // printf("(%d, %d) %f\t| (%d, %d) %f\n", i, B->j[j], B->x[j], i, C->j[j], C->x[j]);
+      assert(B->x[j] == C->x[j]);
     }
   }
 
@@ -50,6 +53,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
   spasm_csr_free(A);
   spasm_csr_free(B);
   spasm_csr_free(C);
+  // free(C->p);
+  // free(C->j);
+  // free(C);
   free(W);
   // Transposing
   // spasm_triplet *R = malloc(sizeof(spasm_triplet));
@@ -61,7 +67,19 @@ void run_test(const char *matrix_filename, const char *output_filename)
 
 int main(void)
 {
-  run_test("../matrices/pre_transpose12.mtx", NULL);
+// 	#ifdef BENCHMARK_LARGE_MATRICES
+//   for (u32 i = 1; i <= N_LARGE_MATRICES; i++)
+//   { // just this one is enough to exhibit the crash
+//     char matrix_filename[FILENAME_MAX];
+//     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
+
+//     printf("#---------------------------------------- %s\n", matrix_filename);
+//     run_test(matrix_filename, NULL);
+//     fprintf(stderr, "\n");
+//   }
+// #endif // BENCHMARK_LARGE_MATRICES
+
+  run_test("../matrices/language.mtx", NULL);
   // spasm_triplet *T = spasm_triplet_alloc(8);
   // T->nnz = 8;
   // T->n = 3;

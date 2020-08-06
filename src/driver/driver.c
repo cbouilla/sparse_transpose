@@ -619,7 +619,7 @@ int main(int argc, char **argv)
 
 #ifdef BENCHMARK_LARGE_MATRICES
   for (u32 i = 1; i <= N_LARGE_MATRICES; i++)
-  { // just this one is enough to exhibit the crash
+  {
     char matrix_filename[FILENAME_MAX];
     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 

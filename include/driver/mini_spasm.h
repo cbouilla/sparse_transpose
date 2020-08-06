@@ -219,4 +219,13 @@ static inline u32 spasm_min(const u32 a, const u32 b)
 // 	return Ap[i + 1] - Ap[i];
 // }
 
+///
+/// \brief Asserts that a matrix in triplet format is equal to another matrix in
+/// CSR format by doing a matrix-vector product
+///
+/// \param[in] T the matrix in triplet format
+/// \param[in] A the matrix in CSR format
+///
+void check(const spasm_triplet *T, const spasm *A);
+
 #endif /* INCLUDE_DRIVER_MINI_SPASM_H */

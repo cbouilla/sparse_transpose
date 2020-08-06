@@ -27,57 +27,6 @@
 #include "tools.h"
 
 ///
-/// \brief Asserts that a matrix in triplet format is equal to another matrix in
-/// CSR format by doing a matrix-vector product
-///
-/// \param[in] T the matrix in triplet format
-/// \param[in] A the matrix in CSR format
-///
-void check(const spasm_triplet *T, const spasm *A)
-{
-  const u32 n = T->n;
-  const u32 m = T->m;
-  const u32 nnz = T->nnz;
-
-  // safety checks
-  assert(A->n == n);
-  assert(A->m == m);
-  const u32 *Ap = A->p;
-  const u32 *Aj = A->j;
-  assert(Ap[0] == 0);
-  for (u32 i = 0; i < n; i++)
-    assert(Ap[i] <= Ap[i + 1]);
-  assert(Ap[n] == nnz);
-  for (u32 k = 0; k < nnz; k++)
-  {
-    // assert(0 <= Aj[k]); // useless with u32
-    assert(Aj[k] < m);
-  }
-
-  // matrix-vector product
-  double *X = (double *)malloc(n * sizeof(double));
-  double *Ya = (double *)malloc(m * sizeof(double));
-  double *Yb = (double *)malloc(m * sizeof(double));
-  for (u32 i = 0; i < n; i++)
-    X[i] = drand48();
-  spasm_triplet_gemv(T, X, Ya);
-  spasm_csr_gemv(A, X, Yb);
-
-  double error = 0;
-  for (u32 j = 0; j < m; j++)
-  {
-    double x = Ya[j] - Yb[j];
-    error += x * x;
-  }
-  if (error > 1e-3)
-    fprintf(stderr, "error = %f\n", error);
-  assert(error < 1e-3);
-  free(X);
-  free(Ya);
-  free(Yb);
-}
-
-///
 /// \brief Benchmarks the "classical" algorithm.
 ///
 /// \param[in] T the matrix in triplet format

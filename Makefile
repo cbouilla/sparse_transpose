@@ -20,7 +20,8 @@ EXE_DIR = .
 # SRC0 := $(wildcard $(SRC_DIR)/*.cc)
 DRIVER := driver
 DRIVER_WANG := driver_wang
-EXE := $(DRIVER) $(DRIVER_WANG)
+DRIVER_BB := driver_bb
+EXE := $(DRIVER) $(DRIVER_WANG) $(DRIVER_BB)
 SRC_C := $(shell find . -name "*.c" -print)
 SRC_CXX := $(shell find . -name "*.cpp" -print)
 SRC := $(SRC_C) $(SRC_CXX)
@@ -29,8 +30,10 @@ $(SRC_CXX:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.d)
 OBJ_C := $(SRC_C:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
 OBJ_CXX := $(SRC_CXX:$(SRC_DIR)/%.cpp=$(OBJ_DIR)/%.o)
 OBJ := $(OBJ_C) $(OBJ_CXX)
-OBJ_DRIVER := $(filter-out $(OBJ_DIR)/$(DRIVER_WANG)/%,$(OBJ))
-OBJ_DRIVER_WANG := $(filter-out $(OBJ_DIR)/$(DRIVER)/%,$(OBJ))
+OBJ_DRIVER := $(filter $(OBJ_DIR)/$(DRIVER)/%,$(OBJ))
+OBJ_DRIVER_WANG := $(filter $(OBJ_DIR)/$(DRIVER_WANG)/%,$(OBJ))
+OBJ_DRIVER_BB := $(filter-out $(OBJ_DIR)/$(DRIVER)/$(DRIVER).o,$(OBJ_DRIVER))
+OBJ_DRIVER_BB := $(filter-out $(OBJ_DIR)/$(DRIVER)/simple_sort.o,$(OBJ_DRIVER_BB))
 #$(DRIVER): $(OBJ) := $(filter-out $(OBJ_DIR)/$(DRIVER_WANG)/%,$(OBJ))
 #$(DRIVER_WANG): $(OBJ) := $(filter-out $(OBJ_DIR)/$(DRIVER)/%,$(OBJ))
 CLEAN_LOG_TARGETS := $(OBJ_DIR)/*.log $(EXE:%=%.log)
@@ -51,10 +54,10 @@ ifeq ($(DEBUG),0)
 	endif
 else
 	ifeq ($(CC),gcc)
-#		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
-#		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
-		CFLAGS := -Wall -Wextra -std=c11 -g -O2 -ftree-vectorize -fopenmp -mavx2
-		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O2 -ftree-vectorize -fopenmp -mavx2
+		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
+		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
+#		CFLAGS := -Wall -Wextra -std=c11 -g -O2 -ftree-vectorize -fopenmp -mavx2
+#		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O2 -ftree-vectorize -fopenmp -mavx2
 	else ifeq ($(CC),icc)
 		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -qopenmp -xCORE-AVX2
 		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -qopenmp -xCORE-AVX2
@@ -232,16 +235,22 @@ docs: all
 	$(call execute,doxywizard Doxyfile,"Making documentation files")
 
 memcheck_driver: $(DRIVER)
-	@$(VALGRIND) ./$(DRIVER)
+	@$(VALGRIND) ./$^
 
 memcheck_driver_wang: $(DRIVER_WANG)
-	@$(VALGRIND) ./$(DRIVER_WANG)
+	@$(VALGRIND) ./$^
+
+memcheck_driver_bb: $(DRIVER_BB)
+	@$(VALGRIND) ./$^
 
 $(DRIVER): $(OBJ_DRIVER)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 
 $(DRIVER_WANG): $(OBJ_DRIVER_WANG)
 	$(call execute,$(CXX) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
+
+$(DRIVER_BB): $(OBJ_DRIVER_BB)
+	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 
 # $(OBJ): | $(OBJ_DIR) $(OBJ_SUB_DIR)
 

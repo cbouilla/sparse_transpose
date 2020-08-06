@@ -112,19 +112,31 @@ Ensuite, `make clean` puis recompiler.
 - [x] commenter le code
 - [x] reformater le code
 - [x] à remettre: la vérification avec la MKL, 
-- [ ] je dois trouver le min de la moyenne des deux transpositions dans find_minima ?
-- [ ] dans boxplot, actualiser le bon numéro de thread
-- [ ] dans wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
+- [x] trouver le min de la moyenne des deux transpositions dans find_minima
+- [x] dans boxplot, actualiser le bon numéro de thread
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
 - [ ] citation/licence SpaSM ou refactor ?
 - [ ] comparer matrice par matrice quel algo est le meilleur
-- [ ] taille de W : n, nnz, max(n,m)+1 ?
 - [ ] checker les todo
+- [ ] calculer l'occupation mémoire de scanTrans avec 1 thread par rapport à celle de Gustavson
+- [ ] refactor, reformat, comment le code de Bouillaguet
+- [ ] radix sort LSD séquentiel
+- [ ] radix sort MSD séquentiel
+- [ ] radix sort MSD+LSD séquentiel
+- [ ] radix sort LSD parallèle
+- [ ] radix sort MSD parallèle
+- [ ] radix sort MSD+LSD parallèle LEAKs
+- [ ] moyen pour se limiter à pile la bonne taille au lieu d'utiliser la puisance de deux supérieure
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 - [ ] comparer la compression ?
 
-GCC, (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
+GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
+
+Multihistogramming : 1 passe MSD et autre passes LSD
+WCB pour éviter les fautes de cache, TLB et page walk
+
+dans la code de Wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
 
 ## Remarques
 

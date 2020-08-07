@@ -8,6 +8,8 @@
 /// @copyright // TODO
 ///
 
+#define _XOPEN_SOURCE
+
 #include <assert.h>
 #include <err.h>
 #include <math.h>

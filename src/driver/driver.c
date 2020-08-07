@@ -7,8 +7,6 @@
 /// @copyright Copyright (c) 2020
 ///
 
-#define _XOPEN_SOURCE
-
 #include <assert.h>
 #include <err.h>
 #include <omp.h>

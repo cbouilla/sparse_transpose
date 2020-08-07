@@ -24,7 +24,8 @@
 #define TBBSORT 3
 #define SCANTRANS 4
 #define MERGETRANS 5
-#define N_METHOD 6
+#define BB 6
+#define N_METHOD 7
 
 #define OUTPUT_FILENAME "benchmarks.csv"
 
@@ -38,7 +39,7 @@
 
 /// The matrices in "Parallel Transposition of Sparse Data Structures" by Wang,
 /// Liu, Hou and Feng
-const char *matrices[N_SMALL_MATRICES] = {
+static const char *matrices[N_SMALL_MATRICES] = {
 	"language",
 	"ASIC_680k",
 	"circuit5M",
@@ -64,9 +65,7 @@ const char *matrices[N_SMALL_MATRICES] = {
 
 #define N_LARGE_MATRICES 58
 
-///
-/// \brief Type used for dimensions and entries.
-///
+typedef uint8_t u8;
 typedef uint32_t u32;
 
 ///
@@ -79,7 +78,7 @@ typedef struct {
 	double transpose_tr; ///< duration to transpose the transpose  (transpose CSR' -> CSR)
 } algorithm_times;
 
-algorithm_times total[N_METHOD];
+static algorithm_times total[N_METHOD];
 
 ///
 /// \brief Reset to 0 the values of `duration`.

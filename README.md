@@ -115,17 +115,17 @@ Ensuite, `make clean` puis recompiler.
 - [x] trouver le min de la moyenne des deux transpositions dans find_minima
 - [x] dans boxplot, actualiser le bon numéro de thread
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
-- [ ] citation/licence SpaSM/CADONFS ou refactor ?
+- [ ] citation/licence SpaSM/CADO-NFS ou refactor ?
 - [ ] comparer matrice par matrice quel algo est le meilleur
-- [ ] checker les todo
 - [ ] calculer l'occupation mémoire de scanTrans avec 1 thread par rapport à celle de Gustavson
-- [ ] refactor, reformat, typage, comment le code de Bouillaguet
 - [ ] radix sort LSD séquentiel
 - [ ] radix sort MSD séquentiel
 - [ ] radix sort MSD+LSD séquentiel
 - [ ] radix sort LSD parallèle
 - [ ] radix sort MSD parallèle
-- [ ] radix sort MSD+LSD parallèle LEAKs, ajouter OUTx, tester sur toutes, la taille de lignes de WC de OUTi/OUTj et OUTx ne sont pas les mêmes (les doubles sontt plus gros)
+- [ ] radix sort MSD+LSD parallèle LEAKs, ajouter OUTx, tester sur toutes, la taille de lignes de WC de OUTi/OUTj et OUTx ne sont pas les mêmes (les doubles sont plus gros)
+- [ ] refactor, reformat, typage, comment le code de Bouillaguet
+- [ ] checker les todo
 - [ ] réduire l'espace occupé : moyen pour se limiter à pile la bonne taille au lieu d'utiliser la puisance de deux supérieure, garder un seul OUTi/OUTj pour toutes les passes
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort

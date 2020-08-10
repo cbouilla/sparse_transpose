@@ -182,7 +182,7 @@ int main(int argc, char **argv)
     sprintf(matrix_filename, "%s/%s.mtx", MATRIX_PATH, matrices[i]);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
-    run_test(matrix_filename, NULL);
+    run_test(matrix_filename, output_filename);
     fprintf(stderr, "\n");
   }
 #endif // BENCHMARK_SMALL_MATRICES
@@ -194,7 +194,7 @@ int main(int argc, char **argv)
     sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, pre_transpose[i]);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
-    run_test(matrix_filename, NULL);
+    run_test(matrix_filename, output_filename);
     fprintf(stderr, "\n");
   }
 #endif // BENCHMARK_LARGE_MATRICES

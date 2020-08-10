@@ -445,75 +445,76 @@ def plot_box(data, show=True, save=True, save_path=""):
     print("done.")
 
 
-# def main():
-filename = "csv/benchmarks.csv"
-save_path = "charts/"
-argc = len(argv)
-if argc == 1:
-    print("Input file:", filename)
-    print("Output directory:", save_path)
-elif argc == 2:
-    filename = argv[1]
-#     print("Input file:", filename)
-#     start_index = filename.find("/") + 1
-#     save_path = save_path + filename[start_index:-4] + "/"
-#     created = False
-#     while not created:
-#         try:
-#             mkdir(save_path)
-#             created = True
-#         except FileExistsError:
-#             if save_path == "charts/":
-#                 created = True
-#                 break
-#             else:
-#                 print("The directory '{}' already exists.".format(save_path))
-#                 save_path = input("Choose a new output directory: ")
-#                 if save_path[-1] != "/":
-#                     save_path = save_path + "/"
-#     print("Output directory:", save_path)
-# elif argc > 2:
-#     print(
-#         "Usage: create_charts [input_filename].\nThe default filename is",
-#         filename)
-#     return
-data = read_csv(filename)
-sequential, parallel = split(data)
-parallel_means = means(parallel.iloc[:, :-2])
-transpose_means = parallel_means[[
-    'transpose', 'transpose_tr']].apply(np.mean, axis=1)
-parallel_means.insert(loc=len(parallel_means.columns), column="transpose mean",
-                      value=transpose_means)
-# ref = read_csv("csv/classical_O2.csv")
-# ref_means = means(ref)
-parallel_means_pivot = parallel_means.pivot_table(
-    index=['program', 'cflags', 'cxxflags', 'matrix'], columns="threads",
-    values=['compress', 'transpose', 'compress_tr',
-            'transpose_tr', 'transpose mean'],
-    observed=True)
-# plot_duration(parallel_means_pivot, show=True,
-#               save=False, save_path=save_path)
-# plot_speed_up(parallel_means_pivot, ref_means,
-#               show=False, save=True, save_path=save_path)
-# best = find_minima(parallel_means_pivot, parallel)
-# faster_parallel = parallel.loc[best]
-# new_data = pd.concat([sequential, faster_parallel])
-# new_data_pivot = new_data.pivot_table(
-#     index=['matrix', 'step'],
-#     columns=['program', 'cflags', 'cxxflags', 'threads', 'total_step'],
-#     values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
-#     observed=True)
-# plot_box(new_data_pivot, show=True, save=False, save_path=save_path)
-groups = ["program", "cflags", "cxxflags", "threads"]
-data = (parallel_means.groupby(groups, as_index=False)).sum().dropna()
-df = data.pivot_table(
-    index=['program', 'cflags', 'cxxflags'], columns="threads",
-    values=['compress', 'transpose', 'compress_tr',
-            'transpose_tr', 'transpose mean'],
-    observed=True)
-for idx in df.index:
-    df.loc[idx,'transpose mean'].idxmin()
+def main():
+    filename = "csv/benchmarks.csv"
+    save_path = "charts/"
+    argc = len(argv)
+    if argc == 1:
+        print("Input file:", filename)
+        print("Output directory:", save_path)
+    elif argc == 2:
+        filename = argv[1]
+        print("Input file:", filename)
+        start_index = filename.find("/") + 1
+        save_path = save_path + filename[start_index:-4] + "/"
+        created = False
+        while not created:
+            try:
+                mkdir(save_path)
+                created = True
+            except FileExistsError:
+                if save_path == "charts/":
+                    created = True
+                    break
+                else:
+                    print("The directory '{}' already exists.".format(save_path))
+                    save_path = input("Choose a new output directory: ")
+                    if save_path[-1] != "/":
+                        save_path = save_path + "/"
+        print("Output directory:", save_path)
+    elif argc > 2:
+        print(
+            "Usage: create_charts [input_filename].\nThe default filename is",
+            filename)
+        return
+    data = read_csv(filename)
+    sequential, parallel = split(data)
+    parallel_means = means(parallel.iloc[:, :-2])
+    transpose_means = parallel_means[[
+        'transpose', 'transpose_tr']].apply(np.mean, axis=1)
+    parallel_means.insert(loc=len(parallel_means.columns), column="transpose mean",
+                        value=transpose_means)
+    ref = read_csv("csv/classical_O2.csv")
+    ref_means = means(ref)
+    parallel_means_pivot = parallel_means.pivot_table(
+        index=['program', 'cflags', 'cxxflags', 'matrix'], columns="threads",
+        values=['compress', 'transpose', 'compress_tr',
+                'transpose_tr', 'transpose mean'],
+        observed=True)
+    plot_duration(parallel_means_pivot, show=False,
+                save=True, save_path=save_path)
+    plot_speed_up(parallel_means_pivot, ref_means,
+                show=False, save=True, save_path=save_path)
+    best = find_minima(parallel_means_pivot, parallel)
+    faster_parallel = parallel.loc[best]
+    new_data = pd.concat([sequential, faster_parallel])
+    new_data_pivot = new_data.pivot_table(
+        index=['matrix', 'step'],
+        columns=['program', 'cflags', 'cxxflags', 'threads', 'total_step'],
+        values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
+        observed=True)
+    # plot_box(new_data_pivot, show=True, save=False, save_path=save_path)
+
+    # groups = ["program", "cflags", "cxxflags", "threads"]
+    # data = (parallel_means.groupby(groups, as_index=False)).sum().dropna()
+    # df = data.pivot_table(
+    #     index=['program', 'cflags', 'cxxflags'], columns="threads",
+    #     values=['compress', 'transpose', 'compress_tr',
+    #             'transpose_tr', 'transpose mean'],
+    #     observed=True)
+    # for idx in df.index:
+    #     df.loc[idx,'transpose mean'].idxmin()
 
 
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()

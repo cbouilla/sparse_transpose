@@ -288,10 +288,9 @@ void show_grand_totals()
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  /*  fprintf(stderr, "  ScanTrans:\n");
+  fprintf(stderr, "  ScanTrans:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[SCANTRANS].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[SCANTRANS].transpose_tr);
-  */
   fprintf(stderr, "  MergeTrans:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[MERGETRANS].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[MERGETRANS].transpose_tr);
@@ -312,7 +311,7 @@ int main(int argc, char **argv)
   else
   {
     fprintf(stderr,
-            "Usage: ./driver [output_filename]\nThe default filename is '%s'",
+            "Usage: ./driver_wang [output_filename]\nThe default filename is '%s'",
             OUTPUT_FILENAME);
     return EXIT_FAILURE;
   }

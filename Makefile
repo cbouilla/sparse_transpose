@@ -53,10 +53,10 @@ ifeq ($(DEBUG),0)
 	endif
 else
 	ifeq ($(CC),gcc)
-		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
-		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
-#		CFLAGS := -Wall -Wextra -std=c11 -g -O2 -ftree-vectorize -fopenmp -mavx2
-#		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O2 -ftree-vectorize -fopenmp -mavx2
+		# CFLAGS := -Wall -Wextra -std=c11 -g -O3 -fopenmp -mavx2
+		# CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -fopenmp -mavx2
+		CFLAGS := -Wall -Wextra -std=c11 -g -O2 -ftree-vectorize -fopenmp -mavx2
+		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O2 -ftree-vectorize -fopenmp -mavx2
 	else ifeq ($(CC),icc)
 		CFLAGS := -Wall -Wextra -std=c11 -g -O3 -qopenmp -xCORE-AVX2
 		CXXFLAGS := -Wall -Wextra -std=c++11 -g -O3 -qopenmp -xCORE-AVX2

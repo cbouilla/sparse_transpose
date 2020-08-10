@@ -74,10 +74,10 @@ static inline void store_nontemp_double(void *dst, const void *src);
 #include <immintrin.h>
 static inline void store_nontemp_int(void *dst, const void *src)
 {
-  const register __m256i *d1 = (__m256i *)dst;
-  const register __m256i s1 = *((__m256i *)src);
-  const register __m256i *d2 = d1 + 1;
-  const register __m256i s2 = *(((__m256i *)src) + 1);
+  register __m256i *d1 = (__m256i *)dst;
+  register __m256i s1 = *((__m256i *)src);
+  register __m256i *d2 = d1 + 1;
+  register __m256i s2 = *(((__m256i *)src) + 1);
   _mm256_stream_si256(d1, s1);
   _mm256_stream_si256(d2, s2);
   /* note : it can also be done using SSE for non-AVX machines */
@@ -85,18 +85,18 @@ static inline void store_nontemp_int(void *dst, const void *src)
 
 static inline void store_nontemp_double(void *dst, const void *src)
 {
-  const register __m256d *d1 = (__m256d *)dst;
-  const register __m256d s1 = *((__m256d *)src);
-  const register __m256d *d2 = d1 + 1;
-  const register __m256d s2 = *(((__m256d *)src) + 1);
-  const register __m256d *d3 = d1 + 2;
-  const register __m256d s3 = *(((__m256d *)src) + 2);
-  const register __m256d *d4 = d1 + 3;
-  const register __m256d s4 = *(((__m256d *)src) + 3);
-  _mm256_stream_sd(d1, s1);
-  _mm256_stream_sd(d2, s2);
-  _mm256_stream_sd(d3, s3);
-  _mm256_stream_sd(d4, s4);
+  register __m256d *d1 = (__m256d *)dst;
+  register __m256d s1 = *((__m256d *)src);
+  register __m256d *d2 = d1 + 1;
+  register __m256d s2 = *(((__m256d *)src) + 1);
+  register __m256d *d3 = d1 + 2;
+  register __m256d s3 = *(((__m256d *)src) + 2);
+  register __m256d *d4 = d1 + 3;
+  register __m256d s4 = *(((__m256d *)src) + 3);
+  _mm256_stream_pd((double *)d1, s1);
+  _mm256_stream_pd((double *)d2, s2);
+  _mm256_stream_pd((double *)d3, s3);
+  _mm256_stream_pd((double *)d4, s4);
   /* note : it can also be done using SSE for non-AVX machines */
 }
 #else
@@ -140,8 +140,7 @@ static inline void wc_prime(struct cacheline_t *buffer, const u32 *COUNT,
   for (u32 i = 0; i < n_buckets; i++)
   {
     buffer[i].row[CACHELINE_SIZE - 1] =
-        COUNT[i]; // TODO mettre 0 poour push dans l'ordre de gauche à droite et
-                  // éviter les deux branches dans flush
+        COUNT[i];
     buffer[i].col[CACHELINE_SIZE - 1] = COUNT[i] & (CACHELINE_SIZE - 1);
   }
 }
@@ -299,6 +298,6 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
    Ai, Aj, Rj MUST be aligned on a 64-byte boundary (for good cache behavior).
    The input arrays are expendable (i.e. they might be destroyed).
    The current code only reads them though. */
-void transpose(const spasm_triplet *A, spasm *R);
+void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads);
 
 #endif /* INCLUDE_DRIVER_BB_TRANSPOSE_H */

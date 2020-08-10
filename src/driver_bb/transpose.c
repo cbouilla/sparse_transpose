@@ -165,7 +165,6 @@ u32 partitioning(struct ctx_t *ctx, const spasm_triplet *A,
   }
 
   u32 last = 0;
-// TODO utiliser omp single ?
 #pragma omp master
   {
     u32 sum = 0;
@@ -363,7 +362,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   }
 }
 
-void transpose(const spasm_triplet *A, spasm *R)
+void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
 {
   const u32 nnz = A->nnz;
   const u32 *Aj = A->j;
@@ -388,6 +387,9 @@ void transpose(const spasm_triplet *A, spasm *R)
 #endif
 
   const u32 size = ctx.par_count_size;
+#ifdef _OPENMP
+  omp_set_num_threads(num_threads);
+#endif // _OPENMP
   const u32 T = omp_get_max_threads();
   u32 tCOUNT[T * size];
   u32 gCOUNT[size + 1];
@@ -434,6 +436,7 @@ void transpose(const spasm_triplet *A, spasm *R)
       {
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1]);
       }
+
     free(buffer);
 
 #pragma omp master

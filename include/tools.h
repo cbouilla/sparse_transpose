@@ -24,7 +24,7 @@
 #define TBBSORT 3
 #define SCANTRANS 4
 #define MERGETRANS 5
-#define BB 6
+#define RADIXSORT1 6
 #define N_METHOD 7
 
 #define OUTPUT_FILENAME "benchmarks.csv"
@@ -35,35 +35,9 @@
 
 #define MATRIX_PATH "/Infos/lmd/2019/master/ue/MU4IN903-2020fev"
 
-#define N_SMALL_MATRICES 21
+#define N_SMALL_MATRICES 3 // 21
 
-/// The matrices in "Parallel Transposition of Sparse Data Structures" by Wang,
-/// Liu, Hou and Feng
-static const char *matrices[N_SMALL_MATRICES] = {
-	"language",
-	"ASIC_680k",
-	"circuit5M",
-	"flickr",
-	"memchip",
-	"rajat21",
-	"sme3Dc",
-	"stomach",
-	"transient",
-	"webbase-1M",
-	"wiki-Talk",
-	"cage14",
-	"eu-2005",
-	"FullChip",
-	"mac_econ_fwd500",
-	"para-4",
-	"rajat29",
-	"Stanford_Berkeley",
-	"torso1",
-	"venkat01",
-	"web-Google"
-};
-
-#define N_LARGE_MATRICES 58
+#define N_LARGE_MATRICES 5 // 58
 
 typedef uint8_t u8;
 typedef uint32_t u32;
@@ -92,5 +66,40 @@ inline void clear_times(algorithm_times *duration)
   duration->transpose = 0.0;
   duration->transpose_tr = 0.0;
 }
+
+
+/// The matrices in "Parallel Transposition of Sparse Data Structures" by Wang,
+/// Liu, Hou and Feng
+static const char *matrices[N_SMALL_MATRICES] = {
+	"language",
+	"ASIC_680k",
+	"circuit5M",
+	// "flickr",
+	// "memchip",
+	// "rajat21",
+	// "sme3Dc",
+	// "stomach",
+	// "transient",
+	// "webbase-1M",
+	// "wiki-Talk",
+	// "cage14",
+	// "eu-2005",
+	// "FullChip",
+	// "mac_econ_fwd500",
+	// "para-4",
+	// "rajat29",
+	// "Stanford_Berkeley",
+	// "torso1",
+	// "venkat01",
+	// "web-Google"
+};
+
+static const u8 pre_transpose[N_LARGE_MATRICES] = {
+	1,
+	3,
+	8,
+	12,
+	41
+};
 
 #endif /* INCLUDE_TOOLS_H */

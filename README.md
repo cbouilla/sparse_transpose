@@ -42,7 +42,7 @@ Taille : 5Go.
 
 Un autre jeu de matrices (le mien) est disponible dans le dossier :
 
-`/Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA`
+`/Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok`
 
 Taille : 14Go. Ces matrices sont plus rectangulaires.
 
@@ -123,13 +123,12 @@ Ensuite, `make clean` puis recompiler.
 - [ ] radix sort MSD+LSD séquentiel
 - [ ] radix sort LSD parallèle
 - [ ] radix sort MSD parallèle
-- [ ] radix sort MSD+LSD parallèle LEAKs, ajouter OUTx, tester sur toutes, la taille de lignes de WC de OUTi/OUTj et OUTx ne sont pas les mêmes (les doubles sont plus gros)
-- [ ] refactor, reformat, typage, comment le code de Bouillaguet
+- [ ] radix sort MSD+LSD parallèle LEAKs, tester sur toutes, se limiter au nombre de coeurs physiques, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit ou la matrice est petite, tenir compte de la taille des différents caches.
+- [ ] commenter le code
 - [ ] checker les todo
-- [ ] réduire l'espace occupé : moyen pour se limiter à pile la bonne taille au lieu d'utiliser la puisance de deux supérieure, garder un seul OUTi/OUTj pour toutes les passes
+- [ ] réduire l'espace occupé : moyen pour se limiter à pile la bonne taille au lieu d'utiliser la puisance de deux supérieure ?, réduire le nombre de listes auxiliaires
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
-- [ ] comparer la compression ?
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

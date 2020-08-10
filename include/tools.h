@@ -24,7 +24,7 @@
 #define TBBSORT 3
 #define SCANTRANS 4
 #define MERGETRANS 5
-#define RADIXSORT1 6
+#define RADIXSORT 6
 #define N_METHOD 7
 
 #define OUTPUT_FILENAME "benchmarks.csv"

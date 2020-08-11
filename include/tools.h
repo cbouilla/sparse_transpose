@@ -13,7 +13,7 @@
 
 #include <stdint.h>
 
-#define N_REPEAT 1
+#define N_REPEAT 7
 #define BENCHMARK_SMALL_MATRICES
 #define BENCHMARK_LARGE_MATRICES
 

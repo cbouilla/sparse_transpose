@@ -345,9 +345,9 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
 void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
 {
   const u32 nnz = A->nnz;
-  const u32 *Aj = A->j;
+  // const u32 *Aj = A->j;
   const u32 Rn = R->n;
-  const u32 Rm = R->m;
+  // const u32 Rm = R->m;
   u32 *Rp = R->p;
   (void)Rp; // TODO pourquoi
 
@@ -437,7 +437,7 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
   else
   {
     u32 *Rj = (u32 *)malloc_aligned(nnz * sizeof(*Rj), 64);
-    double *Rx = (u32 *)malloc_aligned(nnz * sizeof(*Rx), 64);
+    double *Rx = (double *)malloc_aligned(nnz * sizeof(*Rx), 64);
     u32 i = 0;
     u32 next_i = ctx.OUTj[n-1][0];
     u32 next_j = ctx.OUTi[n-1][0];

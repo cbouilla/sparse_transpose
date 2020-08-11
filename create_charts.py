@@ -41,7 +41,7 @@ def extract_program_name(name):
     Returns:
         str: The correct name of the program.
     """
-    program_name = name.replace('::', ' ', 1)
+    program_name = name.replace('::', ' ')
     return program_name
 
 
@@ -503,7 +503,7 @@ def main():
         columns=['program', 'cflags', 'cxxflags', 'threads', 'total_step'],
         values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
         observed=True)
-    # plot_box(new_data_pivot, show=True, save=False, save_path=save_path)
+    plot_box(new_data_pivot, show=False, save=True, save_path=save_path)
 
     # groups = ["program", "cflags", "cxxflags", "threads"]
     # data = (parallel_means.groupby(groups, as_index=False)).sum().dropna()

@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 
 #include "mini_spasm.h"
-#include "transpose.h"
+#include "transpose2.h"
 
 #include <math.h>
 #include <stdbool.h>
@@ -276,8 +276,8 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
   }
 }
 
-void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
-                      const u32 lo, const u32 hi)
+u32 transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
+                      const u32 lo, const u32 hi, spasm *R, const u32 nnz)
 {
   const u8 n = ctx->n_passes;
   const u32 csize = ctx->seq_count_size;
@@ -313,16 +313,16 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
       sum += w;
     }
 
-      wc_prime(buffer, W[p], size);
-      for (u32 k = lo; k < hi; k++)
-      {
-        const u32 i = INi[k];
-        const u32 j = INj[k];
-        const double x = INx[k];
-        const u32 b = (j >> shift) & mask;
-        wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
-      }
-      wc_purge(buffer, size, OUTi, OUTj, OUTx);
+    wc_prime(buffer, W[p], size);
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 i = INi[k];
+      const u32 j = INj[k];
+      const double x = INx[k];
+      const u32 b = (j >> shift) & mask;
+      wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
+    }
+    wc_purge(buffer, size, OUTi, OUTj, OUTx);
 
     /* check
     for (u32 b = 0; b < size - 1; b++)
@@ -340,6 +340,37 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
     INj = OUTj;
     INx = OUTx;
   }
+  u32 i = 0;
+  u32 next_i = ctx->OUTj[n - 1][0];
+  while (i < next_i)
+  {
+    R->p[i] = 0;
+    i++;
+  }
+  R->p[i] = 0;
+  // TODO parallel
+  for (u32 k = 0 + 1; k < hi; k++)
+  {
+    next_i = ctx->OUTj[n - 1][k];
+    if (i < next_i)
+    {
+      i++;
+      while (i < next_i)
+      {
+        R->p[i] = k;
+        i++;
+      }
+      R->p[i] = k;
+    }
+  }
+// finalization
+    i += 1;
+    while (i <= R->n)
+    {
+      R->p[i] = nnz;
+      i += 1;
+    }
+  return i;
 }
 
 void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
@@ -375,6 +406,7 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
   u32 gCOUNT[size + 1];
 
   u32 non_empty;
+  u32 last;
 
 #pragma omp parallel
   {
@@ -411,10 +443,10 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
 #endif
 
     if (ctx.n_passes > 1)
-#pragma omp for schedule(dynamic, 1)
+#pragma omp for schedule(dynamic, 1) lastprivate(last)
       for (u32 i = 0; i < non_empty; i++)
       {
-        transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1]);
+        last = transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, nnz);
       }
 
     free(buffer);
@@ -426,9 +458,11 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
 #endif
     }
   }
+  // Computing row pointers
   const u8 n = ctx.n_passes;
   if (n == 1)
   {
+    // TODO parallel
     for (u32 i = 0; i < Rn + 1; i++)
     {
       Rp[i] = gCOUNT[i];
@@ -436,50 +470,97 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
   }
   else
   {
-    u32 *Rj = (u32 *)malloc_aligned(nnz * sizeof(*Rj), 64);
-    double *Rx = (double *)malloc_aligned(nnz * sizeof(*Rx), 64);
-    u32 i = 0;
-    u32 next_i = ctx.OUTj[n-1][0];
-    u32 next_j = ctx.OUTi[n-1][0];
-    double next_x = ctx.OUTx[n-1][0];
-    while (i < next_i)
+
+    // Test
     {
-      Rp[i] = 0;
-      i++;
+    // printf("%d %d\n", last, gCOUNT[non_empty]);
+    // u32 i = last;
+    // u32 next_i = ctx.OUTj[n - 1][last];
+    // while (i < next_i)
+    // {
+    //   Rp[i] = last;
+    //   i++;
+    // }
+    // Rp[i] = last;
+    // // TODO parallel
+    // for (u32 k = last+1; k < nnz; k++)
+    // {
+    //   next_i = ctx.OUTj[n - 1][k];
+    //   if (i < next_i)
+    //   {
+    //     i++;
+    //     while (i < next_i)
+    //     {
+    //       Rp[i] = k;
+    //       i++;
+    //     }
+    //     Rp[i] = k;
+    //   }
+    // }
+    // // finalization
+    // i += 1;
+    // while (i <= Rn)
+    // {
+    //   Rp[i] = nnz;
+    //   i += 1;
+    // }
+    // for (u32 i = last + 1; i < Rn + 1; i++)
+    // {
+    //   Rp[i] = nnz;
+    // }
+    
+  //   for (u32 i = Rn-10; i < Rn +1; i++)
+  //   {
+  //     printf("%d\n", Rp[i]);
+  //     for (u32 p = Rp[i]; p < Rp[i + 1] && p < Rp[i] + 5; p++)
+  //     {
+  //       /* code */
+  //       printf("%d %d %f\n", i, R->j[p], R->x[p]);
+  //     }
+  //   }
     }
-    Rp[i] = 0;
-    // append entry to current line
-    Rj[0] = next_j;
-    Rx[0] = next_x;
-    for (u32 k = 1; k < nnz; k++)
-    {
-      next_i = ctx.OUTj[n-1][k];
-      next_j = ctx.OUTi[n-1][k];
-      next_x = ctx.OUTx[n-1][k];
-      if (i < next_i)
-      {
-        i++;
-        while (i < next_i)
-        {
-          Rp[i] = k;
-          i++;
-        }
-        Rp[i] = k;
-      }
-      // append entry to current line
-      Rj[k] = next_j;
-      Rx[k] = next_x;
-    }
-    // finalization
-    i += 1;
-    while (i <= Rn)
-    {
-      Rp[i] = nnz;
-      i += 1;
-    }
-    free(Rj);
-    free(Rx);
+
+  // Correct
+  //   u32 i = 0;
+  //   u32 next_i = ctx.OUTj[n - 1][0];
+  //   while (i < next_i)
+  //   {
+  //     Rp[i] = 0;
+  //     i++;
+  //   }
+  //   Rp[i] = 0;
+  //   // TODO parallel
+  //   for (u32 k = 1; k < nnz; k++)
+  //   {
+  //     next_i = ctx.OUTj[n - 1][k];
+  //     if (i < next_i)
+  //     {
+  //       i++;
+  //       while (i < next_i)
+  //       {
+  //         Rp[i] = k;
+  //         i++;
+  //       }
+  //       Rp[i] = k;
+  //     }
+  //   }
+  //   // finalization
+  //   i += 1;
+  //   while (i <= Rn)
+  //   {
+  //     Rp[i] = nnz;
+  //     i += 1;
+  //   }
+  // }
+  // for (u32 i = Rn-10; i < Rn + 1; i++)
+  // {
+  //   printf("%d\n", Rp[i]);
+  //   for (u32 p = Rp[i]; p < Rp[i + 1] && p < Rp[i] + 5; p++)
+  //   {
+  //     printf("%d %d %f --\n", i, R->j[p], R->x[p]);
+  //   }
   }
+
   free(scratch);
   free(scratch2);
 }

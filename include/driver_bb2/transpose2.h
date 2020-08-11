@@ -7,8 +7,8 @@
 /// @copyright Copyright (c) 2020
 ///
 
-#ifndef INCLUDE_DRIVER_BB_TRANSPOSE_H
-#define INCLUDE_DRIVER_BB_TRANSPOSE_H
+#ifndef INCLUDE_DRIVER_BB2_TRANSPOSE_H
+#define INCLUDE_DRIVER_BB2_TRANSPOSE_H
 
 #include <assert.h>
 #include <err.h>
@@ -284,8 +284,8 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
                const u32 hi, const u8 n, u32 **W);
 
 /* sequentially transpose a single bucket */
-void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
-                      const u32 lo, const u32 hi);
+u32 transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
+                      const u32 lo, const u32 hi, spasm *R, const u32 nnz);
 
 /* converts a sparse matrix in COOrdinate format to the CSR format.
    INPUT:  COO sparse matrix in Ai, Aj (both of size nnz), with n rows
@@ -300,4 +300,4 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
    The current code only reads them though. */
 void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads);
 
-#endif /* INCLUDE_DRIVER_BB_TRANSPOSE_H */
+#endif /* INCLUDE_DRIVER_BB2_TRANSPOSE_H */

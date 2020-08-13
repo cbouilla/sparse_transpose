@@ -284,8 +284,8 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
                const u32 hi, const u8 n, u32 **W);
 
 /* sequentially transpose a single bucket */
-u32 transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
-                      const u32 lo, const u32 hi, spasm *R);
+void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
+                      const u32 lo, const u32 hi, spasm *R, const u32 bucket);
 
 /* converts a sparse matrix in COOrdinate format to the CSR format.
    INPUT:  COO sparse matrix in Ai, Aj (both of size nnz), with n rows

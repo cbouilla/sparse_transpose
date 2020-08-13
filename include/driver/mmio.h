@@ -10,6 +10,7 @@
 #define INCLUDE_DRIVER_MMIO_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 ///
 /// \brief Type used for dimensions and entries.

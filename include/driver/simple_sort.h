@@ -11,68 +11,68 @@
 #ifndef INCLUDE_DRIVER_SIMPLE_SORT_H
 #define INCLUDE_DRIVER_SIMPLE_SORT_H
 
-#include "mini_spasm.h"
+#include "sparse.h"
 
 typedef uint32_t u32;
 
 ///
-/// \brief Converts a sparse matrix in triplet format into a matrix in CSR
+/// \brief Converts a sparse matrix in COO format into a matrix in CSR
 /// format.
 ///
 /// \param[in] n the number of rows
 /// \param[in] nnz the number of nonzero entries
-/// \param[in] Te the input matrix in triplet format to convert
+/// \param[in] Te the input matrix in COO format to convert
 /// \param[out] A the output matrix in CSR format
 ///
-void finalize(const u32 n, const u32 nnz, const struct matrix_entry_t *Te, spasm *A);
+void finalize(const u32 n, const u32 nnz, const struct mtx_entry *Te,
+              mtx_CSR *A);
 
 ///
-/// \brief Converts a matrix in triplet format into a matrix in CSR
+/// \brief Converts a matrix in COO format into a matrix in CSR
 /// format by using std::sort.
 ///
-/// \param[in] T the input matrix in triplet format to convert
+/// \param[in] T the input matrix in COO format to convert
 /// \param[out] A the output matrix in CSR format
-/// \param[out] Te the output matrix in another triplet format
+/// \param[out] Te the output matrix in another COO format
 ///
-void stdsort_compress(const spasm_triplet *T, spasm *A,
-                      struct matrix_entry_t *Te);
+void stdsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te);
 
 ///
 /// \brief Transposes a mtrix in CSR format by using std::sort.
-/// Fist, converts a matrix in CSR format into a matrix in triplet
+/// Fist, converts a matrix in CSR format into a matrix in COO
 /// format. Then, uses std::sort to transpose it. Finally, converts it into a
 /// matrix in CSR format.
 ///
 /// \param[in] A the input matrix in CSR format to transpose
 /// \param[out] R the output matrix in CSR format
-/// \param[out] Te the output matrix in another triplet format
+/// \param[out] Te the output matrix in another COO format
 ///
-void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te);
+void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, struct mtx_entry *Te);
 
 ///
-/// \brief Converts a matrix in triplet format into a matrix in CSR
+/// \brief Converts a matrix in COO format into a matrix in CSR
 /// format by using tbb::parallel_sort.
 ///
-/// \param[in] T the input matrix in triplet format to convert
+/// \param[in] T the input matrix in COO format to convert
 /// \param[out] A the output matrix in CSR format
-/// \param[out] Te the output matrix in another triplet format
+/// \param[out] Te the output matrix in another COO format
 /// \param[in] num_threads the number of threads used in TBB's parallel sort
 ///
-void tbbsort_compress(const spasm_triplet *T, spasm *A,
-                      struct matrix_entry_t *Te, const u32 num_threads);
+void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te,
+                      const u32 num_threads);
 
 ///
 /// \brief Transposes a mtrix in CSR format by using tbb::parallel_sort.
-/// Fist, converts a matrix in CSR format into a matrix in triplet
+/// Fist, converts a matrix in CSR format into a matrix in COO
 /// format. Then, uses tbb::parallel_sort to transpose it. Finally, converts it
 /// into a matrix in CSR format.
 ///
 /// \param[in] A the input matrix in CSR format to transpose
 /// \param[out] R the output matrix in CSR format
-/// \param[out] Te the output matrix in another triplet format
+/// \param[out] Te the output matrix in another COO format
 /// \param[in] num_threads the number of threads used in TBB's parallel sort
 ///
-void tbbsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te,
+void tbbsort_transpose(const mtx_CSR *A, mtx_CSR *R, struct mtx_entry *Te,
                        const u32 num_threads);
 
 ///

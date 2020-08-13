@@ -23,7 +23,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #include <omp.h>
 #endif
 
-#include "mini_spasm.h"
+#include "sparse.h"
 #include "transpose.h"
 
 #include <math.h>
@@ -63,7 +63,8 @@ void transpose(uint64_t nnz, u32 *Ai, u32 *Aj, u32 Rn, u32 *Rp, u32 *Rj)
    Uses a parallel radix sort with a software write-combining buffer.
    Relies on aligned_alloc (OK in C11) and OpenMP. */
 
-void planification(struct ctx_t *ctx, spasm *R, u32 *scratch, double *scratch2)
+void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
+                   double *scratch2)
 {
   const u32 Rn = R->n;
   const u32 nnz = R->nnz_max;
@@ -134,7 +135,7 @@ void planification(struct ctx_t *ctx, spasm *R, u32 *scratch, double *scratch2)
   ctx->seq_count_size = s_count;
 }
 
-u32 partitioning(struct ctx_t *ctx, const spasm_triplet *A,
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
                  struct cacheline_t *buffer, u32 *tCOUNT, u32 *gCOUNT)
 {
   const u32 *Ai = A->i;
@@ -362,7 +363,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   }
 }
 
-void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
+void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
   const u32 nnz = A->nnz;
   const u32 *Aj = A->j;

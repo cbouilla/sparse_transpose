@@ -18,17 +18,17 @@
 ///
 typedef uint32_t u32;
 
-#include "mini_spasm.h"
+#include "sparse.h"
 
 ///
-/// \brief Converts a matrix in triplet format into a matrix in CSR format by
+/// \brief Converts a matrix in COO format into a matrix in CSR format by
 /// using the classical algorithm.
 ///
-/// \param[in] T the input matrix in triplet format
+/// \param[in] T the input matrix in COO format
 /// \param[out] A the output matrix in CSR format
 /// \param[out] W a scratch space (size == // TODO #columns + 1)
 ///
-void classical_compress(const spasm_triplet *T, spasm *A, u32 *W);
+void classical_compress(const mtx_COO *T, mtx_CSR *A, u32 *W);
 
 ///
 /// \brief Transposes a matrix in CSR format by using the classical algorithm.
@@ -37,6 +37,6 @@ void classical_compress(const spasm_triplet *T, spasm *A, u32 *W);
 /// \param[out] R the output matrix in CSR format
 /// \param[out] W a scratch space (size == // TODO #columns + 1)
 ///
-void classical_transpose(const spasm *A, spasm *R, u32 *W);
+void classical_transpose(const mtx_CSR *A, mtx_CSR *R, u32 *W);
 
 #endif /* INCLUDE_DRIVER_CLASSICAL_SORT_H */

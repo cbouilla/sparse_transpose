@@ -15,7 +15,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "mini_spasm.h"
+#include "sparse.h"
 #include "tools.h"
 
 ///
@@ -274,10 +274,10 @@ static inline void wc_half_purge(const struct half_cacheline_t *buffer,
 }
 
 /* prepare the ctx object with information needed for all passes */
-void planification(struct ctx_t *ctx, spasm *R, u32 *scratch, double *scratch2);
+void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch, double *scratch2);
 
 /* returns k such that buckets [0:k] are non-empty. */
-u32 partitioning(struct ctx_t *ctx, const spasm_triplet *A,
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
                  struct cacheline_t *buffer, u32 *tCOUNT, u32 *gCOUNT);
 
 void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
@@ -298,6 +298,6 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
    Ai, Aj, Rj MUST be aligned on a 64-byte boundary (for good cache behavior).
    The input arrays are expendable (i.e. they might be destroyed).
    The current code only reads them though. */
-void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads);
+void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads);
 
 #endif /* INCLUDE_DRIVER_BB_TRANSPOSE_H */

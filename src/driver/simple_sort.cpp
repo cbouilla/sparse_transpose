@@ -13,13 +13,11 @@
 
 extern "C"
 {
-#include "mini_spasm.h"
+#include "sparse.h"
 }
 
-extern "C" void stdsort_compress(const spasm_triplet *T, spasm *A,
-                                 struct matrix_entry_t *Te);
-extern "C" void stdsort_transpose(const spasm *A, spasm *R,
-                                  struct matrix_entry_t *Te);
+extern "C" void stdsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te);
+extern "C" void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te);
 
 #ifdef HAVE_TBB
 #include <iostream>
@@ -27,29 +25,27 @@ extern "C" void stdsort_transpose(const spasm *A, spasm *R,
 #include <tbb/task_scheduler_init.h>
 #include <tbb/tbb_stddef.h>
 
-extern "C" void tbbsort_compress(const spasm_triplet *T, spasm *A,
-                                 struct matrix_entry_t *Te, const u32 num_threads);
-extern "C" void tbbsort_transpose(const spasm *A, spasm *R,
-                                  struct matrix_entry_t *Te, const u32 num_threads);
+extern "C" void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te,
+                                 const u32 num_threads);
+extern "C" void tbbsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te,
+                                  const u32 num_threads);
 extern "C" void tbb_version();
 
 #endif // HAVE_TBB
 
 ///
-/// \brief Compares the row of the matrix_entry_t data type.
+/// \brief Compares the row of the  mtx_entry data type.
 ///
 /// \return true if the row index of `a` is lesser than the row index of b
 /// \return false if the row index of `a` is greater than, or equal to, the row
 /// index of b
 ///
-inline bool operator<(const struct matrix_entry_t &a,
-                      const struct matrix_entry_t &b)
+inline bool operator<(const mtx_entry &a, const mtx_entry &b)
 {
   return a.i < b.i;
 }
 
-void finalize(const u32 n, const u32 nnz, const struct matrix_entry_t *Te,
-              spasm *A)
+void finalize(const u32 n, const u32 nnz, const mtx_entry *Te, mtx_CSR *A)
 {
   u32 *Ap = A->p;
   u32 *Aj = A->j;
@@ -98,8 +94,7 @@ void finalize(const u32 n, const u32 nnz, const struct matrix_entry_t *Te,
   }
 }
 
-void stdsort_compress(const spasm_triplet *T, spasm *A,
-                      struct matrix_entry_t *Te)
+void stdsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te)
 {
   u32 n = T->n;
   u32 nnz = T->nnz;
@@ -118,11 +113,11 @@ void stdsort_compress(const spasm_triplet *T, spasm *A,
   finalize(n, nnz, Te, A);
 }
 
-void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
+void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te)
 {
   u32 n = A->n;
   u32 m = A->m;
-  u32 nnz = spasm_nnz(A);
+  u32 nnz = mtx_nnz(A);
   const u32 *Ap = A->p;
   const u32 *Aj = A->j;
   const double *Ax = A->x;
@@ -143,8 +138,8 @@ void stdsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te)
 
 #ifdef HAVE_TBB
 
-void tbbsort_compress(const spasm_triplet *T, spasm *A,
-                      struct matrix_entry_t *Te, const u32 num_threads)
+void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te,
+                      const u32 num_threads)
 {
   tbb::task_scheduler_init tsi(num_threads);
 
@@ -176,14 +171,14 @@ void tbbsort_compress(const spasm_triplet *T, spasm *A,
   // printf("        finalize: %.3f\n", d-c);
 }
 
-void tbbsort_transpose(const spasm *A, spasm *R, struct matrix_entry_t *Te,
+void tbbsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te,
                        const u32 num_threads)
 {
   tbb::task_scheduler_init tsi(num_threads);
 
   u32 n = A->n;
   u32 m = A->m;
-  u32 nnz = spasm_nnz(A);
+  u32 nnz = mtx_nnz(A);
   const u32 *Ap = A->p;
   const u32 *Aj = A->j;
   const double *Ax = A->x;

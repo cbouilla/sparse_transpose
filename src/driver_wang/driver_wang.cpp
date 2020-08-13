@@ -35,8 +35,8 @@
 #include "tools.h"
 
 #ifdef HAVE_MKL
-#include <mkl_spblas.h>
 #include <mkl.h>
+#include <mkl_spblas.h>
 #endif // HAVE_MKL
 
 double spasm_wtime()
@@ -48,7 +48,10 @@ double spasm_wtime()
 
 #if defined _OPENMP && defined MKL
 
-void run_test_scanTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdxA, double *csrValA, int *pntrb, int *cscidx, double *cscval, algorithm_times *duration, int num_threads)
+void run_test_scanTrans(int m, int n, int nnzA, int *csrRowPtrA,
+                        int *csrColIdxA, double *csrValA, int *pntrb,
+                        int *cscidx, double *cscval, algorithm_times *duration,
+                        int num_threads)
 {
   omp_set_num_threads(num_threads);
 
@@ -104,7 +107,10 @@ void run_test_scanTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdxA
   free(cscValA);
 }
 
-void run_test_mergeTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdxA, double *csrValA, int *pntrb, int *cscidx, double *cscval,  algorithm_times *duration, int num_threads)
+void run_test_mergeTrans(int m, int n, int nnzA, int *csrRowPtrA,
+                         int *csrColIdxA, double *csrValA, int *pntrb,
+                         int *cscidx, double *cscval, algorithm_times *duration,
+                         int num_threads)
 {
   omp_set_num_threads(num_threads);
 
@@ -127,9 +133,9 @@ void run_test_mergeTrans(int m, int n, int nnzA, int *csrRowPtrA, int *csrColIdx
   fprintf(stderr, "-- MergeTrans transpose (%d threads) [CSR->CSR']: %.3fs\n",
           num_threads, duration->transpose);
 
-  assert(std::equal(cscval, cscval+nnzA, cscValA));
-  assert(std::equal((int*)cscidx, (int*)(cscidx+nnzA), cscRowIdxA));
-  assert(std::equal((int*)pntrb, (int*)(pntrb+n), cscColPtrA));
+  assert(std::equal(cscval, cscval + nnzA, cscValA));
+  assert(std::equal((int *)cscidx, (int *)(cscidx + nnzA), cscRowIdxA));
+  assert(std::equal((int *)pntrb, (int *)(pntrb + n), cscColPtrA));
 
   int *new_csrRowPtrA = (int *)malloc((m + 1) * sizeof(int));
   int *new_csrColIdxA = (int *)malloc(nnzA * sizeof(int));
@@ -214,8 +220,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
   int *csrRowPtrA;
   int *csrColIdxA;
   double *csrValA;
-  int retCode =
-      read_mtx_mat(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, matrix_filename);
+  int retCode = read_mtx_mat(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA,
+                             matrix_filename);
   if (retCode != 0)
   {
     err(1, "Failed to read the matrix from %s.", matrix_filename);
@@ -229,14 +235,14 @@ void run_test(const char *matrix_filename, const char *output_filename)
   double *cscval;
   sparse_matrix_t A, AT;
   MKL_INT cscn, cscm, *pntrb, *pntre, *cscidx;
-  status = mkl_sparse_d_create_csr(&A, SPARSE_INDEX_BASE_ZERO, 
-                                  (MKL_INT)m, (MKL_INT)n, (MKL_INT *)csrRowPtrA, 
-                                  (MKL_INT *)(csrRowPtrA + 1), (MKL_INT *)csrColIdxA, (double*)csrValA);
+  status = mkl_sparse_d_create_csr(
+      &A, SPARSE_INDEX_BASE_ZERO, (MKL_INT)m, (MKL_INT)n, (MKL_INT *)csrRowPtrA,
+      (MKL_INT *)(csrRowPtrA + 1), (MKL_INT *)csrColIdxA, (double *)csrValA);
 
   status = mkl_sparse_convert_csr(A, SPARSE_OPERATION_TRANSPOSE, &AT);
 
-  status = mkl_sparse_d_export_csr(AT, &indexing,
-                                   &cscn, &cscm, &pntrb, &pntre, &cscidx, (double**)&cscval);
+  status = mkl_sparse_d_export_csr(AT, &indexing, &cscn, &cscm, &pntrb, &pntre,
+                                   &cscidx, (double **)&cscval);
   if (SPARSE_STATUS_SUCCESS != status)
   {
     mkl_sparse_destroy(A);
@@ -246,13 +252,14 @@ void run_test(const char *matrix_filename, const char *output_filename)
     free(csrRowPtrA);
     err(1, "Failed to do MKL convert!\n");
   }
-  /*  
+  /*
   for (int i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
     for (int i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
-      run_test_scanTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntrb, cscidx, cscval, &duration[i], i_thread);
+      run_test_scanTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntrb,
+  cscidx, cscval, &duration[i], i_thread);
     }
     write_test_scanTrans(output_filename, matrix_filename, duration, i_thread);
   }
@@ -266,7 +273,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
     for (int i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
-      run_test_mergeTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntrb, cscidx, cscval, &duration[i], i_thread);
+      run_test_mergeTrans(m, n, nnzA, csrRowPtrA, csrColIdxA, csrValA, pntrb,
+                          cscidx, cscval, &duration[i], i_thread);
     }
     write_test_mergeTrans(output_filename, matrix_filename, duration, i_thread);
   }
@@ -280,7 +288,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   free(csrValA);
   mkl_sparse_destroy(A);
   mkl_sparse_destroy(AT);
-  
+
 #endif // _OPENMP && HAVE_MKL
 }
 
@@ -310,9 +318,10 @@ int main(int argc, char **argv)
   }
   else
   {
-    fprintf(stderr,
-            "Usage: ./driver_wang [output_filename]\nThe default filename is '%s'",
-            OUTPUT_FILENAME);
+    fprintf(
+        stderr,
+        "Usage: ./driver_wang [output_filename]\nThe default filename is '%s'",
+        OUTPUT_FILENAME);
     return EXIT_FAILURE;
   }
 

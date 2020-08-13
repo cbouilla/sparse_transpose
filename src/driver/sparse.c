@@ -1,5 +1,5 @@
 ///
-/// \file mini_spasm.c
+/// \file sparse.c
 /// \author // TODO
 /// \brief This file implements structures and functions to manage sparse matrix
 /// formats.
@@ -17,8 +17,8 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "mini_spasm.h"
 #include "mmio.h"
+#include "sparse.h"
 
 double spasm_wtime()
 {
@@ -27,7 +27,7 @@ double spasm_wtime()
   return (double)ts.tv_sec + ts.tv_usec / 1E6;
 }
 
-u32 spasm_nnz(const spasm *A) { return A->p[A->n]; }
+u32 mtx_nnz(const mtx_CSR *A) { return A->p[A->n]; }
 
 void *spasm_malloc(const u32 size)
 {
@@ -66,7 +66,7 @@ void spasm_human_format(int64_t n, char *target)
   }
 }
 
-void spasm_csr_free(spasm *A)
+void mtx_CSR_free(mtx_CSR *A)
 {
   if (A == NULL)
     return;
@@ -76,7 +76,7 @@ void spasm_csr_free(spasm *A)
   free(A);
 }
 
-void spasm_triplet_free(spasm_triplet *T)
+void mtx_COO_free(mtx_COO *T)
 {
   free(T->i);
   free(T->j);
@@ -84,9 +84,9 @@ void spasm_triplet_free(spasm_triplet *T)
   free(T);
 }
 
-spasm_triplet *spasm_triplet_alloc(const u32 nnz_max)
+mtx_COO *mtx_COO_alloc(const u32 nnz_max)
 {
-  spasm_triplet *T = spasm_malloc(sizeof(spasm_triplet));
+  mtx_COO *T = spasm_malloc(sizeof(mtx_COO));
   T->nnz_max = nnz_max;
   T->nnz = 0;
   T->n = 0;
@@ -97,9 +97,9 @@ spasm_triplet *spasm_triplet_alloc(const u32 nnz_max)
   return T;
 }
 
-spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max)
+mtx_CSR *mtx_CSR_alloc(const u32 n, const u32 m, const u32 nnz_max)
 {
-  spasm *A = spasm_malloc(sizeof(spasm));
+  mtx_CSR *A = spasm_malloc(sizeof(mtx_CSR));
   A->nnz_max = nnz_max;
   A->n = n;
   A->m = m;
@@ -119,7 +119,7 @@ spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max)
 /// \param[in] j the column index
 /// \param[in] x the numerical value
 ///
-inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j,
+inline void spasm_add_entry(mtx_COO *T, const u32 i, const u32 j,
                             const double x)
 {
   // Checks the matrix dimensions
@@ -139,7 +139,7 @@ inline void spasm_add_entry(spasm_triplet *T, const u32 i, const u32 j,
   // T->m = spasm_max(T->m, j + 1);
 }
 
-spasm_triplet *spasm_load_mm(FILE *f)
+mtx_COO *mtx_load_mm(FILE *f)
 {
   MM_typecode matcode;
   u32 n, m, nnz;
@@ -174,7 +174,7 @@ spasm_triplet *spasm_load_mm(FILE *f)
   fflush(stderr);
   free(typecode); // mm_typecode_to_str return a malloc'd char*
 
-  spasm_triplet *T = spasm_triplet_alloc(nnz);
+  mtx_COO *T = mtx_COO_alloc(nnz);
   T->n = n;
   T->m = m;
   for (u32 i = 0; i < nnz; i++)
@@ -199,7 +199,7 @@ spasm_triplet *spasm_load_mm(FILE *f)
   return T;
 }
 
-void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y)
+void mtx_COO_gemv(const mtx_COO *T, const double *x, double *y)
 {
   const u32 *Ti = T->i;
   const u32 *Tj = T->j;
@@ -217,7 +217,7 @@ void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y)
   }
 }
 
-void spasm_csr_gemv(const spasm *A, const double *x, double *y)
+void mtx_CSR_gemv(const mtx_CSR *A, const double *x, double *y)
 {
   const u32 *Ap = A->p;
   const u32 *Aj = A->j;
@@ -235,7 +235,7 @@ void spasm_csr_gemv(const spasm *A, const double *x, double *y)
     }
 }
 
-void spasm_triplet_transpose(const spasm_triplet *T, spasm_triplet *R)
+void mtx_COO_transpose(const mtx_COO *T, mtx_COO *R)
 {
   R->i = T->j;
   R->j = T->i;
@@ -246,7 +246,7 @@ void spasm_triplet_transpose(const spasm_triplet *T, spasm_triplet *R)
   R->nnz_max = T->nnz_max;
 }
 
-void check(const spasm_triplet *T, const spasm *A)
+void check(const mtx_COO *T, const mtx_CSR *A)
 {
   const u32 n = T->n;
   const u32 m = T->m;
@@ -273,8 +273,8 @@ void check(const spasm_triplet *T, const spasm *A)
   double *Yb = (double *)malloc(m * sizeof(double));
   for (u32 i = 0; i < n; i++)
     X[i] = drand48();
-  spasm_triplet_gemv(T, X, Ya);
-  spasm_csr_gemv(A, X, Yb);
+  mtx_COO_gemv(T, X, Ya);
+  mtx_CSR_gemv(A, X, Yb);
 
   double error = 0;
   for (u32 j = 0; j < m; j++)

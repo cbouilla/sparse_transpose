@@ -20,18 +20,18 @@
 #endif // HAVE_MKL
 
 #include "classical_sort.h"
-#include "mini_spasm.h"
 #include "simple_sort.h"
+#include "sparse.h"
 #include "tools.h"
 
 ///
 /// \brief Benchmarks the "classical" algorithm.
 ///
-/// \param[in] T the matrix in triplet format
-/// \param[in] R the transposed matrix in triplet format
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
+void run_test_classical(const mtx_COO *T, const mtx_COO *R,
                         algorithm_times *duration)
 {
   double start, stop;
@@ -39,11 +39,11 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
   const u32 m = T->m;
   const u32 nnz = T->nnz;
 
-  spasm *A = spasm_csr_alloc(n, m, nnz);
-  spasm *B = spasm_csr_alloc(m, n, nnz);
-  spasm *C = spasm_csr_alloc(m, n, nnz);
-  spasm *D = spasm_csr_alloc(n, m, nnz);
-  u32 *W = (u32 *)spasm_malloc((spasm_max(n, m) + 1) * sizeof(*W));
+  mtx_CSR *A = mtx_CSR_alloc(n, m, nnz);
+  mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
+  u32 *W = (u32 *)spasm_malloc((mtx_CSR_max(n, m) + 1) * sizeof(*W));
 
   start = spasm_wtime();
   classical_compress(T, A, W);
@@ -81,21 +81,21 @@ void run_test_classical(const spasm_triplet *T, const spasm_triplet *R,
   fprintf(stderr, "-- Gustavson transpose [CSR'->CSR]: %.3fs\n",
           duration->transpose_tr);
 
-  spasm_csr_free(A);
-  spasm_csr_free(B);
-  spasm_csr_free(C);
-  spasm_csr_free(D);
+  mtx_CSR_free(A);
+  mtx_CSR_free(B);
+  mtx_CSR_free(C);
+  mtx_CSR_free(D);
   free(W);
 }
 
 ///
 /// \brief Benchmarks the std::sort algorithm.
 ///
-/// \param[in] T the matrix in triplet format
-/// \param[in] R the transposed matrix in triplet format
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
+void run_test_stdsort(const mtx_COO *T, const mtx_COO *R,
                       algorithm_times *duration)
 {
   double start, stop;
@@ -103,12 +103,11 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
   const u32 m = T->m;
   const u32 nnz = T->nnz;
 
-  spasm *A = spasm_csr_alloc(n, m, nnz);
-  spasm *B = spasm_csr_alloc(m, n, nnz);
-  spasm *C = spasm_csr_alloc(m, n, nnz);
-  spasm *D = spasm_csr_alloc(n, m, nnz);
-  struct matrix_entry_t *Te =
-      (struct matrix_entry_t *)spasm_malloc(nnz * sizeof(*Te));
+  mtx_CSR *A = mtx_CSR_alloc(n, m, nnz);
+  mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
+  struct mtx_entry *Te = (struct mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
 
   start = spasm_wtime();
   stdsort_compress(T, A, Te);
@@ -146,10 +145,10 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
   fprintf(stderr, "-- std::sort transpose [CSR'->CSR]: %.3fs\n",
           duration->transpose_tr);
 
-  spasm_csr_free(A);
-  spasm_csr_free(B);
-  spasm_csr_free(C);
-  spasm_csr_free(D);
+  mtx_CSR_free(A);
+  mtx_CSR_free(B);
+  mtx_CSR_free(C);
+  mtx_CSR_free(D);
   free(Te);
 }
 
@@ -158,11 +157,11 @@ void run_test_stdsort(const spasm_triplet *T, const spasm_triplet *R,
 ///
 /// \brief Benchmarks the tbb::parallel_sort algorithm.
 ///
-/// \param[in] T the matrix in triplet format
-/// \param[in] R the transposed matrix in triplet format
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
+void run_test_tbbsort(const mtx_COO *T, const mtx_COO *R,
                       algorithm_times *duration, const u32 num_threads)
 {
   double start, stop;
@@ -170,12 +169,11 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
   const u32 m = T->m;
   const u32 nnz = T->nnz;
 
-  spasm *A = spasm_csr_alloc(n, m, nnz);
-  spasm *B = spasm_csr_alloc(m, n, nnz);
-  spasm *C = spasm_csr_alloc(m, n, nnz);
-  spasm *D = spasm_csr_alloc(n, m, nnz);
-  struct matrix_entry_t *Te =
-      (struct matrix_entry_t *)spasm_malloc(nnz * sizeof(*Te));
+  mtx_CSR *A = mtx_CSR_alloc(n, m, nnz);
+  mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
+  struct mtx_entry *Te = (struct mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
 
   start = spasm_wtime();
   tbbsort_compress(T, A, Te, num_threads);
@@ -217,10 +215,10 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
           "-- tbb::parallel_sort (%d threads) transpose [CSR'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
 
-  spasm_csr_free(A);
-  spasm_csr_free(B);
-  spasm_csr_free(C);
-  spasm_csr_free(D);
+  mtx_CSR_free(A);
+  mtx_CSR_free(B);
+  mtx_CSR_free(C);
+  mtx_CSR_free(D);
   free(Te);
 }
 #endif // HAVE_TBB
@@ -230,11 +228,11 @@ void run_test_tbbsort(const spasm_triplet *T, const spasm_triplet *R,
 ///
 /// \brief Benchmarks the MKL sort algorithm.
 ///
-/// \param[in] T the matrix in triplet format
-/// \param[in] R the transposed matrix in triplet format
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_MKL(const spasm_triplet *T, algorithm_times *duration,
+void run_test_MKL(const mtx_COO *T, algorithm_times *duration,
                   const u32 num_threads)
 {
   double start, stop;
@@ -454,12 +452,12 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
 
   // Loading matrix
-  spasm_triplet *T = spasm_load_mm(f);
+  mtx_COO *T = mtx_load_mm(f);
   fclose(f);
 
   // Transposing
-  spasm_triplet *R = malloc(sizeof(spasm_triplet));
-  spasm_triplet_transpose(T, R);
+  mtx_COO *R = malloc(sizeof(mtx_COO));
+  mtx_COO_transpose(T, R);
 
   // Running classical
   for (u32 i = 0; i < N_REPEAT; ++i)
@@ -534,7 +532,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
 #endif // HAVE_MKL
 
   fflush(stdout);
-  spasm_triplet_free(T);
+  mtx_COO_free(T);
   free(R);
 }
 

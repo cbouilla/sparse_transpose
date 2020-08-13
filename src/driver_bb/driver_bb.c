@@ -17,19 +17,19 @@
 #include <omp.h>
 #endif // _OPENMP
 
-#include "mini_spasm.h"
 #include "mmio.h"
+#include "sparse.h"
 #include "tools.h"
 #include "transpose.h"
 
 ///
 /// \brief Benchmarks the radix sort algorithm.
 ///
-/// \param[in] T the matrix in triplet format
-/// \param[in] R the transposed matrix in triplet format
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_radixsort1(const spasm_triplet *T, const spasm_triplet *R,
+void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
                          algorithm_times *duration, const u32 num_threads)
 {
   double start, stop;
@@ -37,8 +37,8 @@ void run_test_radixsort1(const spasm_triplet *T, const spasm_triplet *R,
   const u32 m = T->m;
   const u32 nnz = T->nnz;
 
-  spasm *A = spasm_csr_alloc(m, n, nnz);
-  spasm *B = spasm_csr_alloc(n, m, nnz);
+  mtx_CSR *A = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *B = mtx_CSR_alloc(n, m, nnz);
 
   start = spasm_wtime();
   transpose(T, A, num_threads);
@@ -58,8 +58,8 @@ void run_test_radixsort1(const spasm_triplet *T, const spasm_triplet *R,
   fprintf(stderr, "-- radix sort 1 (%d threads) transpose [COO'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
 
-  spasm_csr_free(A);
-  spasm_csr_free(B);
+  mtx_CSR_free(A);
+  mtx_CSR_free(B);
 }
 
 ///
@@ -112,12 +112,12 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
 
   // Loading matrix
-  spasm_triplet *T = spasm_load_mm(f);
+  mtx_COO *T = mtx_load_mm(f);
   fclose(f);
 
   // Transposing
-  spasm_triplet *R = malloc(sizeof(spasm_triplet));
-  spasm_triplet_transpose(T, R);
+  mtx_COO *R = malloc(sizeof(mtx_COO));
+  mtx_COO_transpose(T, R);
 
   // Running radix sort 1
   for (u32 i_thread = 1; i_thread <= max_num_threads; i_thread++)
@@ -135,7 +135,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   }
 
   fflush(stdout);
-  spasm_triplet_free(T);
+  mtx_COO_free(T);
   free(R);
 #endif // _OPENMP
 }
@@ -191,7 +191,8 @@ int main(int argc, char **argv)
   for (u32 i = 0; i < N_LARGE_MATRICES; i++)
   {
     char matrix_filename[FILENAME_MAX];
-    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, pre_transpose[i]);
+    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH,
+            pre_transpose[i]);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
     run_test(matrix_filename, output_filename);

@@ -9,9 +9,9 @@
 ///
 
 #include "classical_sort.h"
-#include "mini_spasm.h"
+#include "sparse.h"
 
-void classical_compress(const spasm_triplet *T, spasm *A, u32 *W)
+void classical_compress(const mtx_COO *T, mtx_CSR *A, u32 *W)
 {
   const u32 *Ti = T->i;
   const u32 *Tj = T->j;
@@ -65,7 +65,7 @@ void classical_compress(const spasm_triplet *T, spasm *A, u32 *W)
   }
 }
 
-void classical_transpose(const spasm *A, spasm *R, u32 *W)
+void classical_transpose(const mtx_CSR *A, mtx_CSR *R, u32 *W)
 {
   const u32 *Ap = A->p;
   const u32 *Aj = A->j;
@@ -119,7 +119,7 @@ void classical_transpose(const spasm *A, spasm *R, u32 *W)
 /* Wang et. al variant using the extra array. Faster than the classical
 variant...
 
-void wang_transpose(const spasm_triplet * A, spasm * T, int *W, int *Z)
+void wang_transpose(const mtx_COO * A, mtx_CSR * T, int *W, int *Z)
 {
         (void) W;
         const int *Ai = A->i;

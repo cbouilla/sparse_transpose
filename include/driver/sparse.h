@@ -7,13 +7,14 @@
 ///
 /// @copyright // TODO
 ///
+/// Change typedef, types, function names
+///
 
-#ifndef INCLUDE_DRIVER_MINI_SPASM_H
-#define INCLUDE_DRIVER_MINI_SPASM_H
-
-#include <stdio.h>
+#ifndef INCLUDE_DRIVER_SPARSE_H
+#define INCLUDE_DRIVER_SPARSE_H
 
 #include <stdint.h>
+#include <stdio.h>
 
 ///
 /// \brief Type used for dimensions and entries.
@@ -21,17 +22,17 @@
 typedef uint32_t u32;
 
 ///
-/// \brief A triplet corresponding to a matrix entry.
+/// \brief A COO corresponding to a matrix entry.
 ///
-struct matrix_entry_t
+typedef struct
 {
   u32 i;    ///< the row index
   u32 j;    ///< the column index
   double x; ///< the numerical value
-};
+} mtx_entry;
 
 ///
-/// \brief Matrix in triplet (COO) format
+/// \brief Matrix in COO format
 ///
 typedef struct
 {
@@ -43,7 +44,7 @@ typedef struct
   u32 *i;      ///< the row indices (size == `nnz_max`)
   u32 *j;      ///< the column indices (size == `nnz_max`)
   double *x;   ///< the numerical values (size == `nnz_max`)
-} spasm_triplet;
+} mtx_COO;
 
 ///
 /// \brief Matrix in compressed-sparse row (CSR) format
@@ -57,7 +58,7 @@ typedef struct
   u32 *p;      ///< the row pointers (size == `n` + 1)
   u32 *j;      ///< the column indices (size == `nnz_max`)
   double *x;   ///< the numerical values (size == `nnz_max`)
-} spasm;
+} mtx_CSR;
 
 /* example (this is Matrix/t1)
 
@@ -66,7 +67,7 @@ typedef struct
 A = [ 0.0  1.7  3.0  0.0 ]
                 [ 3.5  0.4  0.0  1.0 ]
 
-Triplet form (nz != -1) :
+COO form (nz != -1) :
 
 i = {   2,   1,   3,   0,   1,   3,   3,   1,   0,   2 }
 j = {   2,   0,   3,   2,   1,   0,   1,   3,   0,   1 }
@@ -94,7 +95,7 @@ pattern of a matrix). */
 /// \param[in] A the matrix in CSR format
 /// \return u32 the number of entries in the matrix
 ///
-u32 spasm_nnz(const spasm *A);
+u32 mtx_nnz(const mtx_CSR *A);
 
 ///
 /// \brief Gets the time.
@@ -121,19 +122,19 @@ void spasm_human_format(const int64_t n, char *target);
 void *spasm_malloc(const u32 size);
 
 ///
-/// \brief Allocates a matrix in triplet format.
+/// \brief Allocates a matrix in COO format.
 ///
 /// \param[in] nnz_max the maximum number of nonzero entries
-/// \return spasm_triplet* the allocated matrix in triplet format
+/// \return mtx_COO* the allocated matrix in COO format
 ///
-spasm_triplet *spasm_triplet_alloc(const u32 nnz_max);
+mtx_COO *mtx_COO_alloc(const u32 nnz_max);
 
 ///
-/// \brief Frees a matrix in triplet format.
+/// \brief Frees a matrix in COO format.
 ///
-/// \param[in] A the matrix in triplet format
+/// \param[in] A the matrix in COO format
 ///
-void spasm_triplet_free(spasm_triplet *A);
+void mtx_COO_free(mtx_COO *A);
 
 ///
 /// \brief Allocates a matrix in CSR format.
@@ -143,14 +144,14 @@ void spasm_triplet_free(spasm_triplet *A);
 /// \param[in] nnz_max the maximum number of nonzero entries
 /// \return spasm* the allocated matrix in CSR format
 ///
-spasm *spasm_csr_alloc(const u32 n, const u32 m, const u32 nnz_max);
+mtx_CSR *mtx_CSR_alloc(const u32 n, const u32 m, const u32 nnz_max);
 
 ///
 /// \brief Frees a matrix in CSR format.
 ///
 /// \param[in] A the matrix in CSR format
 ///
-void spasm_csr_free(spasm *A);
+void mtx_CSR_free(mtx_CSR *A);
 
 ///
 /// \brief Loads the matrix from a file in Matrix Market format.
@@ -158,9 +159,9 @@ void spasm_csr_free(spasm *A);
 /// http://math.nist.gov/MatrixMarket/mmio/c/example_read.c
 ///
 /// \param[in] f the file descriptor of a file in Matrix Market format
-/// \return spasm_triplet* the allocated matrix in triplet format
+/// \return mtx_COO* the allocated matrix in COO format
 ///
-spasm_triplet *spasm_load_mm(FILE *f);
+mtx_COO *mtx_load_mm(FILE *f);
 
 ///
 /// \brief Mutiplies a matrix in CSR format with a vector. //TODO assert dim
@@ -169,24 +170,24 @@ spasm_triplet *spasm_load_mm(FILE *f);
 /// \param[in] x the input vector
 /// \param[out] y the product vector
 ///
-void spasm_csr_gemv(const spasm *A, const double *x, double *y);
+void mtx_CSR_gemv(const mtx_CSR *A, const double *x, double *y);
 
 ///
-/// \brief Mutiplies a matrix in triplet format with a vector.//TODO assert dim
+/// \brief Mutiplies a matrix in COO format with a vector.//TODO assert dim
 ///
-/// \param[in] T the input matrix in triplet format
+/// \param[in] T the input matrix in COO format
 /// \param[in] x the input vector
 /// \param[out] y the product vector
 ///
-void spasm_triplet_gemv(const spasm_triplet *T, const double *x, double *y);
+void mtx_COO_gemv(const mtx_COO *T, const double *x, double *y);
 
 ///
-/// \brief Transposes a matrix in triplet format.
+/// \brief Transposes a matrix in COO format.
 ///
-/// \param[in] T the input matrix in triplet format
-/// \param[out] R the output matrix in triplet format
+/// \param[in] T the input matrix in COO format
+/// \param[out] R the output matrix in COO format
 ///
-void spasm_triplet_transpose(const spasm_triplet *T, spasm_triplet *R);
+void mtx_COO_transpose(const mtx_COO *T, mtx_COO *R);
 
 ///
 /// \brief Returns the maximum between two integers.
@@ -214,18 +215,18 @@ static inline u32 spasm_min(const u32 a, const u32 b)
 // 	a[j] = x;
 // }
 
-// static inline int spasm_row_weight(const spasm * A, int i) {
+// static inline int spasm_row_weight(const mtx_CSR * A, int i) {
 // 	int *Ap = A->p;
 // 	return Ap[i + 1] - Ap[i];
 // }
 
 ///
-/// \brief Asserts that a matrix in triplet format is equal to another matrix in
+/// \brief Asserts that a matrix in COO format is equal to another matrix in
 /// CSR format by doing a matrix-vector product
 ///
-/// \param[in] T the matrix in triplet format
+/// \param[in] T the matrix in COO format
 /// \param[in] A the matrix in CSR format
 ///
-void check(const spasm_triplet *T, const spasm *A);
+void check(const mtx_COO *T, const mtx_CSR *A);
 
-#endif /* INCLUDE_DRIVER_MINI_SPASM_H */
+#endif /* INCLUDE_DRIVER_SPARSE_H */

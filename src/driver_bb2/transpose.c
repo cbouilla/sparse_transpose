@@ -23,48 +23,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #include <omp.h>
 #endif
 
-#include "mini_spasm.h"
+#include "sparse.h"
 #include "transpose2.h"
 
 #include <math.h>
-#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-/* OK, so we can do this the easy way, or the hard way. */
-
-#ifdef TRANSPOSE_EASY_WAY
-/* simple, cheap and dirty.
-   This is similar to algorithm 2 in "Parallel Transposition of Sparse Data
-   Structures", by Hao Wang, Weifeng Liu, Kaixi Hou, and Wu-chun Feng.
-
-   It is in fact a direct parallelization of "distribution sorting" using atomic
-   memory accesses. This works decently well, because there are very few
-   conflicts.
-
-   The row pointers MUST point to the END of each row */
-void transpose(uint64_t nnz, u32 *Ai, u32 *Aj, u32 Rn, u32 *Rp, u32 *Rj)
-{
-  (void)Rn;
-/* dispatch entries */
-#pragma omp parallel for schedule(static)
-  for (uint64_t k = 0; k < nnz; k++)
-  {
-    u32 i = Ai[k];
-    u32 j = Aj[k];
-    u32 s;
-#pragma omp atomic capture
-    s = --Rp[j];
-    Rj[s] = i;
-  }
-}
-#else
-/* The hard way.
-   Uses a parallel radix sort with a software write-combining buffer.
-   Relies on aligned_alloc (OK in C11) and OpenMP. */
-
-void planification(struct ctx_t *ctx, spasm *R, u32 *scratch, double *scratch2)
+void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
+                   double *scratch2)
 {
   const u32 Rn = R->n;
   const u32 nnz = R->nnz_max;
@@ -135,7 +103,7 @@ void planification(struct ctx_t *ctx, spasm *R, u32 *scratch, double *scratch2)
   ctx->seq_count_size = s_count;
 }
 
-u32 partitioning(struct ctx_t *ctx, const spasm_triplet *A,
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
                  struct cacheline_t *buffer, u32 *tCOUNT, u32 *gCOUNT)
 {
   const u32 *Ai = A->i;
@@ -277,7 +245,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
 }
 
 void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
-                     const u32 lo, const u32 hi, spasm *R, const u32 bucket)
+                      const u32 lo, const u32 hi, mtx_CSR *R, const u32 bucket)
 {
   const u8 n = ctx->n_passes;
   const u32 csize = ctx->seq_count_size;
@@ -343,7 +311,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   // Computing row pointers
   const u32 tmp = 1 << ctx->shift[0];
   const u32 lo_bucket = bucket * tmp;
-  const u32 hi_bucket = spasm_min(R-> n + 1, lo_bucket + tmp);
+  const u32 hi_bucket = spasm_min(R->n + 1, lo_bucket + tmp);
   u32 ptr = lo;
   for (u32 i = lo_bucket; i < hi_bucket; ++i)
   {
@@ -355,7 +323,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   }
 }
 
-void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
+void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
   const u32 nnz = A->nnz;
   // const u32 *Aj = A->j;
@@ -424,14 +392,24 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
     double sub_start = wct_seconds();
 #endif
 
-    if (ctx.n_passes > 1)
+    // Computing row pointers
+    if (ctx.n_passes == 1)
+    {
+#pragma omp for schedule(static)
+      for (u32 i = 0; i < R->n + 1; i++)
+      {
+        Rp[i] = gCOUNT[i];
+      }
+    }
+    else
+    {
 #pragma omp for schedule(dynamic, 1)
       for (u32 i = 0; i < non_empty; i++)
       {
-//				printf("%d\n", gCOUNT[i]);
-//					printf("%d\n", i * (2 ^ ctx.shift[0]));
-	        transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
+        transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
+    }
+
     free(buffer);
 
 #pragma omp master
@@ -441,86 +419,7 @@ void transpose(const spasm_triplet *A, spasm *R, const u32 num_threads)
 #endif
     }
   }
-  // Computing row pointers
-  if (ctx.n_passes == 1)
-  {
-    // TODO parallel
-    for (u32 i = 0; i < R->n + 1; i++)
-    {
-      Rp[i] = gCOUNT[i];
-    }
-  }
 
-  // Test
-//  	u32 * rp = (u32*)malloc((R->n + 1) *sizeof(*rp));
-//  	for (u32 i =0; i < R->n + 1; i++)
-//  		rp[i] = Rp[i];
-  	{
-    // printf("%d %d\n", last, gCOUNT[non_empty]);
-    // for (u32 i = last + 1; i < Rn + 1; i++)
-    // {
-    //   Rp[i] = nnz;
-    // }
-
-//    for (u32 i = 65535; i < 65539 ; i++)
-//    {
-//       for (u32 p = Rp[i]; p < Rp[i + 1] && p < Rp[i] + 5; p++)
-//       {
-//         printf("%d\t", Rp[i]);
-//         printf("%d %d %f\n", i, R->j[p], R->x[p]);
-//       }
-//    }
-  }
-
-  // Correct
-  {
-//     u32 i = 0;
-//     u32 next_i = ctx.OUTj[ctx.n_passes - 1][0];
-//     while (i < next_i)
-//     {
-//       rp[i] = 0;
-//       i++;
-//     }
-//     rp[i] = 0;
-//     // TODO parallel
-//     for (u32 k = 1; k < nnz; k++)
-//     {
-//       next_i = ctx.OUTj[ctx.n_passes - 1][k];
-//       if (i < next_i)
-//       {
-//         i++;
-//         while (i < next_i)
-//         {
-//           rp[i] = k;
-//           i++;
-//         }
-//         rp[i] = k;
-//       }
-//     }
-//     // finalization
-//     i += 1;
-//     while (i <= R->n)
-//     {
-//       rp[i] = nnz;
-//       i += 1;
-//     }
-   }
-//	if (R-> n > 555)
-//   for (u32 i = 0; i < R-> n ; i++)
-//   {
-//   	 if (Rp[i] != Rp[i+1])//(Rp[i] != rp[i])
-//     {
-//  	 printf("%d: %d ! %d\n", i, Rp[i], rp[i]);
-//     for (u32 p = rp[i]; p < rp[i+1] && p < rp[i] + 5; p++)
-//     {
-//        printf("%d %d %f --\n", i, R->j[p], R->x[p]);
-//			}
-////     	break;
-//     }
-//  }
-
-//	free(rp);
   free(scratch);
   free(scratch2);
 }
-#endif

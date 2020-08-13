@@ -24,20 +24,17 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #endif
 
 #include "sparse.h"
-#include "transpose2.h"
+#include "transpose3.h"
 
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
-                   double *scratch2)
+void planification(struct ctx_t *ctx, mtx_CSR *R, mtx_entry *scratch)
 {
   const u32 Rn = R->n;
   const u32 nnz = R->nnz_max;
-  u32 *Rj = R->j;
-  double *Rx = R->x;
   u8 bits = 0;
   u32 tmp = Rn;
   while (tmp > 0)
@@ -79,32 +76,24 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
     ctx->mask[p] = size - 1;
     if ((n - p) & 1)
     {
-      ctx->OUTi[p] = Rj;
-      ctx->OUTj[p] = scratch;
-      ctx->OUTx[p] = Rx;
+      ctx->OUT[p] = scratch;
     }
     else
     {
-      ctx->OUTi[p] = scratch + ((nnz | 63) + 1);
-      ctx->OUTj[p] = scratch + 2 * ((nnz | 63) + 1);
-      ctx->OUTx[p] = scratch2;
+      ctx->OUT[p] = scratch + ((nnz | 63) + 1); // TODO size ?
     }
 
     /* check alignment: the hardcoded value of 63 corresponds to the
        L1 cache size on modern cpus */
-    unsigned long check = (unsigned long)ctx->OUTi[p];
-    assert((check & 63) == 0);
-    check = (unsigned long)ctx->OUTj[p];
-    assert((check & 63) == 0);
-    check = (unsigned long)ctx->OUTx[p];
+    unsigned long check = (unsigned long)ctx->OUT[p];
     assert((check & 63) == 0);
   }
   ctx->par_count_size = ctx->n_buckets[0];
   ctx->seq_count_size = s_count;
 }
 
-u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
-                 struct cacheline_t *buffer, u32 *tCOUNT, u32 *gCOUNT)
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, cacheline *buffer,
+                 u32 *tCOUNT, u32 *gCOUNT)
 {
   const u32 *Ai = A->i;
   const u32 *Aj = A->j;
@@ -113,9 +102,7 @@ u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
   const u32 mask = ctx->mask[0];
   const u32 size = ctx->n_buckets[0];
   const u8 shift = ctx->shift[0];
-  u32 *OUTi = ctx->OUTi[0];
-  u32 *OUTj = ctx->OUTj[0];
-  double *OUTx = ctx->OUTx[0];
+  mtx_entry *OUT = ctx->OUT[0];
   assert(size == mask + 1);
 
   /* parallel partitioning */
@@ -159,13 +146,12 @@ u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
 #pragma omp for schedule(static) nowait
   for (u32 k = 0; k < nnz; k++)
   {
-    const u32 i = Ai[k];
     const u32 j = Aj[k];
-    const double x = Ax[k];
+    const mtx_entry entry = {Ai[k], j, Ax[k]}; // TODO optimisé ?
     const u32 b = (j >> shift) & mask;
-    wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
+    wc_push(&entry, buffer, b, OUT);
   }
-  wc_purge(buffer, size, OUTi, OUTj, OUTx);
+  wc_purge(buffer, size, OUT);
 
   // correctness check
   //   #pragma omp barrier
@@ -183,7 +169,7 @@ u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
   return last + 1;
 }
 
-void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
+void histogram(const struct ctx_t *ctx, const mtx_entry *Te, const u32 lo,
                const u32 hi, const u8 n, u32 **W)
 {
   const u8 *shift = ctx->shift;
@@ -194,7 +180,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
   case 2:
     for (u32 k = lo; k < hi; k++)
     {
-      const u32 j = Aj[k];
+      const u32 j = Te[k].j;
       const u32 q1 = j & mask[1];
       W[1][q1]++;
     }
@@ -202,7 +188,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
   case 3:
     for (u32 k = lo; k < hi; k++)
     {
-      const u32 j = Aj[k];
+      const u32 j = Te[k].j;
       const u32 q1 = j & mask[1];
       const u32 q2 = (j >> shift[2]) & mask[2];
       W[1][q1]++;
@@ -212,7 +198,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
   case 4:
     for (u32 k = lo; k < hi; k++)
     {
-      const u32 j = Aj[k];
+      const u32 j = Te[k].j;
       const u32 q1 = j & mask[1];
       const u32 q2 = (j >> shift[2]) & mask[2];
       const u32 q3 = (j >> shift[3]) & mask[3];
@@ -226,7 +212,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
 #pragma omp for schedule(static)
     for (u32 k = lo; k < hi; k++)
     {
-      const u32 j = Aj[k];
+      const u32 j = Te[k].j;
       const u32 q1 = j & mask[1];
       const u32 q2 = (j >> shift[2]) & mask[2];
       const u32 q3 = (j >> shift[3]) & mask[3];
@@ -244,8 +230,8 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
   }
 }
 
-void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
-                      const u32 lo, const u32 hi, mtx_CSR *R, const u32 bucket)
+void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
+                      const u32 hi, mtx_CSR *R, const u32 bucket)
 {
   const u8 n = ctx->n_passes;
   const u32 csize = ctx->seq_count_size;
@@ -255,21 +241,17 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   for (u8 p = 1; p < n; p++)
     W[p] = COUNT + ctx->pCOUNT[p];
 
-  u32 *INi = ctx->OUTi[0];
-  u32 *INj = ctx->OUTj[0];
-  double *INx = ctx->OUTx[0];
+  mtx_entry *IN = ctx->OUT[0];
 
   // printf("histograming [%d:%d] with %d passes\n", lo, hi, n);
   memset(COUNT, 0, csize * sizeof(*COUNT));
-  histogram(ctx, INj, lo, hi, n, W);
+  histogram(ctx, IN, lo, hi, n, W);
 
   for (u8 p = 1; p < n; p++)
   {
     const u8 shift = ctx->shift[p];
     const u32 mask = ctx->mask[p];
-    u32 *OUTi = ctx->OUTi[p];
-    u32 *OUTj = ctx->OUTj[p];
-    double *OUTx = ctx->OUTx[p];
+    mtx_entry *OUT = ctx->OUT[p];
 
     /* prefix-sum */
     u32 sum = lo;
@@ -284,13 +266,12 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
     wc_prime(buffer, W[p], size);
     for (u32 k = lo; k < hi; k++)
     {
-      const u32 i = INi[k];
-      const u32 j = INj[k];
-      const double x = INx[k];
+      const u32 j = IN[k].j;
+      const mtx_entry entry = {IN[k].i, j, IN[k].x};
       const u32 b = (j >> shift) & mask;
-      wc_push(i, j, x, buffer, b, OUTi, OUTj, OUTx);
+      wc_push(&entry, buffer, b, OUT);
     }
-    wc_purge(buffer, size, OUTi, OUTj, OUTx);
+    wc_purge(buffer, size, OUT);
 
     /* check
     for (u32 b = 0; b < size - 1; b++)
@@ -304,19 +285,26 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
             }
         }
     */
-    INi = OUTi;
-    INj = OUTj;
-    INx = OUTx;
+    IN = OUT;
   }
-  // Computing row pointers
+
   const u32 tmp = 1 << ctx->shift[0];
   const u32 lo_bucket = bucket * tmp;
   const u32 hi_bucket = spasm_min(R->n + 1, lo_bucket + tmp);
+  const u32 hi_nnz = spasm_min(R->nnz_max, hi);
+  // Writing j and x
+  // TODO vectorize
+  for (u32 i = lo; i < hi_nnz; i++)
+  {
+    R->j[i] = ctx->OUT[n - 1][i].i;
+    R->x[i] = ctx->OUT[n - 1][i].x;
+  }
+  // Computing row pointers
   u32 ptr = lo;
   for (u32 i = lo_bucket; i < hi_bucket; ++i)
   {
     R->p[i] = ptr;
-    while (ptr < hi && ctx->OUTj[n - 1][ptr] == i)
+    while (ptr < hi && ctx->OUT[n - 1][ptr].j == i)
     {
       ptr++;
     }
@@ -327,14 +315,12 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
   const u32 nnz = A->nnz;
   u32 *Rp = R->p;
-  (void)Rp; // TODO pourquoi
 
   struct ctx_t ctx;
-  u32 *scratch = (u32 *)malloc_aligned(3 * ((nnz | 63) + 1) * sizeof(u32), 64);
-  double *scratch2 =
-      (double *)malloc_aligned(((nnz | 63) + 1) * sizeof(double), 64);
+  mtx_entry *scratch =
+      (mtx_entry *)malloc_aligned(2 * ((nnz | 63) + 1) * sizeof(mtx_entry), 64);
 
-  planification(&ctx, R, scratch, scratch2);
+  planification(&ctx, R, scratch);
 
 #ifdef BIG_BROTHER
   printf("$$$     transpose:\n");
@@ -356,7 +342,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 
 #pragma omp parallel
   {
-    struct cacheline_t *buffer = wc_alloc();
+    cacheline *buffer = wc_alloc();
 #ifdef BIG_BROTHER
     double start = wct_seconds();
 #endif
@@ -388,12 +374,33 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
     double sub_start = wct_seconds();
 #endif
 
-    if (ctx.n_passes > 1)
+    if (ctx.n_passes == 1)
+    {
+      // Writing j and x
+      // TODO vectorize
+#pragma omp for schedule(static)
+      for (u32 i = 0; i < R->nnz_max; i++)
+      {
+        R->j[i] = ctx.OUT[0][i].i;
+        R->x[i] = ctx.OUT[0][i].x;
+      }
+
+      // Computing row pointers
+#pragma omp for schedule(static)
+      for (u32 i = 0; i < R->n + 1; i++)
+      {
+        Rp[i] = gCOUNT[i];
+      }
+    }
+    else
+    {
 #pragma omp for schedule(dynamic, 1)
       for (u32 i = 0; i < non_empty; i++)
       {
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
+    }
+
     free(buffer);
 
 #pragma omp master
@@ -402,16 +409,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
       printf("$$$        buckets-wct: %.2f\n", wct_seconds() - sub_start);
 #endif
     }
-  }
-  // Computing row pointers
-  if (ctx.n_passes == 1)
-  {
-    for (u32 i = 0; i < R->n + 1; i++)
-    {
-      Rp[i] = gCOUNT[i];
-    }
-  }
+  } // omp parallel
 
   free(scratch);
-  free(scratch2);
 }

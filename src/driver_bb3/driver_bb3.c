@@ -20,7 +20,7 @@
 #include "sparse.h"
 #include "mmio.h"
 #include "tools.h"
-#include "transpose2.h"
+#include "transpose3.h"
 
 ///
 /// \brief Benchmarks the radix sort algorithm.
@@ -199,7 +199,8 @@ int main(int argc, char **argv)
   }
 #endif // BENCHMARK_LARGE_MATRICES
 
- // run_test("../matrices/language.mtx", "tmp.csv");
+//  run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
+//  run_test("../matrices/language.mtx", "tmp.csv");
 
   return 0;
 }

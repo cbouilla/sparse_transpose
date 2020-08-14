@@ -80,7 +80,7 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, mtx_entry *scratch)
     }
     else
     {
-      ctx->OUT[p] = scratch + ((nnz | 63) + 1); // TODO size ?
+      ctx->OUT[p] = scratch + ((nnz | 63) + 1);
     }
 
     /* check alignment: the hardcoded value of 63 corresponds to the
@@ -92,8 +92,8 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, mtx_entry *scratch)
   ctx->seq_count_size = s_count;
 }
 
-u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, cacheline *buffer,
-                 u32 *tCOUNT, u32 *gCOUNT)
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, mtx_CSR *R,
+                 cacheline *buffer, u32 *tCOUNT, u32 *gCOUNT)
 {
   const u32 *Ai = A->i;
   const u32 *Aj = A->j;
@@ -143,15 +143,32 @@ u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, cacheline *buffer,
 #pragma omp barrier
 
   wc_prime(buffer, COUNT, size);
-#pragma omp for schedule(static) nowait
-  for (u32 k = 0; k < nnz; k++)
+
+  if (ctx->n_passes == 1)
   {
-    const u32 j = Aj[k];
-    const mtx_entry entry = {Ai[k], j, Ax[k]}; // TODO optimisé ?
-    const u32 b = (j >> shift) & mask;
-    wc_push(&entry, buffer, b, OUT);
+#pragma omp for schedule(static) nowait
+    for (u32 k = 0; k < nnz; k++)
+    {
+      const u32 i = Ai[k];
+      const u32 j = Aj[k];
+      const u32 x = Ax[k];
+      const u32 b = (j >> shift) & mask;
+      wc_push_only1(i, x, buffer, b, R->j, R->x);
+    }
+    wc_purge_only1(buffer, size, R->j, R->x);
   }
-  wc_purge(buffer, size, OUT);
+  else
+  {
+#pragma omp for schedule(static) nowait
+    for (u32 k = 0; k < nnz; k++)
+    {
+      const u32 j = Aj[k];
+      const mtx_entry entry = {Ai[k], j, Ax[k]}; // TODO optimisé ?
+      const u32 b = (j >> shift) & mask;
+      wc_push(&entry, buffer, b, OUT);
+    }
+    wc_purge(buffer, size, OUT);
+  }
 
   // correctness check
   //   #pragma omp barrier
@@ -207,23 +224,6 @@ void histogram(const struct ctx_t *ctx, const mtx_entry *Te, const u32 lo,
       W[3][q3]++;
     }
     break;
-#if __SIZEOF_INDEX__ == 8
-  case 5:
-#pragma omp for schedule(static)
-    for (u32 k = lo; k < hi; k++)
-    {
-      const u32 j = Te[k].j;
-      const u32 q1 = j & mask[1];
-      const u32 q2 = (j >> shift[2]) & mask[2];
-      const u32 q3 = (j >> shift[3]) & mask[3];
-      const u32 q4 = (j >> shift[4]) & mask[4];
-      W[1][q1]++;
-      W[2][q2]++;
-      W[3][q3]++;
-      W[4][q4]++;
-    }
-    break;
-#endif
   default:
     err(1,
         "Ask the programmer to hardcode more passes in (radix) transpose...\n");
@@ -247,7 +247,7 @@ void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
   memset(COUNT, 0, csize * sizeof(*COUNT));
   histogram(ctx, IN, lo, hi, n, W);
 
-  for (u8 p = 1; p < n; p++)
+  for (u8 p = 1; p < n - 1; p++)
   {
     const u8 shift = ctx->shift[p];
     const u32 mask = ctx->mask[p];
@@ -287,28 +287,47 @@ void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
     */
     IN = OUT;
   }
+  // Last
+  const u8 p = n - 1;
+  const u8 shift = ctx->shift[p];
+  const u32 mask = ctx->mask[p];
+  u32 *Ri = (u32 *)malloc_aligned(R->nnz_max * sizeof(u32), 64);
+
+  /* prefix-sum */
+  u32 sum = lo;
+  u32 size = ctx->n_buckets[p];
+  for (u32 i = 0; i < size; i++)
+  {
+    u32 w = W[p][i];
+    W[p][i] = sum;
+    sum += w;
+  }
+
+  wc_prime(buffer, W[p], size);
+  for (u32 k = lo; k < hi; k++)
+  {
+    const u32 j = IN[k].j;
+    const mtx_entry entry = {IN[k].i, j, IN[k].x};
+    const u32 b = (j >> shift) & mask;
+    wc_push_last(&entry, buffer, b, R->j, Ri, R->x);
+  }
+  wc_purge_last(buffer, size, R->j, Ri, R->x);
 
   const u32 tmp = 1 << ctx->shift[0];
   const u32 lo_bucket = bucket * tmp;
   const u32 hi_bucket = spasm_min(R->n + 1, lo_bucket + tmp);
-  const u32 hi_nnz = spasm_min(R->nnz_max, hi);
-  // Writing j and x
-  // TODO vectorize
-  for (u32 i = lo; i < hi_nnz; i++)
-  {
-    R->j[i] = ctx->OUT[n - 1][i].i;
-    R->x[i] = ctx->OUT[n - 1][i].x;
-  }
+
   // Computing row pointers
   u32 ptr = lo;
   for (u32 i = lo_bucket; i < hi_bucket; ++i)
   {
     R->p[i] = ptr;
-    while (ptr < hi && ctx->OUT[n - 1][ptr].j == i)
+    while (ptr < hi && Ri[ptr] == i)
     {
       ptr++;
     }
   }
+  free(Ri);
 }
 
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
@@ -331,10 +350,11 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 #endif
 
   const u32 size = ctx.par_count_size;
+  u32 T = 1;
 #ifdef _OPENMP
   omp_set_num_threads(num_threads);
+  T = omp_get_max_threads();
 #endif // _OPENMP
-  const u32 T = omp_get_max_threads();
   u32 tCOUNT[T * size];
   u32 gCOUNT[size + 1];
 
@@ -346,7 +366,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 #ifdef BIG_BROTHER
     double start = wct_seconds();
 #endif
-    u32 tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
+    u32 tmp = partitioning(&ctx, A, R, buffer, tCOUNT, gCOUNT);
 
 #pragma omp master
     {
@@ -374,33 +394,12 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
     double sub_start = wct_seconds();
 #endif
 
-    if (ctx.n_passes == 1)
-    {
-      // Writing j and x
-      // TODO vectorize
-#pragma omp for schedule(static)
-      for (u32 i = 0; i < R->nnz_max; i++)
-      {
-        R->j[i] = ctx.OUT[0][i].i;
-        R->x[i] = ctx.OUT[0][i].x;
-      }
-
-      // Computing row pointers
-#pragma omp for schedule(static)
-      for (u32 i = 0; i < R->n + 1; i++)
-      {
-        Rp[i] = gCOUNT[i];
-      }
-    }
-    else
-    {
+    if (ctx.n_passes > 1)
 #pragma omp for schedule(dynamic, 1)
       for (u32 i = 0; i < non_empty; i++)
       {
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
-    }
-
     free(buffer);
 
 #pragma omp master
@@ -409,7 +408,87 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
       printf("$$$        buckets-wct: %.2f\n", wct_seconds() - sub_start);
 #endif
     }
-  } // omp parallel
+  }
+  // Computing row pointers
+  if (ctx.n_passes == 1)
+  {
+    for (u32 i = 0; i < R->n + 1; i++)
+    {
+      Rp[i] = gCOUNT[i];
+    }
+  }
 
+  /*
+  #pragma omp parallel
+    {
+      cacheline *buffer = wc_alloc();
+  #ifdef BIG_BROTHER
+      double start = wct_seconds();
+  #endif
+      u32 tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
+
+  #pragma omp master
+      {
+        non_empty = tmp;
+
+  #ifdef BIG_BROTHER
+        printf("$$$        buckets: %d\n", non_empty);
+        printf("$$$        partitioning-wct: %.2f\n", wct_seconds() - start);
+        u32 smallest = nnz;
+        u32 biggest = 0;
+        for (int i = 0; i < non_empty; i++)
+        {
+          u32 size = gCOUNT[i + 1] - gCOUNT[i];
+          smallest = MIN(smallest, size);
+          biggest = MAX(biggest, size);
+        }
+        printf("$$$        smallest-bucket: %d\n", smallest);
+        printf("$$$        avg-bucket: %" PRId64 "\n", nnz / non_empty);
+        printf("$$$        biggest-bucket: %d\n", biggest);
+  #endif
+      }
+
+  #pragma omp barrier
+  #ifdef BIG_BROTHER
+      double sub_start = wct_seconds();
+  #endif
+
+      if (ctx.n_passes == 1)
+      {
+        // Writing j and x
+        // TODO vectorize
+  #pragma omp for schedule(static)
+        for (u32 i = 0; i < R->nnz_max; i++)
+        {
+          R->j[i] = ctx.OUT[0][i].i;
+          R->x[i] = ctx.OUT[0][i].x;
+        }
+
+        // Computing row pointers
+  #pragma omp for schedule(static)
+        for (u32 i = 0; i < R->n + 1; i++)
+        {
+          Rp[i] = gCOUNT[i];
+        }
+      }
+      else
+      {
+  #pragma omp for schedule(dynamic, 1)
+        for (u32 i = 0; i < non_empty; i++)
+        {
+          transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
+        }
+      }
+
+      free(buffer);
+
+  #pragma omp master
+      {
+  #ifdef BIG_BROTHER
+        printf("$$$        buckets-wct: %.2f\n", wct_seconds() - sub_start);
+  #endif
+      }
+    } // omp parallel
+  */
   free(scratch);
 }

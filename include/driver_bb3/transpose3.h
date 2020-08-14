@@ -58,7 +58,7 @@ static inline void store_nontemp_cacheline(void *dst, const void *src);
 
 #if __AVX__
 #include <immintrin.h>
-static inline void store_nontemp_int(void *dst, const void *src)
+static inline void store_nontemp_cacheline(void *dst, const void *src)
 {
   register __m256i *d1 = (__m256i *)dst;
   register __m256i s1 = *((__m256i *)src);
@@ -163,12 +163,103 @@ static inline void wc_purge(const cacheline *buffer, const u32 n_buckets,
   }
 }
 
+static inline void wc_flush_last(cacheline *self, const u32 count,
+                                 const u32 start, u32 *OUTi, u32 *OUTj,
+                                 double *OUTx)
+{
+  u32 target = count & ~(CACHELINE_SIZE - 1);
+  for (u8 i = start; i < CACHELINE_SIZE; i++)
+  {
+    OUTi[target + i] = (*self)[i].i;
+    OUTj[target + i] = (*self)[i].j;
+    OUTx[target + i] = (*self)[i].x;
+  }
+  (*self)[CACHELINE_SIZE - 1].j = 0;
+}
+
+/* push an (i,j) pair into the buffer */
+static inline void wc_push_last(const mtx_entry *entry, cacheline *buffer,
+                                const u32 bucket_idx, u32 *OUTi, u32 *OUTj,
+                                double *OUTx)
+{
+  cacheline *self = buffer + bucket_idx;
+  u32 count = (*self)[CACHELINE_SIZE - 1].i;
+  u32 start = (*self)[CACHELINE_SIZE - 1].j;
+  u32 slot = count & (CACHELINE_SIZE - 1);
+  (*self)[slot] = *entry;
+  if (slot == CACHELINE_SIZE - 1)
+    wc_flush_last(self, count, start, OUTi, OUTj, OUTx);
+  (*self)[CACHELINE_SIZE - 1].i = count + 1;
+}
+
+/* flush all buffer entries to the OUT arrays */
+static inline void wc_purge_last(const cacheline *buffer, const u32 n_buckets,
+                                 u32 *OUTi, u32 *OUTj, double *OUTx)
+{
+  for (u32 i = 0; i < n_buckets; i++)
+  {
+    const u32 count = buffer[i][CACHELINE_SIZE - 1].i;
+    const u32 target = count & ~(CACHELINE_SIZE - 1);
+    const u32 start = buffer[i][CACHELINE_SIZE - 1].j;
+    for (u32 j = target + start; j < count; j++)
+    {
+      OUTi[j] = buffer[i][j - target].i;
+      OUTj[j] = buffer[i][j - target].j;
+      OUTx[j] = buffer[i][j - target].x;
+    }
+  }
+}
+
+static inline void wc_flush_only1(cacheline *self, const u32 count,
+                                  const u32 start, u32 *OUTi, double *OUTx)
+{
+  u32 target = count & ~(CACHELINE_SIZE - 1);
+  for (u8 i = start; i < CACHELINE_SIZE; i++)
+  {
+    OUTi[target + i] = (*self)[i].i;
+    OUTx[target + i] = (*self)[i].x;
+  }
+  (*self)[CACHELINE_SIZE - 1].j = 0;
+}
+
+/* push an (i,j) pair into the buffer */
+static inline void wc_push_only1(const u32 i, const double x, cacheline *buffer,
+                                 const u32 bucket_idx, u32 *OUTi, double *OUTx)
+{
+  cacheline *self = buffer + bucket_idx;
+  u32 count = (*self)[CACHELINE_SIZE - 1].i;
+  u32 start = (*self)[CACHELINE_SIZE - 1].j;
+  u32 slot = count & (CACHELINE_SIZE - 1);
+  (*self)[slot].i = i;
+  (*self)[slot].x = x;
+  if (slot == CACHELINE_SIZE - 1)
+    wc_flush_only1(self, count, start, OUTi, OUTx);
+  (*self)[CACHELINE_SIZE - 1].i = count + 1;
+}
+
+/* flush all buffer entries to the OUT arrays */
+static inline void wc_purge_only1(const cacheline *buffer, const u32 n_buckets,
+                                  u32 *OUTi, double *OUTx)
+{
+  for (u32 i = 0; i < n_buckets; i++)
+  {
+    const u32 count = buffer[i][CACHELINE_SIZE - 1].i;
+    const u32 target = count & ~(CACHELINE_SIZE - 1);
+    const u32 start = buffer[i][CACHELINE_SIZE - 1].j;
+    for (u32 j = target + start; j < count; j++)
+    {
+      OUTi[j] = buffer[i][j - target].i;
+      OUTx[j] = buffer[i][j - target].x;
+    }
+  }
+}
+
 /* prepare the ctx object with information needed for all passes */
 void planification(struct ctx_t *ctx, mtx_CSR *R, mtx_entry *scratch);
 
 /* returns k such that buckets [0:k] are non-empty. */
-u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, cacheline *buffer,
-                 u32 *tCOUNT, u32 *gCOUNT);
+u32 partitioning(struct ctx_t *ctx, const mtx_COO *A, mtx_CSR *R,
+                 cacheline *buffer, u32 *tCOUNT, u32 *gCOUNT);
 
 void histogram(const struct ctx_t *ctx, const mtx_entry *Te, const u32 lo,
                const u32 hi, const u8 n, u32 **W);

@@ -249,6 +249,9 @@ memcheck_driver_bb: $(DRIVER_BB)
 memcheck_driver_bb2: $(DRIVER_BB2)
 	@$(VALGRIND) ./$^
 
+memcheck_driver_bb3: $(DRIVER_BB3)
+	@$(VALGRIND) ./$^
+
 $(DRIVER): $(OBJ_DRIVER)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 

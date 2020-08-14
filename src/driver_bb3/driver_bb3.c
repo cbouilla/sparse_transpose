@@ -77,7 +77,7 @@ void write_test_radixsort1(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  const char *name = "radix::sort::2";
+  const char *name = "radix::sort::4";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,

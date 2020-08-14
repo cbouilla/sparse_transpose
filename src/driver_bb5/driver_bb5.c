@@ -20,7 +20,7 @@
 #include "sparse.h"
 #include "mmio.h"
 #include "tools.h"
-#include "transpose3.h"
+#include "transpose5.h"
 
 ///
 /// \brief Benchmarks the radix sort algorithm.
@@ -46,7 +46,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   check(R, A);
   duration->transpose = stop - start;
   total[RADIXSORT].transpose += duration->transpose;
-  fprintf(stderr, "-- radix sort 4 (%d threads) transpose [COO->CSR']: %.3fs\n",
+  fprintf(stderr, "-- radix sort 5 (%d threads) transpose [COO->CSR']: %.3fs\n",
           num_threads, duration->transpose);
 
   start = spasm_wtime();
@@ -55,7 +55,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   check(T, B);
   duration->transpose_tr = stop - start;
   total[RADIXSORT].transpose_tr += duration->transpose_tr;
-  fprintf(stderr, "-- radix sort 4 (%d threads) transpose [COO'->CSR]: %.3fs\n",
+  fprintf(stderr, "-- radix sort 5 (%d threads) transpose [COO'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
 
   mtx_CSR_free(A);
@@ -77,7 +77,7 @@ void write_test_radixsort1(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  const char *name = "radix::sort::4";
+  const char *name = "radix::sort::5";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,
@@ -144,7 +144,7 @@ void show_grand_totals(void)
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  fprintf(stderr, "  Radix sort 4:\n");
+  fprintf(stderr, "  Radix sort 5:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[RADIXSORT].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[RADIXSORT].transpose_tr);
 #endif // _OPENMP

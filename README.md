@@ -126,7 +126,7 @@ Ensuite, `make clean` puis recompiler.
 - [ ] radix sort MSD+LSD parallèle LEAKs, tester sur toutes, se limiter au nombre de coeurs physiques, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit ou la matrice est petite, tenir compte de la taille des différents caches.
 - [ ] commenter le code
 - [ ] checker les todo
-- [ ] réduire l'espace occupé : moyen pour se limiter à pile la bonne taille au lieu d'utiliser la puisance de deux supérieure ?, réduire le nombre de listes auxiliaires
+- [ ] parallèliser et vectoriser avec AVX128 AVX256 AVX512
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 

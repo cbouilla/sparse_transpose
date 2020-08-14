@@ -78,7 +78,10 @@ static inline void store_nontemp_256_d(void *dest, const void *src)
 {
   register __m256i *d1 = (__m256i *)dest;
   register __m256i s1 = *((__m256i *)src);
+  register __m256i *d2 = d1 + 1;
+  register __m256i s2 = *(((__m256i *)src) + 1);
   _mm256_stream_si256(d1, s1);
+  _mm256_stream_si256(d2, s2);
   /* note : it can also be done using SSE for non-AVX machines */
 }
 

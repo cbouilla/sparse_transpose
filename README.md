@@ -139,8 +139,6 @@ dans la code de Wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-
 
 ## Remarques
 
-keep_better_parallel ne regarde que les threads de la première transpose, semble OK
-
 std::sort est plus rapide que classical sur pre-transpose[6,7,8,9,10,11,12]. Son écart de durée est d'environ 5 ms (< 10ms). La variabilité inter-algo est alors plus petite que la variablité intra-algo.
 
 Lorsque classical transpose et transpose_tr sont relativement proches, std transpose est plus lent que std transpose_tr

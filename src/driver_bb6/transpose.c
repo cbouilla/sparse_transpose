@@ -395,6 +395,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 #pragma omp for schedule(dynamic, 1)
       for (u32 i = 0; i < non_empty; i++)
       {
+        // TODO if [gCOUNT[i], gCOUNT[i + 1]] is too small, call another sorting algorithm
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
     }

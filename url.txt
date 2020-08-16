@@ -14,13 +14,13 @@ Rashid et al. http://blogs.ubc.ca/lrashid/files/2011/01/Supercomputing_Journal06
 IBM (in-place) http://www.vldb.org/pvldb/vol8/p1518-cho.pdf
 Obeya et al. (in-place) https://github.com/omarobeya/parallel-inplace-radixsort
 https://people.csail.mit.edu/jshun/RegionsSort.pdf
-Wassenberg and Sanders https://link.springer.com/content/pdf/10.1007/978-3-642-23397-5_16.pdf
+Wassenberg and Sanders (WC, MSD+LSD) https://link.springer.com/content/pdf/10.1007/978-3-642-23397-5_16.pdf
 (in-place) https://www.drdobbs.com/parallel/parallel-in-place-n-bit-radix-sort/226600004
 https://github.com/stilgar/Radix-Sort/blob/master/radix_sort_parallel.c
 https://gist.github.com/Alexis-D/1923133
 https://haichuanwang.wordpress.com/2014/05/26/a-faster-openmp-radix-sort-implementation/
 
-Intel, Satish et al. https://dl.acm.org/doi/10.1145/1807167.1807207
+Intel, Satish et al. (WC) https://dl.acm.org/doi/10.1145/1807167.1807207
 
 Séquentiel
 
@@ -32,10 +32,6 @@ https://github.com/scandum/wolfsort
 
 boost/sort/spreadsort/integer_sort.hpp :
 https://www.boost.org/doc/libs/1_62_0/libs/sort/doc/html/boost/sort/spreadsort/integer__idm45516074556032.html
-
-radix sort:
-https://github.com/prizman2000/MSD_RadixSort
-https://github.com/bitshifter/radixsort
 
 Optimized radix-sort:
 https://www.drdobbs.com/architecture-and-design/algorithm-improvement-through-performanc/221600153

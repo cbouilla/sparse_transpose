@@ -20,7 +20,7 @@
 #include "sparse.h"
 #include "mmio.h"
 #include "tools.h"
-#include "transpose6.h"
+#include "transpose7.h"
 
 ///
 /// \brief Benchmarks the radix sort algorithm.
@@ -43,19 +43,19 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   start = spasm_wtime();
   transpose(T, A, num_threads);
   stop = spasm_wtime();
-  check(R, A);
+  // check(R, A);
   duration->transpose = stop - start;
   total[RADIXSORT].transpose += duration->transpose;
-  fprintf(stderr, "-- radix sort 6 (%d threads) transpose [COO->CSR']: %.3fs\n",
+  fprintf(stderr, "-- radix sort 7 (%d threads) transpose [COO->CSR']: %.3fs\n",
           num_threads, duration->transpose);
 
   start = spasm_wtime();
   transpose(R, B, num_threads);
   stop = spasm_wtime();
-  check(T, B);
+  // check(T, B);
   duration->transpose_tr = stop - start;
   total[RADIXSORT].transpose_tr += duration->transpose_tr;
-  fprintf(stderr, "-- radix sort 6 (%d threads) transpose [COO'->CSR]: %.3fs\n",
+  fprintf(stderr, "-- radix sort 7 (%d threads) transpose [COO'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
 
   mtx_CSR_free(A);
@@ -77,7 +77,7 @@ void write_test_radixsort1(const char *output_filename,
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  const char *name = "radix::sort::6";
+  const char *name = "radix::sort::7";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,
@@ -102,8 +102,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
   u32 max_num_threads = 1;
-#pragma omp parallel
-  max_num_threads = omp_get_num_threads();
+// #pragma omp parallel
+//   max_num_threads = omp_get_num_threads();
 
   algorithm_times duration[N_REPEAT];
   for (u32 i = 0; i < N_REPEAT; i++)
@@ -127,7 +127,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_radixsort1(T, R, &duration[i], i_thread);
     }
-    write_test_radixsort1(output_filename, matrix_filename, duration, i_thread);
+    // write_test_radixsort1(output_filename, matrix_filename, duration, i_thread);
   }
   for (u32 i = 0; i < N_REPEAT; i++)
   {
@@ -144,7 +144,7 @@ void show_grand_totals(void)
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  fprintf(stderr, "  Radix sort 6:\n");
+  fprintf(stderr, "  Radix sort 7:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[RADIXSORT].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[RADIXSORT].transpose_tr);
 #endif // _OPENMP
@@ -185,7 +185,7 @@ int main(int argc, char **argv)
     run_test(matrix_filename, output_filename);
     fprintf(stderr, "\n");
   }
-  show_grand_totals();
+  // show_grand_totals();
 #endif // BENCHMARK_SMALL_MATRICES
 
 #ifdef BENCHMARK_LARGE_MATRICES
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
     run_test(matrix_filename, output_filename);
     fprintf(stderr, "\n");
   }
-  show_grand_totals();
+  // show_grand_totals();
 #endif // BENCHMARK_LARGE_MATRICES
 
   // run_test("../matrices/pre_transpose12.mtx", "tmp.csv");

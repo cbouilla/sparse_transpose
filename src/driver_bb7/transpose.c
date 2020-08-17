@@ -45,80 +45,35 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
     bits++;
     tmp >>= 1;
   }
-  printf("Rn: %d, bits: %d, ", R->n, bits);
+  // printf("Rn: %d, bits: %d, ", R->n, bits);
   ctx->bits = bits;
-  // TODO depends on the number of threads
   u8 n = 0;
-  if (bits <= L3_CACHE_SIZE)
+  // TODO depends on the number of threads
+  // the first pass is done on the most significant bits, other passes are done
+  // on least significant bits first
+  ctx->radix[n] = spasm_min(bits, L3_CACHE_SIZE);
+  bits -= ctx->radix[n];
+  ctx->shift[n] = bits;
+  n = 1;
+  u8 s_shift = 0;
+  while (bits > 0)
   {
-    ctx->radix[n] = bits;
-    ctx->shift[n] = bits;
+    ctx->shift[n] = s_shift;
+    ctx->radix[n] = spasm_min(bits, L2_CACHE_SIZE);
     bits -= ctx->radix[n];
+    s_shift += ctx->radix[n];
     n++;
-  }
-  else
-  {
-    ctx->radix[n] = L3_CACHE_SIZE;
-    bits -= ctx->radix[n];
-    ctx->shift[n] = bits;
-    n++;
-    u8 s_shift = 0;
-    while (bits > 0)
-    {
-      ctx->shift[n] = s_shift;
-      if (bits <= L2_CACHE_SIZE)
-      {
-        ctx->radix[n] = bits;
-        bits -= ctx->radix[n];
-        s_shift += ctx->radix[n];
-        n++;
-      }
-      else
-      {
-        u32 i = 1;
-        while (i <= L2_CACHE_SIZE && i <= bits)
-          i++;
-        i--;
-        ctx->radix[n] = i;
-        bits -= ctx->radix[n];
-        s_shift += ctx->radix[n];
-        n++;
-      }
-    }
   }
   assert(bits == 0);
   ctx->n_passes = n;
 
-  printf("n: %d, ", n);
-  printf("radix: %d", ctx->radix[0]);
-  for (int p = 1; p < n; p++)
-    printf(", %d", ctx->radix[p]);
-  printf("\n");
-
-  // u8 n = ceil((double)bits / MAX_RADIX_BITS);
-  // ctx->bits = bits;
-  // ctx->n_passes = n;
-
-  // TODO depends on the number of threads
-  /* the first pass is done on the most significant bits */
-  // ctx->radix[0] = ceil((double)bits / n);
-  // bits -= ctx->radix[0];
-  // ctx->shift[0] = bits;
-
-  /* other passes are done on least significant bits first */
-  // u8 s_shift = 0;
+  // printf("n: %d, ", n);
+  // printf("radix: %d", ctx->radix[0]);
   // for (int p = 1; p < n; p++)
-  // {
-  //   ctx->shift[p] = s_shift;
-  //   u8 r = ceil((double)bits / (n - p)); /* bits in p-th pass */
-  //   ctx->radix[p] = r;
-  //   printf(", %d", r);
-  //   bits -= r;
-  //   s_shift += r;
-  // }
-  // assert(bits == 0);
+  //   printf(", %d", ctx->radix[p]);
+  // printf("\n");
 
-  /* common to all passes */
+  // common to all passes
   u32 s_count = 0;
   for (int p = 0; p < n; p++)
   {

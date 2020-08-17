@@ -43,7 +43,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   start = spasm_wtime();
   transpose(T, A, num_threads);
   stop = spasm_wtime();
-  // check(R, A);
+  check(R, A);
   duration->transpose = stop - start;
   total[RADIXSORT].transpose += duration->transpose;
   fprintf(stderr, "-- radix sort 7 (%d threads) transpose [COO->CSR']: %.3fs\n",
@@ -52,7 +52,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   start = spasm_wtime();
   transpose(R, B, num_threads);
   stop = spasm_wtime();
-  // check(T, B);
+  check(T, B);
   duration->transpose_tr = stop - start;
   total[RADIXSORT].transpose_tr += duration->transpose_tr;
   fprintf(stderr, "-- radix sort 7 (%d threads) transpose [COO'->CSR]: %.3fs\n",
@@ -102,8 +102,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
   u32 max_num_threads = 1;
-// #pragma omp parallel
-//   max_num_threads = omp_get_num_threads();
+#pragma omp parallel
+  max_num_threads = omp_get_num_threads();
 
   algorithm_times duration[N_REPEAT];
   for (u32 i = 0; i < N_REPEAT; i++)
@@ -127,7 +127,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_radixsort1(T, R, &duration[i], i_thread);
     }
-    // write_test_radixsort1(output_filename, matrix_filename, duration, i_thread);
+    write_test_radixsort1(output_filename, matrix_filename, duration, i_thread);
   }
   for (u32 i = 0; i < N_REPEAT; i++)
   {

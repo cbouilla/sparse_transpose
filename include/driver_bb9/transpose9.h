@@ -22,10 +22,10 @@
 /// \brief L1 cache line has size 64 on most CPUs.
 ///
 #define CACHELINE_SIZE ((u8)(64 / sizeof(mtx_entry)))
-#define L1_CACHE_SIZE ((u8)7)  // ((u32)((1 << 15) / (8 * sizeof(cacheline))))
-#define L2_CACHE_SIZE ((u8)10) // ((u32)((1 << 20) / (8 * sizeof(cacheline))))
-#define L3_CACHE_SIZE ((u8)10) // ((u32)((1 << 24) / (8 * sizeof(cacheline))))
-#define MAX_RADIX_BITS 10      ///< was experimentally found to be OK
+#define L1_CACHE_SIZE ((u8)9)  // ((u32)((1 << 15) / (8 * sizeof(cacheline))))
+#define L2_CACHE_SIZE ((u8)14) // ((u32)((1 << 20) / (8 * sizeof(cacheline))))
+#define L3_CACHE_SIZE ((u8)19) // ((u32)((1 << 24) / (8 * sizeof(cacheline))))
+#define MAX_RADIX_BITS L1_CACHE_SIZE      ///< was experimentally found to be OK
 #define MAX_PASSES ((u8)(8 * sizeof(u32) / sizeof(L1_CACHE_SIZE)) + 1) // 4
 
 ///
@@ -96,10 +96,8 @@ static inline void *malloc_aligned(const size_t size, const size_t alignment)
                           // argument
 static cacheline *wc_alloc()
 {
-  // return (cacheline *)malloc_aligned(sizeof(cacheline) * (1 <<
-  // MAX_RADIX_BITS), 64);
-  return (cacheline *)malloc_aligned(sizeof(cacheline) * (1 << L3_CACHE_SIZE),
-                                     64);
+  return (cacheline *)malloc_aligned(sizeof(cacheline) * (1 <<
+  MAX_RADIX_BITS), 64);
 }
 
 /* Setup the buffer for a new pass */

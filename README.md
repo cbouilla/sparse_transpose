@@ -76,7 +76,7 @@ Ensuite, `make clean` puis recompiler.
 6. 3. et OMP sur Rp avec n = 1
 7. 6. et maximisation du radix
 8. 4. et écriture de Rj et Rx dans la boucle de Rp
-9. 7. sur une ligne de cache
+9. 8.
 
 ## TODO
 
@@ -142,7 +142,6 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-TEMPS DE LA PREMIERE PASSE, TEMPS DE RECOPIE, TEMPS DE CHAQUE PASSE, DEBIT DE LA PREMIERE PASSE
 FAIRE AoS: STRUCT ENTRY * avec differentes tailles de radix
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2

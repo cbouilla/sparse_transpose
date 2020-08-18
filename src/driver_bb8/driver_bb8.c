@@ -174,7 +174,7 @@ int main(int argc, char **argv)
   {
     clear_times(&total[i]);
   }
-  /*
+
 #ifdef BENCHMARK_SMALL_MATRICES
   for (u32 i = 0; i < N_SMALL_MATRICES; i++)
   {
@@ -200,9 +200,9 @@ int main(int argc, char **argv)
   }
    show_grand_totals();
 #endif // BENCHMARK_LARGE_MATRICES
-*/
-   run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
-   run_test("../matrices/language.mtx", "tmp.csv");
+
+  //  run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
+  //  run_test("../matrices/language.mtx", "tmp.csv");
 
   return 0;
 }

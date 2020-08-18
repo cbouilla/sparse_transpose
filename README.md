@@ -141,8 +141,10 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-AoS: STRUCT ENTRY * 
-SoA: sur une ligne de cache
+COMPARER 7_10-7 avec 8_10-7
+REFAIRE LES CALCULS DE SIZE
+FAIRE AoS: STRUCT ENTRY * avec differentes tailles de radix
+SoA: sur une ligne de cache avec differentes tailles de radix
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

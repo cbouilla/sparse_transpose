@@ -66,6 +66,17 @@ Pour utiliser TBB sur ppti-gpu-1 :
 
 Ensuite, `make clean` puis recompiler.
 
+## VERSION
+
+1. count + prefix-sum dans transpose()
+2. finalize dans transpose()
+3. lo_bucket -> hi_bucket dans transpose_bucket()
+4. WCB et OUT en struct entry_t *
+5. 2 lignes de cache + OMP sur Rp avec n = 1
+6. 3. et OMP sur Rp avec n = 1
+7. 6. et maximisation du radix
+8. 4. et écriture de Rj et Rx dans la boucle de Rp
+
 ## TODO
 
 - [x] afficher la version de MKL
@@ -129,6 +140,9 @@ Ensuite, `make clean` puis recompiler.
 - [ ] parallèliser et vectoriser avec AVX128 AVX256 AVX512
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
+
+AoS: STRUCT ENTRY * 
+SoA: sur une ligne de cache
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

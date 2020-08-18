@@ -1,0 +1,69 @@
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/language.mtx
+[IO] loading 399130 x 399130 MTX [matrix coordinate real general] 1.2M NNZ ... Actually 399130 x 399130 [0.3s]
+-- Step 1/1:
+Rn: 399130, bits: 19, radix: 7, 6, 6
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.036s
+Rn: 399130, bits: 19, radix: 7, 6, 6
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.035s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/ASIC_680k.mtx
+[IO] loading 682862 x 682862 MTX [matrix coordinate real general] 3.9M NNZ ... Actually 682862 x 682862 [1.3s]
+-- Step 1/1:
+Rn: 682862, bits: 20, radix: 7, 7, 6
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.097s
+Rn: 682862, bits: 20, radix: 7, 7, 6
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.099s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/circuit5M.mtx
+[IO] loading 5558326 x 5558326 MTX [matrix coordinate real general] 59.5M NNZ ... Actually 5558326 x 5558326 [24.2s]
+-- Step 1/1:
+Rn: 5558326, bits: 23, radix: 8, 8, 7
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 1.425s
+Rn: 5558326, bits: 23, radix: 8, 8, 7
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 1.426s
+
+
+GRAND TOTALS:
+  Radix sort 8:
+    transpsose:    1.558s
+    transpsose_tr: 1.561s
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok/pre_transpose1.mtx
+[IO] loading 17117966 x 7167165 MTX [matrix coordinate pattern general] 14.3M NNZ ... Actually 17117966 x 7167165 [2.2s]
+-- Step 1/1:
+Rn: 7167165, bits: 23, radix: 8, 8, 7
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.394s
+Rn: 17117966, bits: 25, radix: 9, 8, 8
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.491s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok/pre_transpose3.mtx
+[IO] loading 17117964 x 1079613 MTX [matrix coordinate pattern general] 2.2M NNZ ... Actually 17117964 x 1079613 [0.3s]
+-- Step 1/1:
+Rn: 1079613, bits: 21, radix: 7, 7, 7
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.059s
+Rn: 17117964, bits: 25, radix: 9, 8, 8
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.106s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok/pre_transpose8.mtx
+[IO] loading 17043248 x 554 MTX [matrix coordinate pattern general] 1.1k NNZ ... Actually 17043248 x 554 [0.0s]
+-- Step 1/1:
+Rn: 554, bits: 10, radix: 5, 5
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.000s
+Rn: 17043248, bits: 25, radix: 9, 8, 8
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.025s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok/pre_transpose12.mtx
+[IO] loading 2575401 x 1 MTX [matrix coordinate pattern general] 2 NNZ ... Actually 2575401 x 1 [0.0s]
+-- Step 1/1:
+Rn: 1, bits: 1, radix: 1
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.000s
+Rn: 2575401, bits: 22, radix: 8, 7, 7
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.002s
+
+#---------------------------------------- /Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok/pre_transpose41.mtx
+[IO] loading 17083597 x 1617869 MTX [matrix coordinate pattern general] 31.0M NNZ ... Actually 17083597 x 1617869 [4.5s]
+-- Step 1/1:
+Rn: 1617869, bits: 21, radix: 7, 7, 7
+-- radix sort 8 (1 threads) transpose [COO->CSR']: 0.841s
+Rn: 17083597, bits: 25, radix: 9, 8, 8
+-- radix sort 8 (1 threads) transpose [COO'->CSR]: 0.830s
+

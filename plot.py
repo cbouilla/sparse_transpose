@@ -29,7 +29,7 @@ def read_csv(filename):
     return data
 
 
-def plot_duration(data, show=True, save=True, save_path=""):
+def plot_mean_duration(data, show=True, save=True, save_path=""):
     """Plots data charts for each algorithm for each matrix.
 
     Args:
@@ -43,19 +43,20 @@ def plot_duration(data, show=True, save=True, save_path=""):
         return
     fig, axes = plt.subplots()
     print("Plotting duration...", end=' ', flush=True)
-    thread = pd.Series(data.index.values)
+    thread = pd.Series(data.index.values, index=data.index)
     data['partitioning'].div(thread).plot(label="partitioning",
-                              linestyle=':', marker='.', color='b')
+                                          linestyle=':', marker='.', color='b', secondary_y=True)
     data['copy_pointers'].div(thread).plot(
         label="copy_pointers", linestyle=':', marker='.', color='r')
-    data['buckets'].div(thread).plot(label="buckets", linestyle=':', marker='.', color='g')
-    axes.set(xlabel='threads', ylabel="duration (s)", xlim=(0, len(data) + 1),
+    data['buckets'].div(thread).plot(
+        label="buckets", linestyle=':', marker='.', color='g')
+    axes.set(xlabel='threads', ylabel="mean duration per thread (s)", xlim=(0, len(data) + 1),
              xticks=np.concatenate(([1], 4*np.arange(1, (len(data) + 1) / 4))),
-             title = "ASIC_680k")
+             title="pre_transpose41")
     axes.grid(linestyle='-.')
     axes.legend()
     if save:
-        output =  save_path + "_duration.svg"
+        output = save_path + "_mean_duration.svg"
         fig.savefig(output)
     if show:
         plt.show()
@@ -63,7 +64,7 @@ def plot_duration(data, show=True, save=True, save_path=""):
     print("done.")
 
 
-def plot_sum_duration(data, show=True, save=True, save_path=""):
+def plot_duration(data, show=True, save=True, save_path=""):
     """Plots data charts for each algorithm for each matrix.
 
     Args:
@@ -78,17 +79,17 @@ def plot_sum_duration(data, show=True, save=True, save_path=""):
     fig, axes = plt.subplots()
     print("Plotting sum of duration...", end=' ', flush=True)
     data['partitioning'].plot(label="partitioning",
-                              linestyle=':', marker='.', color='b')
+                              linestyle=':', marker='.', color='b', secondary_y=True)
     data['copy_pointers'].plot(
         label="copy_pointers", linestyle=':', marker='.', color='r')
     data['buckets'].plot(label="buckets", linestyle=':', marker='.', color='g')
-    axes.set(xlabel='threads', ylabel="duration (s) (sum of each thread)", xlim=(0, len(data) + 1),
+    axes.set(xlabel='threads', ylabel="duration (s) (sum for each thread)", xlim=(0, len(data) + 1),
              xticks=np.concatenate(([1], 4*np.arange(1, (len(data) + 1) / 4))),
-             title = "ASIC_680k")
+             title="pre_transpose41")
     axes.grid(linestyle='-.')
     axes.legend()
     if save:
-        output =  save_path + "_sum_duration.svg"
+        output = save_path + "_duration.svg"
         fig.savefig(output)
     if show:
         plt.show()
@@ -113,10 +114,10 @@ def plot_throughput(data, show=True, save=True, save_path=""):
     data['throughput'].plot(linestyle=':', marker='.', color='b')
     axes.set(xlabel='threads', ylabel="throughput (GB/s) (16nnz/time_master)", xlim=(0, len(data) + 1),
              xticks=np.concatenate(([1], 4*np.arange(1, (len(data) + 1) / 4))),
-             title="ASIC_680k")
+             title="pre_transpose41")
     axes.grid(linestyle='-.')
     if save:
-        output =  save_path + "_throughput.svg"
+        output = save_path + "_throughput.svg"
         fig.savefig(output)
     if show:
         plt.show()
@@ -144,10 +145,9 @@ def main():
             "Usage: plot output_filename.")
         return
     data = read_csv(filename)
-    # data = data.set_index([i for i in range(1, len(data) + 1)])
     data.index = data.index + 1
+    plot_mean_duration(data, show=False, save=True, save_path=save_path)
     plot_duration(data, show=False, save=True, save_path=save_path)
-    plot_sum_duration(data, show=False, save=True, save_path=save_path)
     plot_throughput(data, show=False, save=True, save_path=save_path)
 
 

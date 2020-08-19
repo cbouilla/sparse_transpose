@@ -34,7 +34,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #define BIG_BROTHER
 
 #ifdef BIG_BROTHER
-  double copy_pointers = 0;
+double copy_pointers = 0;
 #endif
 
 void planification(struct ctx_t *ctx, mtx_CSR *R, mtx_entry *scratch)
@@ -311,7 +311,6 @@ void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
   const u32 lo_bucket = bucket * tmp;
   const u32 hi_bucket = spasm_min(R->n + 1, lo_bucket + tmp);
   u32 ptr = lo;
-  // TODO compute Rj, Rx
   for (u32 i = lo_bucket; i < hi_bucket; ++i)
   {
     R->p[i] = ptr;
@@ -339,6 +338,9 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   planification(&ctx, R, scratch);
 
 #ifdef BIG_BROTHER
+  FILE *file = fopen("csv/bench.csv", "a");
+  if (file == NULL)
+    err(1, "impossible to open %s", "csv/bench.csv");
   printf("$$$     transpose:\n");
   printf("$$$        bits: %d\n", ctx.bits);
   printf("$$$        passes: \n");
@@ -356,6 +358,9 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   u32 gCOUNT[size + 1];
 
   u32 non_empty;
+  double buckets_wct = 0;
+  double partitioning_wct = 0;
+  double throughput = 0;
 
 #pragma omp parallel
   {
@@ -364,17 +369,19 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
     double start = spasm_wtime();
 #endif
     u32 tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
-
+#pragma omp master
+    throughput = 16.0 * nnz / (spasm_wtime() - start) / 1e9;
+#pragma omp atomic
+    partitioning_wct += spasm_wtime() - start;
+#pragma omp barrier
 #pragma omp master
     {
       non_empty = tmp;
-
 #ifdef BIG_BROTHER
       printf("$$$        buckets: %d\n", non_empty);
-      double partitioning_wct = spasm_wtime() - start;
-      printf("$$$        partitioning-wct: %.6f\n", partitioning_wct);
-      printf("$$$        partitioning: %.6f MB/s \n",
-             16.0 * nnz / partitioning_wct / 1e6);
+      printf("$$$        partitioning-wct: %.6f s\n", partitioning_wct);
+      printf("$$$        partitioning: %.3f GB/s \n", throughput);
+      fprintf(file, "%.9f, %.9f,", partitioning_wct, throughput);
       u32 smallest = nnz;
       u32 biggest = 0;
       for (u32 i = 0; i < non_empty; i++)
@@ -400,29 +407,25 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
       double sub_sub_start = spasm_wtime();
 #endif
       // Computing row pointers
-#pragma omp for simd schedule(static)
-      // TODO compute Rj, Rx
+#pragma omp for simd schedule(static) nowait
       for (u32 i = 0; i < nnz; ++i)
       {
         R->j[i] = ctx.OUT[0][i].i;
         R->x[i] = ctx.OUT[0][i].x;
       }
-#pragma omp for simd schedule(static)
+#pragma omp for simd schedule(static) nowait
       for (u32 i = 0; i < R->n + 1; i++)
       {
         Rp[i] = gCOUNT[i];
       }
 #ifdef BIG_BROTHER
-#pragma omp master
-      {
-        printf("$$$        copy & row pointers wct: %.6f\n",
-               spasm_wtime() - sub_sub_start);
-      }
+#pragma omp atomic
+      copy_pointers += spasm_wtime() - sub_sub_start;
 #endif
     }
     else
     {
-#pragma omp for schedule(dynamic, 1)
+#pragma omp for schedule(dynamic, 1) nowait
       for (u32 i = 0; i < non_empty; i++)
       {
         // TODO if [gCOUNT[i], gCOUNT[i + 1]] is too small, call another
@@ -430,20 +433,16 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
 #ifdef BIG_BROTHER
-#pragma omp master
-    {
-      printf("$$$        copy & row pointers wct: %.6f\n", copy_pointers);
-    }
+#pragma omp atomic
+      buckets_wct += spasm_wtime() - sub_start;
 #endif
     }
     free(buffer);
-
-#pragma omp master
-    {
-#ifdef BIG_BROTHER
-      printf("$$$        buckets-wct: %.6f\n", spasm_wtime() - sub_start);
-#endif
-    }
   } // omp parallel
+#ifdef BIG_BROTHER
+  printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
+  printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
+  fprintf(file, "%.9f, %.9f\n", copy_pointers, buckets_wct);
+#endif
   free(scratch);
 }

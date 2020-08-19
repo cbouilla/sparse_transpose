@@ -142,8 +142,6 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-FAIRE AoS: STRUCT ENTRY * avec differentes tailles de radix
-
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 
 Multihistogramming : 1 passe MSD et autre passes LSD

@@ -7,12 +7,13 @@
 */*.o
 
 # Object directories
-./obj
+obj
 
 # Executables
 *.out
 ./main
 ./driver
+./driver_bb
 ./driver_wang
 
 ### Emacs ###

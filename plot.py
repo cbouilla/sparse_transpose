@@ -43,6 +43,40 @@ def plot_duration(data, show=True, save=True, save_path=""):
         return
     fig, axes = plt.subplots()
     print("Plotting duration...", end=' ', flush=True)
+    thread = pd.Series(data.index.values)
+    data['partitioning'].div(thread).plot(label="partitioning",
+                              linestyle=':', marker='.', color='b')
+    data['copy_pointers'].div(thread).plot(
+        label="copy_pointers", linestyle=':', marker='.', color='r')
+    data['buckets'].div(thread).plot(label="buckets", linestyle=':', marker='.', color='g')
+    axes.set(xlabel='threads', ylabel="duration (s)", xlim=(0, len(data) + 1),
+             xticks=np.concatenate(([1], 4*np.arange(1, (len(data) + 1) / 4))),
+             title = "ASIC_680k")
+    axes.grid(linestyle='-.')
+    axes.legend()
+    if save:
+        output =  save_path + "_duration.svg"
+        fig.savefig(output)
+    if show:
+        plt.show()
+    plt.close(fig)
+    print("done.")
+
+
+def plot_sum_duration(data, show=True, save=True, save_path=""):
+    """Plots data charts for each algorithm for each matrix.
+
+    Args:
+        data (pandas.DataFrame): Data shaped like parallel_means_pivot
+        show (bool, optional): Whether or not showing plots. Defaults to True.
+        save (bool, optional): Whether or not saving plots. Defaults to True.
+        save_path (str, optional): The path where charts are saved. Defaults to
+        "".
+    """
+    if not show and not save:
+        return
+    fig, axes = plt.subplots()
+    print("Plotting sum of duration...", end=' ', flush=True)
     data['partitioning'].plot(label="partitioning",
                               linestyle=':', marker='.', color='b')
     data['copy_pointers'].plot(
@@ -54,7 +88,7 @@ def plot_duration(data, show=True, save=True, save_path=""):
     axes.grid(linestyle='-.')
     axes.legend()
     if save:
-        output =  save_path + "_duration.svg"
+        output =  save_path + "_sum_duration.svg"
         fig.savefig(output)
     if show:
         plt.show()
@@ -113,6 +147,7 @@ def main():
     # data = data.set_index([i for i in range(1, len(data) + 1)])
     data.index = data.index + 1
     plot_duration(data, show=False, save=True, save_path=save_path)
+    plot_sum_duration(data, show=False, save=True, save_path=save_path)
     plot_throughput(data, show=False, save=True, save_path=save_path)
 
 

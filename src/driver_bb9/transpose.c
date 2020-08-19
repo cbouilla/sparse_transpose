@@ -443,6 +443,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
   printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
   fprintf(file, "%.9f, %.9f\n", copy_pointers, buckets_wct);
+  fclose(file);
 #endif
   free(scratch);
 }

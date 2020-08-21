@@ -318,7 +318,6 @@ void histogram(const struct ctx_t *ctx, const mtx_entry *Te, const u32 lo,
 void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
                       const u32 hi, mtx_CSR *R, const u32 bucket)
 {
-  copy_pointers = 0;
   const u8 n = ctx->n_passes;
   const u32 csize = ctx->seq_count_size;
   u32 COUNT[csize];
@@ -400,6 +399,9 @@ void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
 
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
+#ifdef BIG_BROTHER
+  copy_pointers = 0;
+#endif
   const u32 nnz = A->nnz;
   u32 *Rp = R->p;
 
@@ -516,9 +518,8 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
   printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
   printf("$$$        max. wait: %.6f s\n", max_wait);
-  fprintf(file, "%.9f, %.9f\n", copy_pointers, buckets_wct);
+  fprintf(file, "%.9f, %.9f, %.9f\n", copy_pointers, buckets_wct, max_wait);
   fclose(file);
 #endif
   free(scratch);
-  fclose(file);
 }

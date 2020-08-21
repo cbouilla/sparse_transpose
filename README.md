@@ -76,7 +76,7 @@ Ensuite, `make clean` puis recompiler.
 6. 3. et OMP sur Rp avec n = 1
 7. 6. et maximisation du radix
 8. 4. et écriture de Rj et Rx dans la boucle de Rp
-9. 8.
+9. 8. et test/print
 
 ## TODO
 
@@ -114,7 +114,7 @@ Ensuite, `make clean` puis recompiler.
 - [x] traiter le csv et afficher des graphes (boxplot pour la variance, pour parallèle : courbe de l'accélération), dataframe pandas
 - [x] créer un sous-dossier dans charts automatiquement
 - [x] pour la durée : regarder le min sur la moyenne des deux ?
-- [x] sauvegarder les fichiers avec des _ au lieux des  
+- [x] sauvegarder les fichiers avec des _ au lieux des ' '
 - [x] mettre une ligne avec plus de pointillés et des symboles plus petits
 - [x] pour résumer : prendre l'addition des medianes par algo sur toutes les matrices
 - [x] graphique accélération, calculer l'accélération avec un algo séquentiel pour chaque matrice : Gustavson -O2
@@ -135,14 +135,124 @@ Ensuite, `make clean` puis recompiler.
 - [ ] radix sort MSD+LSD séquentiel
 - [ ] radix sort LSD parallèle
 - [ ] radix sort MSD parallèle
-- [ ] radix sort MSD+LSD parallèle LEAKs, tester sur toutes, se limiter au nombre de coeurs physiques, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit ou la matrice est petite, tenir compte de la taille des différents caches.
+- [ ] radix sort MSD+LSD parallèle LEAKs, tester sur toutes, se limiter au nombre de coeurs physiques, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit ou la matrice est petite.
 - [ ] commenter le code
 - [ ] checker les todo
 - [ ] parallèliser et vectoriser avec AVX128 AVX256 AVX512
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
+
 Se fixer un nombre de threads et comparer 3 et 8 dessus en variant max_radix et calculer la durée d'attente
+5 5 radixsort 8
+5 6
+5 7
+5 8
+5 9
+5 10
+5 11
+5 12
+5 13
+5 14
+
+6 5
+6 6 radixsort 8
+6 7
+6 8
+6 9
+6 10
+6 11
+6 12
+6 13
+6 14
+
+7 5
+7 6
+7 7 radixsort 8
+7 8
+7 9
+7 10
+7 11
+7 12
+7 13
+7 14
+
+8 5
+8 6
+8 7
+8 8 radixsort 8
+8 9
+8 10
+8 11
+8 12
+8 13
+8 14
+
+9 5
+9 6
+9 7
+9 8
+9 9 radixsort 8
+9 10
+9 11
+9 12
+9 13
+9 14
+
+10 5
+10 6
+10 7
+10 8
+10 9
+10 10 radixsort 8
+10 11
+10 12
+10 13
+10 14
+
+11 5
+11 6
+11 7
+11 8
+11 9
+11 10
+11 11 radixsort 8
+11 12
+11 13
+11 14
+
+12 5
+12 6
+12 7
+12 8
+12 9
+12 10
+12 11
+12 12 radixsort 8
+12 13
+12 14
+
+13 5
+13 6
+13 7
+13 8
+13 9
+13 10
+13 11
+13 12
+13 13 radixsort 8
+13 14
+
+14 5
+14 6
+14 7
+14 8
+14 9
+14 10
+14 11
+14 12
+14 13
+14 14 radixsort 8
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

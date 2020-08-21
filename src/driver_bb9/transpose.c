@@ -239,15 +239,86 @@ void histogram(const struct ctx_t *ctx, const mtx_entry *Te, const u32 lo,
       W[3][q3]++;
     }
     break;
+  case 5:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Te[k].j;
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+    }
+    break;
+  case 6:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Te[k].j;
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+    }
+    break;
+  case 7:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Te[k].j;
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      const u32 q6 = (j >> shift[6]) & mask[6];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+      W[6][q6]++;
+    }
+    break;
+  case 8:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Te[k].j;
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      const u32 q6 = (j >> shift[6]) & mask[6];
+      const u32 q7 = (j >> shift[7]) & mask[7];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+      W[6][q6]++;
+      W[7][q7]++;
+    }
+    break;
   default:
     err(1,
-        "Ask the programmer to hardcode more passes in (radix) transpose...\n");
+        "Ask the programmer to hardcode more passes in (radix) transpose...\n "
+        "You have just tried %d.\n",
+        n);
   }
 }
 
 void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
                       const u32 hi, mtx_CSR *R, const u32 bucket)
 {
+  copy_pointers = 0;
   const u8 n = ctx->n_passes;
   const u32 csize = ctx->seq_count_size;
   u32 COUNT[csize];
@@ -361,8 +432,9 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   double buckets_wct = 0;
   double partitioning_wct = 0;
   double throughput = 0;
+  double max_wait = 0;
 
-#pragma omp parallel
+#pragma omp parallel reduction(max:max_wait) reduction(+:buckets_wct, copy_pointers)
   {
     cacheline *buffer = wc_alloc();
 #ifdef BIG_BROTHER
@@ -419,8 +491,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
         Rp[i] = gCOUNT[i];
       }
 #ifdef BIG_BROTHER
-#pragma omp atomic
-      copy_pointers += spasm_wtime() - sub_sub_start;
+      copy_pointers = spasm_wtime() - sub_sub_start;
 #endif
     }
     else
@@ -433,17 +504,21 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
 #ifdef BIG_BROTHER
-#pragma omp atomic
-      buckets_wct += spasm_wtime() - sub_start;
+      buckets_wct = spasm_wtime() - sub_start;
+      max_wait = spasm_wtime();
 #endif
     }
+#pragma omp barrier
+    max_wait = spasm_wtime() - max_wait;
     free(buffer);
   } // omp parallel
 #ifdef BIG_BROTHER
   printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
   printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
+  printf("$$$        max. wait: %.6f s\n", max_wait);
   fprintf(file, "%.9f, %.9f\n", copy_pointers, buckets_wct);
   fclose(file);
 #endif
   free(scratch);
+  fclose(file);
 }

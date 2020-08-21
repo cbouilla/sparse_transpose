@@ -25,8 +25,8 @@
 #define L1_CACHE_SIZE ((u8)9)  // ((u32)((1 << 15) / (8 * sizeof(cacheline))))
 #define L2_CACHE_SIZE ((u8)14) // ((u32)((1 << 20) / (8 * sizeof(cacheline))))
 #define L3_CACHE_SIZE ((u8)19) // ((u32)((1 << 24) / (8 * sizeof(cacheline))))
-#define MAX_RADIX_BITS L1_CACHE_SIZE      ///< was experimentally found to be OK
-#define MAX_PASSES ((u8)(8 * sizeof(u32) / sizeof(L1_CACHE_SIZE)) + 1) // 4
+#define MAX_RADIX_BITS 4
+#define MAX_PASSES ((u8)(8 * sizeof(u32) / sizeof(MAX_RADIX_BITS)) + 1) // 4
 
 ///
 /// \brief A structure to store the information for the radix sort

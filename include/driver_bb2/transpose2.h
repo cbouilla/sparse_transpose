@@ -7,8 +7,8 @@
 /// @copyright Copyright (c) 2020
 ///
 
-#ifndef INCLUDE_DRIVER_BB2_TRANSPOSE_H
-#define INCLUDE_DRIVER_BB2_TRANSPOSE_H
+#ifndef INCLUDE_DRIVER_BB2_TRANSPOSE2_H
+#define INCLUDE_DRIVER_BB2_TRANSPOSE2_H
 
 #include <assert.h>
 #include <err.h>
@@ -23,7 +23,7 @@
 ///
 #define CACHELINE_SIZE ((u8)(64 / sizeof(u32)))
 #define MAX_RADIX_BITS 10 ///< was experimentally found to be OK
-#define MAX_PASSES 4
+#define MAX_PASSES ((u8)(8 * sizeof(u32) / sizeof(MAX_RADIX_BITS)) + 1) // 4
 
 ///
 /// \brief A structure to store the information for the radix sort
@@ -300,4 +300,4 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
    The current code only reads them though. */
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads);
 
-#endif /* INCLUDE_DRIVER_BB2_TRANSPOSE_H */
+#endif /* INCLUDE_DRIVER_BB2_TRANSPOSE2_H */

@@ -31,6 +31,12 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
+#define BIG_BROTHER
+
+#ifdef BIG_BROTHER
+double copy_pointers = 0;
+#endif
+
 void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
                    double *scratch2)
 {
@@ -221,9 +227,7 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
       W[3][q3]++;
     }
     break;
-#if __SIZEOF_INDEX__ == 8
   case 5:
-#pragma omp for schedule(static)
     for (u32 k = lo; k < hi; k++)
     {
       const u32 j = Aj[k];
@@ -237,10 +241,65 @@ void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
       W[4][q4]++;
     }
     break;
-#endif
+  case 6:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Aj[k];
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+    }
+    break;
+  case 7:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Aj[k];
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      const u32 q6 = (j >> shift[6]) & mask[6];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+      W[6][q6]++;
+    }
+    break;
+  case 8:
+    for (u32 k = lo; k < hi; k++)
+    {
+      const u32 j = Aj[k];
+      const u32 q1 = j & mask[1];
+      const u32 q2 = (j >> shift[2]) & mask[2];
+      const u32 q3 = (j >> shift[3]) & mask[3];
+      const u32 q4 = (j >> shift[4]) & mask[4];
+      const u32 q5 = (j >> shift[5]) & mask[5];
+      const u32 q6 = (j >> shift[6]) & mask[6];
+      const u32 q7 = (j >> shift[7]) & mask[7];
+      W[1][q1]++;
+      W[2][q2]++;
+      W[3][q3]++;
+      W[4][q4]++;
+      W[5][q5]++;
+      W[6][q6]++;
+      W[7][q7]++;
+    }
+    break;
   default:
     err(1,
-        "Ask the programmer to hardcode more passes in (radix) transpose...\n");
+        "Ask the programmer to hardcode more passes in (radix) transpose...\n "
+        "You have just tried %d.\n",
+        n);
   }
 }
 
@@ -308,6 +367,9 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
     INj = OUTj;
     INx = OUTx;
   }
+#ifdef BIG_BROTHER
+  double start = spasm_wtime();
+#endif
   // Computing row pointers
   const u32 tmp = 1 << ctx->shift[0];
   const u32 lo_bucket = bucket * tmp;
@@ -321,10 +383,17 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
       ptr++;
     }
   }
+#ifdef BIG_BROTHER
+#pragma omp atomic
+  copy_pointers += spasm_wtime() - start;
+#endif
 }
 
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
+#ifdef BIG_BROTHER
+  copy_pointers = 0;
+#endif
   const u32 nnz = A->nnz;
   u32 *Rp = R->p;
   (void)Rp; // TODO pourquoi
@@ -337,6 +406,9 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   planification(&ctx, R, scratch, scratch2);
 
 #ifdef BIG_BROTHER
+  FILE *file = fopen("csv/bench.csv", "a");
+  if (file == NULL)
+    err(1, "impossible to open %s", "csv/bench.csv");
   printf("$$$     transpose:\n");
   printf("$$$        bits: %d\n", ctx.bits);
   printf("$$$        passes: \n");
@@ -345,73 +417,98 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 #endif
 
   const u32 size = ctx.par_count_size;
+  u32 T = 1;
 #ifdef _OPENMP
   omp_set_num_threads(num_threads);
+  T = omp_get_max_threads();
 #endif // _OPENMP
-  const u32 T = omp_get_max_threads();
   u32 tCOUNT[T * size];
   u32 gCOUNT[size + 1];
 
   u32 non_empty;
+  double buckets_wct = 0;
+  double partitioning_wct = 0;
+  double throughput = 0;
+  double max_wait = 0;
 
-#pragma omp parallel
+#pragma omp parallel reduction(max:max_wait) reduction(+:buckets_wct, copy_pointers)
   {
     struct cacheline_t *buffer = wc_alloc();
 #ifdef BIG_BROTHER
-    double start = wct_seconds();
+    double start = spasm_wtime();
 #endif
     u32 tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
-
+#pragma omp master
+    throughput = 16.0 * nnz / (spasm_wtime() - start) / 1e9;
+#pragma omp atomic
+    partitioning_wct += spasm_wtime() - start;
+#pragma omp barrier
 #pragma omp master
     {
       non_empty = tmp;
-
 #ifdef BIG_BROTHER
       printf("$$$        buckets: %d\n", non_empty);
-      printf("$$$        partitioning-wct: %.2f\n", wct_seconds() - start);
+      printf("$$$        partitioning-wct: %.6f s\n", partitioning_wct);
+      printf("$$$        partitioning: %.3f GB/s \n", throughput);
+      fprintf(file, "%.9f, %.9f,", partitioning_wct, throughput);
       u32 smallest = nnz;
       u32 biggest = 0;
-      for (int i = 0; i < non_empty; i++)
+      for (u32 i = 0; i < non_empty; i++)
       {
         u32 size = gCOUNT[i + 1] - gCOUNT[i];
-        smallest = MIN(smallest, size);
-        biggest = MAX(biggest, size);
+        smallest = spasm_min(smallest, size);
+        biggest = spasm_max(biggest, size);
       }
       printf("$$$        smallest-bucket: %d\n", smallest);
-      printf("$$$        avg-bucket: %" PRId64 "\n", nnz / non_empty);
+      printf("$$$        avg-bucket: %d\n", nnz / non_empty);
       printf("$$$        biggest-bucket: %d\n", biggest);
 #endif
     }
 
 #pragma omp barrier
 #ifdef BIG_BROTHER
-    double sub_start = wct_seconds();
+    double sub_start = spasm_wtime();
 #endif
 
-    if (ctx.n_passes > 1)
-#pragma omp for schedule(dynamic, 1)
-      for (u32 i = 0; i < non_empty; i++)
-      {
-        transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
-      }
-    free(buffer);
-
-#pragma omp master
+    if (ctx.n_passes == 1)
     {
 #ifdef BIG_BROTHER
-      printf("$$$        buckets-wct: %.2f\n", wct_seconds() - sub_start);
+      double sub_sub_start = spasm_wtime();
+#endif
+#pragma omp for simd schedule(static) nowait
+      for (u32 i = 0; i < R->n + 1; i++)
+      {
+        Rp[i] = gCOUNT[i];
+      }
+#ifdef BIG_BROTHER
+      copy_pointers = spasm_wtime() - sub_sub_start;
 #endif
     }
-  }
-  // Computing row pointers
-  if (ctx.n_passes == 1)
-  {
-    for (u32 i = 0; i < R->n + 1; i++)
+    else
     {
-      Rp[i] = gCOUNT[i];
+#pragma omp for schedule(dynamic, 1) nowait
+      for (u32 i = 0; i < non_empty; i++)
+      {
+        // TODO if [gCOUNT[i], gCOUNT[i + 1]] is too small, call another
+        // sorting algorithm
+        transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
+      }
+#ifdef BIG_BROTHER
+      buckets_wct = spasm_wtime() - sub_start;
+      max_wait = spasm_wtime();
+#endif
     }
-  }
-
+#pragma omp barrier
+    max_wait = spasm_wtime() - max_wait;
+    free(buffer);
+  } // omp parallel
+#ifdef BIG_BROTHER
+  printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
+  printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
+  printf("$$$        max. wait: %.6f s\n", max_wait);
+  fprintf(file, "%.9f, %.9f, %.9f\n", copy_pointers, buckets_wct, max_wait);
+  fclose(file);
+#endif
   free(scratch);
   free(scratch2);
 }

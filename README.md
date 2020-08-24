@@ -144,8 +144,8 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-
-Bench radix sort 10 7,9 et 7,8
+remettre l'optimisation lorsque 16nnz < L3 ?
+Bench radix sort 10 [7,9] et [7,8] ?
 Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
 
 ScanTrans/Gustavson plus rapide même avec 1 thread (presque autant de lecture/ecriture, plus d'opération ? mais ça va plus vite)
@@ -170,117 +170,6 @@ for
 	lecture sequentielle
 	écriture aléatoire
 %%%
-
-Se fixer un nombre de threads et comparer 3 et 8 dessus en variant max_radix et calculer la durée d'attente
-5 5 radixsort 9
-5 6
-5 7
-5 8
-5 9
-5 10
-5 11
-5 12
-5 13
-5 14
-
-6 5
-6 6 radixsort 9
-6 7
-6 8
-6 9
-6 10
-6 11
-6 12
-6 13
-6 14
-
-7 5
-7 6
-7 7 radixsort 9
-7 8
-7 9
-7 10
-7 11
-7 12
-7 13
-7 14
-
-8 5
-8 6
-8 7
-8 8 radixsort 9
-8 9
-8 10
-8 11
-8 12
-8 13
-8 14
-
-9 5
-9 6
-9 7
-9 8
-9 9 radixsort 9
-9 10
-9 11
-9 12
-9 13
-9 14
-
-10 5
-10 6
-10 7
-10 8
-10 9
-10 10 radixsort 9
-10 11
-10 12
-10 13
-10 14
-
-11 5
-11 6
-11 7
-11 8
-11 9
-11 10
-11 11 radixsort 9
-11 12
-11 13
-11 14
-
-12 5
-12 6
-12 7
-12 8
-12 9
-12 10
-12 11
-12 12 radixsort 9
-12 13
-12 14
-
-13 5
-13 6
-13 7
-13 8
-13 9
-13 10
-13 11
-13 12
-13 13 radixsort 9
-13 14
-
-14 5
-14 6
-14 7
-14 8
-14 9
-14 10
-14 11
-14 12
-14 13
-14 14 radixsort 9
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

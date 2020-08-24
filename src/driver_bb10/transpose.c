@@ -356,7 +356,7 @@ void transpose_bucket(struct ctx_t *ctx, cacheline *buffer, const u32 lo,
   double *INx = ctx->OUTx[0];
 
 #ifdef BIG_BROTHER
-  printf("histograming [%d:%d] with %d passes\n", lo, hi, n);
+  // printf("histograming [%d:%d] with %d passes\n", lo, hi, n);
 #endif // BIG_BROTHER
 
   memset(COUNT, 0, csize * sizeof(*COUNT));

@@ -31,7 +31,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
-// #define BIG_BROTHER
+#define BIG_BROTHER
 
 #ifdef BIG_BROTHER
 double copy_pointers = 0;
@@ -54,49 +54,57 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
 
   ctx->bits = bits;
   u8 n;
-  if (ENTRY_SIZE * nnz <= L3_CACHE_SIZE)
-  {
-    const u8 max_radix = 5;
-    n = ceil((double)bits / max_radix);
-    ctx->n_passes = n;
 
+  if (ctx->bits <= MAX_RADIX) // only one pass
+  {
+    n = 1;
+    // the first pass is done on the most significant bits
+    ctx->radix[0] = ctx->bits;
+    bits = 0;          // bits -= ctx->radix[0];
+    ctx->shift[0] = 0; // ctx->shift[0] = bits;
+  }
+  else if (ctx->bits <=
+           2 * MSD_RADIX) // equalize the radix between the two passes
+  {
+    n = 2; // ceil((double)bits / MSD_RADIX);
     // the first pass is done on the most significant bits
     ctx->radix[0] = ceil((double)bits / n);
     bits -= ctx->radix[0];
     ctx->shift[0] = bits;
-
     // other passes are done on least significant bits first
-    u8 s_shift = 0;
-    for (int p = 1; p < n; p++)
-    {
-      ctx->shift[p] = s_shift;
-      u8 r = ceil((double)bits / (n - p)); // bits in p-th pass
-      ctx->radix[p] = r;
-      bits -= r;
-      s_shift += r;
-    }
+    ctx->radix[1] = bits;
+    bits = 0;
+    ctx->shift[1] = 0;
   }
-  else
+  else // at least two passes
   {
-    n = 0;
     // the first pass is done on the most significant bits
-    ctx->radix[n] = spasm_min(bits, MSD_RADIX);
-    bits -= ctx->radix[n];
-    ctx->shift[n] = bits;
-    n = 1;
-    
+    ctx->radix[0] = MSD_RADIX;
+    bits -= ctx->radix[0];
+    ctx->shift[0] = bits;
     // other passes are done on least significant bits first
-    u8 s_shift = 0;
-    while (bits > 0)
+    if (bits <= LSD_RADIX) // TODO 17=7+5+5 ? 17 = 8 + 9
     {
-      ctx->shift[n] = s_shift;
-      ctx->radix[n] = spasm_min(bits, LSD_RADIX);
-      bits -= ctx->radix[n];
-      s_shift += ctx->radix[n];
-      n++;
+      n = 2;
+      ctx->radix[1] = bits;
+      bits = 0;
+      ctx->shift[1] = 0;
     }
-    ctx->n_passes = n;
+    else
+    {
+      n = 1 + ceil((double)bits / LSD_RADIX); // to count the first pass
+      u8 s_shift = 0;
+      for (int p = 1; p < n; p++)
+      {
+        ctx->shift[p] = s_shift;
+        u8 r = ceil((double)bits / (n - p)); // bits in p-th pass
+        ctx->radix[p] = r;
+        bits -= r;
+        s_shift += r;
+      }
+    }
   }
+  ctx->n_passes = n;
   assert(bits == 0);
 
   // common to all passes

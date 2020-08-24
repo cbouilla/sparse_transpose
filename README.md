@@ -145,7 +145,7 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de std::sort
 
 
-Bench radix sort 10
+Bench radix sort 10 7,9 et 7,8
 Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
 
 ScanTrans/Gustavson plus rapide même avec 1 thread (presque autant de lecture/ecriture, plus d'opération ? mais ça va plus vite)

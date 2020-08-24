@@ -102,8 +102,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
   u32 max_num_threads = 1;
-#pragma omp parallel
-  max_num_threads = omp_get_num_threads();
+// #pragma omp parallel
+//   max_num_threads = omp_get_num_threads();
 
   algorithm_times duration[N_REPEAT];
   for (u32 i = 0; i < N_REPEAT; i++)
@@ -127,7 +127,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_radixsort(T, R, &duration[i], i_thread);
     }
-    write_test_radixsort(output_filename, matrix_filename, duration, i_thread);
+    // write_test_radixsort(output_filename, matrix_filename, duration, i_thread);
   }
   for (u32 i = 0; i < N_REPEAT; i++)
   {
@@ -144,7 +144,7 @@ void show_grand_totals(void)
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  fprintf(stderr, "  Radix sort 8:\n");
+  fprintf(stderr, "  Radix sort 10:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[RADIXSORT].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[RADIXSORT].transpose_tr);
 #endif // _OPENMP
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
   {
     clear_times(&total[i]);
   }
-/*
+
 #ifdef BENCHMARK_SMALL_MATRICES
   for (u32 i = 0; i < N_SMALL_MATRICES; i++)
   {
@@ -192,7 +192,7 @@ int main(int argc, char **argv)
   for (u32 i = 0; i < N_LARGE_MATRICES; i++)
   {
     char matrix_filename[FILENAME_MAX];
-    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, pre_transpose[i]);
+    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
     run_test(matrix_filename, output_filename);
@@ -200,9 +200,9 @@ int main(int argc, char **argv)
   }
    show_grand_totals();
 #endif // BENCHMARK_LARGE_MATRICES
-*/
-   run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
-   run_test("../matrices/language.mtx", "tmp.csv");
+
+  //  run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
+  //  run_test("../matrices/language.mtx", "tmp.csv");
 
   return 0;
 }

@@ -25,7 +25,7 @@
 #define CACHELINE_SIZE ((u8)(64 / sizeof(u32))) ///< equal to 16
 #define MSD_RADIX ((u8)7) ///< first pass
 #define LSD_RADIX ((u8)9) ///< other passes
-#define MAX_RADIX ((u8) 9) ///< maximum of the two radices above
+#define MAX_RADIX ((u8) 9) ///< at least the maximum of the two radices above
 #define L3_CACHE_SIZE ((u32) 31719424) // ((u32) (1 << 25)) 
 #define MAX_PASSES ((u8) 8)
 

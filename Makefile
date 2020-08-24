@@ -28,7 +28,8 @@ DRIVER_BB6 := driver_bb6
 DRIVER_BB7 := driver_bb7
 DRIVER_BB8 := driver_bb8
 DRIVER_BB9 := driver_bb9
-EXE := $(DRIVER) $(DRIVER_WANG) $(DRIVER_BB) $(DRIVER_BB2) $(DRIVER_BB3) $(DRIVER_BB5) $(DRIVER_BB6) $(DRIVER_BB7) $(DRIVER_BB8) $(DRIVER_BB9)
+DRIVER_BB10 := driver_bb10
+EXE := $(DRIVER) $(DRIVER_WANG) $(DRIVER_BB) $(DRIVER_BB2) $(DRIVER_BB3) $(DRIVER_BB5) $(DRIVER_BB6) $(DRIVER_BB7) $(DRIVER_BB8) $(DRIVER_BB9) $(DRIVER_BB10)
 SRC_C := $(shell find . -name "*.c" -print)
 SRC_CXX := $(shell find . -name "*.cpp" -print)
 SRC := $(SRC_C) $(SRC_CXX)
@@ -47,6 +48,7 @@ OBJ_DRIVER_BB6 := $(filter $(OBJ_DIR)/$(DRIVER_BB6)/%,$(OBJ))
 OBJ_DRIVER_BB7 := $(filter $(OBJ_DIR)/$(DRIVER_BB7)/%,$(OBJ))
 OBJ_DRIVER_BB8 := $(filter $(OBJ_DIR)/$(DRIVER_BB8)/%,$(OBJ))
 OBJ_DRIVER_BB9 := $(filter $(OBJ_DIR)/$(DRIVER_BB9)/%,$(OBJ))
+OBJ_DRIVER_BB10 := $(filter $(OBJ_DIR)/$(DRIVER_BB10)/%,$(OBJ))
 #$(DRIVER): $(OBJ) := $(filter-out $(OBJ_DIR)/$(DRIVER_WANG)/%,$(OBJ))
 #$(DRIVER_WANG): $(OBJ) := $(filter-out $(OBJ_DIR)/$(DRIVER)/%,$(OBJ))
 CLEAN_LOG_TARGETS := $(OBJ_DIR)/*.log $(EXE:%=%.log)
@@ -277,6 +279,9 @@ memcheck_driver_bb8: $(DRIVER_BB8)
 memcheck_driver_bb9: $(DRIVER_BB9)
 	@$(VALGRIND) ./$^
 
+memcheck_driver_bb10: $(DRIVER_BB10)
+	@$(VALGRIND) ./$^
+
 $(DRIVER): $(OBJ_DRIVER)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 
@@ -305,6 +310,9 @@ $(DRIVER_BB8): $(OBJ_DRIVER_BB8)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 
 $(DRIVER_BB9): $(OBJ_DRIVER_BB9)
+	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
+
+$(DRIVER_BB10): $(OBJ_DRIVER_BB10)
 	$(call execute,$(CC) $(LDFLAGS) $^ $(LDLIBS) -o $@,$(LINK_STRING))
 
 # $(OBJ): | $(OBJ_DIR) $(OBJ_SUB_DIR)

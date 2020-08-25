@@ -144,8 +144,7 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-remettre l'optimisation lorsque 16nnz < L3 ?
-Bench radix sort 10 [7,9] et [7,8] ?
+Bench radix sort 10 et 3 sur tout
 Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
 
 ScanTrans/Gustavson plus rapide même avec 1 thread (presque autant de lecture/ecriture, plus d'opération ? mais ça va plus vite)

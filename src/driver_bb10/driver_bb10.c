@@ -102,8 +102,8 @@ void run_test(const char *matrix_filename, const char *output_filename)
     err(1, "impossible to open %s", matrix_filename);
 
   u32 max_num_threads = 1;
-// #pragma omp parallel
-//   max_num_threads = omp_get_num_threads();
+#pragma omp parallel
+  max_num_threads = omp_get_num_threads();
 
   algorithm_times duration[N_REPEAT];
   for (u32 i = 0; i < N_REPEAT; i++)
@@ -127,7 +127,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_radixsort(T, R, &duration[i], i_thread);
     }
-    // write_test_radixsort(output_filename, matrix_filename, duration, i_thread);
+    write_test_radixsort(output_filename, matrix_filename, duration, i_thread);
   }
   for (u32 i = 0; i < N_REPEAT; i++)
   {

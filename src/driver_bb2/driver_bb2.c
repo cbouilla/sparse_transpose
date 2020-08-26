@@ -29,7 +29,7 @@
 /// \param[in] R the transposed matrix in COO format
 /// \param[in, out] duration the duration of the algorithms
 ///
-void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
+void run_test_radixsort(const mtx_COO *T, const mtx_COO *R,
                          algorithm_times *duration, const u32 num_threads)
 {
   double start, stop;
@@ -46,7 +46,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   check(R, A);
   duration->transpose = stop - start;
   total[RADIXSORT].transpose += duration->transpose;
-  fprintf(stderr, "-- radix sort 2 (%d threads) transpose [COO->CSR']: %.3fs\n",
+  fprintf(stderr, "-- radix sort 3 (%d threads) transpose [COO->CSR']: %.3fs\n",
           num_threads, duration->transpose);
 
   start = spasm_wtime();
@@ -55,7 +55,7 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
   check(T, B);
   duration->transpose_tr = stop - start;
   total[RADIXSORT].transpose_tr += duration->transpose_tr;
-  fprintf(stderr, "-- radix sort 2 (%d threads) transpose [COO'->CSR]: %.3fs\n",
+  fprintf(stderr, "-- radix sort 3 (%d threads) transpose [COO'->CSR]: %.3fs\n",
           num_threads, duration->transpose_tr);
 
   mtx_CSR_free(A);
@@ -70,14 +70,14 @@ void run_test_radixsort1(const mtx_COO *T, const mtx_COO *R,
 /// \param[in] duration the durations to write
 /// \param[in] num_threads the number of threads used
 ///
-void write_test_radixsort1(const char *output_filename,
+void write_test_radixsort(const char *output_filename,
                            const char *matrix_filename,
                            algorithm_times *duration, const u32 num_threads)
 {
   FILE *file = fopen(output_filename, "a");
   if (file == NULL)
     err(1, "impossible to open %s", output_filename);
-  const char *name = "radix::sort::2";
+  const char *name = "radix::sort::3";
   for (unsigned short i = 0; i < N_REPEAT; i++)
   {
     fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,
@@ -101,9 +101,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
   if (f == NULL)
     err(1, "impossible to open %s", matrix_filename);
 
-  u32 max_num_threads = 16;
-// #pragma omp parallel
-//  max_num_threads = omp_get_num_threads();
+  u32 max_num_threads = 1;
+#pragma omp parallel
+ max_num_threads = omp_get_num_threads();
 
   algorithm_times duration[N_REPEAT];
   for (u32 i = 0; i < N_REPEAT; i++)
@@ -125,9 +125,9 @@ void run_test(const char *matrix_filename, const char *output_filename)
     for (u32 i = 0; i < N_REPEAT; ++i)
     {
       fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
-      run_test_radixsort1(T, R, &duration[i], i_thread);
+      run_test_radixsort(T, R, &duration[i], i_thread);
     }
-    write_test_radixsort1(output_filename, matrix_filename, duration, i_thread);
+    write_test_radixsort(output_filename, matrix_filename, duration, i_thread);
   }
   for (u32 i = 0; i < N_REPEAT; i++)
   {
@@ -144,7 +144,7 @@ void show_grand_totals(void)
 {
 #ifdef _OPENMP
   fprintf(stderr, "\nGRAND TOTALS:\n");
-  fprintf(stderr, "  Radix sort 2:\n");
+  fprintf(stderr, "  Radix sort 3:\n");
   fprintf(stderr, "    transpsose:    %.3fs\n", total[RADIXSORT].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[RADIXSORT].transpose_tr);
 #endif // _OPENMP
@@ -174,7 +174,7 @@ int main(int argc, char **argv)
   {
     clear_times(&total[i]);
   }
-/*
+
 #ifdef BENCHMARK_SMALL_MATRICES
   for (u32 i = 0; i < N_SMALL_MATRICES; i++)
   {
@@ -189,10 +189,10 @@ int main(int argc, char **argv)
 #endif // BENCHMARK_SMALL_MATRICES
 
 #ifdef BENCHMARK_LARGE_MATRICES
-  for (u32 i = 0; i < N_LARGE_MATRICES; i++)
+  for (u32 i = 1; i <= N_LARGE_MATRICES; i++)
   {
     char matrix_filename[FILENAME_MAX];
-    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, pre_transpose[i]);
+    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
     run_test(matrix_filename, output_filename);
@@ -200,7 +200,6 @@ int main(int argc, char **argv)
   }
   show_grand_totals();
 #endif // BENCHMARK_LARGE_MATRICES
-*/
 
  // run_test("../matrices/language.mtx", "tmp.csv");
 

@@ -144,31 +144,8 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-Bench radix sort 10 et 3 sur tout
+Bench radix sort 3 sur tout
 Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
-
-ScanTrans/Gustavson plus rapide même avec 1 thread (presque autant de lecture/ecriture, plus d'opération ? mais ça va plus vite)
-
-Gustavon:
-%%%
-for 
- écriture aléatoire et écriture même endroit
-prefix sum
-for
-	lecture aléatoire
-	écriture aléatoire
-	écriture même endroit
-%%%
-
-ScanTrans :
-%%%
-for
-	lecture aléatoire et écriture même endroit
-prefix sum
-for
-	lecture sequentielle
-	écriture aléatoire
-%%%
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
 

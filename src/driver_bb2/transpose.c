@@ -35,7 +35,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 
 #ifdef BIG_BROTHER
 double copy_pointers = 0;
-#endif
+#endif // BIG_brother
 
 void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
                    double *scratch2)
@@ -318,7 +318,9 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   u32 *INj = ctx->OUTj[0];
   double *INx = ctx->OUTx[0];
 
+#ifdef BIG_BROTHER
   // printf("histograming [%d:%d] with %d passes\n", lo, hi, n);
+#endif // BIG_BROTHER
   memset(COUNT, 0, csize * sizeof(*COUNT));
   histogram(ctx, INj, lo, hi, n, W);
 
@@ -369,7 +371,7 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
   }
 #ifdef BIG_BROTHER
   double start = spasm_wtime();
-#endif
+#endif // BIG_BROTHER
   // Computing row pointers
   const u32 tmp = 1 << ctx->shift[0];
   const u32 lo_bucket = bucket * tmp;
@@ -386,14 +388,14 @@ void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
 #ifdef BIG_BROTHER
 #pragma omp atomic
   copy_pointers += spasm_wtime() - start;
-#endif
+#endif // BIG_BROTHER
 }
 
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
 {
 #ifdef BIG_BROTHER
   copy_pointers = 0;
-#endif
+#endif // BIG_BROTHER
   const u32 nnz = A->nnz;
   u32 *Rp = R->p;
   (void)Rp; // TODO pourquoi
@@ -414,7 +416,7 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   printf("$$$        passes: \n");
   for (int p = 0; p < ctx.n_passes; p++)
     printf("$$$         - %d \n", ctx.radix[p]);
-#endif
+#endif // BIG_BROTHER
 
   const u32 size = ctx.par_count_size;
   u32 T = 1;
@@ -426,23 +428,36 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
   u32 gCOUNT[size + 1];
 
   u32 non_empty;
+
+#ifdef BIG_BROTHER
   double buckets_wct = 0;
   double partitioning_wct = 0;
   double throughput = 0;
   double max_wait = 0;
+#endif // BIG_BROTHER
 
+#ifdef BIG_BROTHER
 #pragma omp parallel reduction(max:max_wait) reduction(+:buckets_wct, copy_pointers)
+#else
+#pragma omp parallel
+#endif // BIG_BROTHER
   {
     struct cacheline_t *buffer = wc_alloc();
+
 #ifdef BIG_BROTHER
     double start = spasm_wtime();
-#endif
+#endif // BIG_BROTHER
+
     u32 tmp = partitioning(&ctx, A, buffer, tCOUNT, gCOUNT);
+
+#ifdef BIG_BROTHER
 #pragma omp master
     throughput = 16.0 * nnz / (spasm_wtime() - start) / 1e9;
 #pragma omp atomic
     partitioning_wct += spasm_wtime() - start;
 #pragma omp barrier
+#endif // BIG_BROTHER
+
 #pragma omp master
     {
       non_empty = tmp;
@@ -462,53 +477,61 @@ void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads)
       printf("$$$        smallest-bucket: %d\n", smallest);
       printf("$$$        avg-bucket: %d\n", nnz / non_empty);
       printf("$$$        biggest-bucket: %d\n", biggest);
-#endif
+#endif // BIG_BROTHER
     }
 
 #pragma omp barrier
+
 #ifdef BIG_BROTHER
     double sub_start = spasm_wtime();
-#endif
+#endif // BIG_BROTHER
 
     if (ctx.n_passes == 1)
     {
 #ifdef BIG_BROTHER
       double sub_sub_start = spasm_wtime();
-#endif
+#endif // BIG_BROTHER
+
 #pragma omp for simd schedule(static) nowait
       for (u32 i = 0; i < R->n + 1; i++)
       {
         Rp[i] = gCOUNT[i];
       }
+
 #ifdef BIG_BROTHER
       copy_pointers = spasm_wtime() - sub_sub_start;
-#endif
+#endif // BIG_BROTHER
     }
     else
     {
 #pragma omp for schedule(dynamic, 1) nowait
       for (u32 i = 0; i < non_empty; i++)
       {
-        // TODO if [gCOUNT[i], gCOUNT[i + 1]] is too small, call another
-        // sorting algorithm
         transpose_bucket(&ctx, buffer, gCOUNT[i], gCOUNT[i + 1], R, i);
       }
+      
 #ifdef BIG_BROTHER
       buckets_wct = spasm_wtime() - sub_start;
       max_wait = spasm_wtime();
-#endif
+#endif // BIG_BROTHER
     }
+
+#ifdef BIG_BROTHER
 #pragma omp barrier
     max_wait = spasm_wtime() - max_wait;
+#endif // BIG_BROTHER
+
     free(buffer);
   } // omp parallel
+
 #ifdef BIG_BROTHER
   printf("$$$        copy & row pointers wct: %.6f s\n", copy_pointers);
   printf("$$$        buckets-wct: %.6f s\n", buckets_wct);
   printf("$$$        max. wait: %.6f s\n", max_wait);
   fprintf(file, "%.9f, %.9f, %.9f\n", copy_pointers, buckets_wct, max_wait);
   fclose(file);
-#endif
+#endif // BIG_BROTHER
+
   free(scratch);
   free(scratch2);
 }

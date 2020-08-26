@@ -31,11 +31,11 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA.
 #include <stdlib.h>
 #include <string.h>
 
-#define BIG_BROTHER
+// #define BIG_BROTHER
 
 #ifdef BIG_BROTHER
 double copy_pointers = 0;
-#endif
+#endif // BIG_brother
 
 void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
                    double *scratch2)

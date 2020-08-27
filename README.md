@@ -144,7 +144,15 @@ Ensuite, `make clean` puis recompiler.
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
 
-Bench radix sort 3 sur tout
+Radix sort 3 meilleur que 10 :
+ - circuit
+ - flickr
+ - transient
+ - la tr de wiki-talk
+ - les tr de pre_transpose[20..53] (peut-être aussi de 15 à 19)
+ - inversion des courbes sur pre_transpose[54..58]
+
+
 Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
 
 GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2

@@ -120,7 +120,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   mtx_COO_transpose(T, R);
 
   // Running radix sort 1
-  for (u32 i_thread = 16; i_thread <= max_num_threads; i_thread++)
+  for (u32 i_thread = 1; i_thread <= max_num_threads; i_thread++)
   {
     for (u32 i = 0; i < N_REPEAT; ++i)
     {

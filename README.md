@@ -127,14 +127,10 @@ Ensuite, `make clean` puis recompiler.
 - [x] dans boxplot, actualiser le bon numéro de thread
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
 - [ ] citation/licence SpaSM/CADO-NFS ou refactor ?
-- [ ] comparer matrice par matrice quel algo est le meilleur
 - [ ] calculer l'occupation mémoire de scanTrans avec 1 thread par rapport à celle de Gustavson
-- [ ] radix sort LSD séquentiel
-- [ ] radix sort MSD séquentiel
-- [ ] radix sort MSD+LSD séquentiel
 - [ ] radix sort LSD parallèle
 - [ ] radix sort MSD parallèle
-- [ ] radix sort MSD+LSD tester sur toutes, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit, demi flush/purge
+- [ ] radix sort MSD+LSD tester sur toutes, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit, demi flush/purge, réduire les branchements conditionnels
 - [ ] commenter le code
 - [ ] améliorer les prints
 - [ ] checker les todo
@@ -143,24 +139,6 @@ Ensuite, `make clean` puis recompiler.
 - [ ] refactor code
 - [x] décrire le fonctionnement de tbb:parallel_sort
 - [x] décrire le fonctionnement de std::sort
-
-Radix sort 3 meilleur que 10 :
- - circuit
- - flickr
- - transient
- - la tr de wiki-talk
- - les tr de pre_transpose[20..53] (peut-être aussi de 15 à 19)
- - inversion des courbes sur pre_transpose[54..58]
-
-
-Boxplot avec Gustavson, ScanTrans, radix sort 3 pour chaque matrice avec 1 threads
-
-GCC: (MKL iomp O3 AVX2), ScanTrans omp O3 AVX2, MergeTrans omp O3 AVX2
-
-Multihistogramming : 1 passe MSD et autre passes LSD
-WCB pour éviter les fautes de cache, TLB et page walk
-
-dans la code de Wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
 
 ## Remarques
 
@@ -185,10 +163,27 @@ ScanTrans:
 	sur les 10 premières de pre-transpose les deux transpositions utilisent le même algo
 	encore moins de différences entre les deux transpositions que MergeTrans
 
-transient est spéciale ?
+dans la code de Wang, les asserts ne fonctionne pas avec scantrans^2 et les pre-transpose car celles-ci sont triées par ligne et non par ligne puis par colonne. Ainsi, la sortie colIdx de scantrans qui est triée par ligne puis par colonne n'est pas dans le même ordre que dans le fichier .mtx
 
 TBB:
 	sur les 10 premières de pre-transpose, il se passe quelque chose à partir de 80 et grand écart entre les deux transpositions
 	courbe très plate, minimum atteint vers 16 (ou 44 sur les dernières)
 
 ScanTrans est globalement le meilleur algo (overall duration et speed up)
+
+Radix sort 3 meilleur que 10 :
+ - circuit
+ - flickr
+ - transient
+ - la tr de wiki-talk
+ - les tr de pre_transpose[20..53] (peut-être aussi de 15 à 19)
+ - inversion des courbes sur pre_transpose[54..58]
+
+ScanTrans meilleur que 10:
+ - rajat29
+ - stomach
+ - circuit
+ - Stanford tr
+ - torso
+ - venkat
+ - wiki-talk tr

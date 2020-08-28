@@ -164,7 +164,7 @@ void mtx_CSR_free(mtx_CSR *A);
 mtx_COO *mtx_load_mm(FILE *f);
 
 ///
-/// \brief Mutiplies a matrix in CSR format with a vector. //TODO assert dim
+/// \brief Mutiplies a matrix in CSR format with a vector.
 ///
 /// \param[in] A the input matrix in CSR format
 /// \param[in] x the input vector
@@ -173,7 +173,7 @@ mtx_COO *mtx_load_mm(FILE *f);
 void mtx_CSR_gemv(const mtx_CSR *A, const double *x, double *y);
 
 ///
-/// \brief Mutiplies a matrix in COO format with a vector.//TODO assert dim
+/// \brief Mutiplies a matrix in COO format with a vector.
 ///
 /// \param[in] T the input matrix in COO format
 /// \param[in] x the input vector

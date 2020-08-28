@@ -124,21 +124,21 @@ Ensuite, `make clean` puis recompiler.
 - [x] reformater le code
 - [x] à remettre: la vérification avec la MKL, 
 - [x] trouver le min de la moyenne des deux transpositions dans find_minima
-- [x] dans boxplot, actualiser le bon numéro de thread
+- [x] décrire le fonctionnement de tbb:parallel_sort
+- [x] décrire le fonctionnement de std::sort
 - [ ] essayer avec O2 et O3 pour chaque algo, O3 defavorables ? Gustavon OK, std::sort OK, tbb::sort OK, MKL , scan, merge
 - [ ] citation/licence SpaSM/CADO-NFS ou refactor ?
-- [ ] calculer l'occupation mémoire de scanTrans avec 1 thread par rapport à celle de Gustavson
-- [ ] radix sort LSD parallèle
-- [ ] radix sort MSD parallèle
-- [ ] radix sort MSD+LSD tester sur toutes, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit, demi flush/purge, réduire les branchements conditionnels
-- [ ] commenter le code
+- [ ] renommer les versions, garder 3 et 10
+- [ ] commenter le code et refaire la doc
 - [ ] améliorer les prints
 - [ ] checker les todo
 - [ ] parallèliser et vectoriser avec AVX128 AVX256 AVX512
 - [ ] renommer les fichiers contenant des "::"
 - [ ] refactor code
-- [x] décrire le fonctionnement de tbb:parallel_sort
-- [x] décrire le fonctionnement de std::sort
+- [ ] calculer l'occupation mémoire de scanTrans avec 1 thread par rapport à celle de Gustavson
+- [ ] radix sort LSD parallèle
+- [ ] radix sort MSD parallèle
+- [ ] radix sort MSD+LSD tester sur toutes, utiliser un autre tri lorsque le nombre d'éléments par bucket est petit, demi flush/purge, réduire les branchements conditionnels
 
 ## Remarques
 

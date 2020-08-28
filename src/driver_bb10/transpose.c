@@ -83,7 +83,7 @@ void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
     bits -= ctx->radix[0];
     ctx->shift[0] = bits;
     // other passes are done on least significant bits first
-    if (bits <= LSD_RADIX) // TODO 17=7+5+5 ? 17 = 8 + 9
+    if (bits <= LSD_RADIX)
     {
       n = 2;
       ctx->radix[1] = bits;

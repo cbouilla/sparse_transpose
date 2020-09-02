@@ -116,45 +116,51 @@ void classical_transpose(const mtx_CSR *A, mtx_CSR *R, u32 *W)
     }
 }
 
-/* Wang et. al variant using the extra array. Faster than the classical
-variant...
-
-void wang_transpose(const mtx_COO * A, mtx_CSR * T, int *W, int *Z)
+void wang_transpose(const mtx_COO *T, mtx_CSR *A, u32 *Z)
 {
-        (void) W;
-        const int *Ai = A->i;
-        const int *Aj = A->j;
-        int *Tp = T->p;
-        int *Tj = T->j;
-        int m = A->m;
-        int nnz = A->nnz;
+  const u32 *Ti = T->i;
+  const u32 *Tj = T->j;
+  const double *Tx = T->x;
+  u32 *Ap = A->p;
+  u32 *Aj = A->j;
+  double *Ax = A->x;
+  u32 m = T->m;
+  u32 nnz = T->nnz;
 
-        for (int j = 0; j < m; j++)
-                Tp[j] = 0;
-        for (int i = 0; i < n; i++)
-                for (int k = Ap[i]; k < Ap[i + 1]; k++) {
-                        int j = Aj[k];
-                        int w = Tp[j];
-                        Z[k] = w;
-                        w += 1;
-                        Tp[j] = w;
-                }
+  // TODO optimiser ?
+  for (u32 j = 0; j < m; j++)
+    Ap[j] = 0;
 
-        int s = 0;
-        for (int j = 0; j < m; j++) {
-                int w = Tp[j];
-                Tp[j] = s;
-                s += w;
-        }
-        Tp[m] = s;
+  // counting entries on each column
+  for (u32 k = 0; k < nnz; k++)
+  {
+    u32 j = Tj[k];
+    u32 count = Ap[j];
+    Z[k] = count;
+    count += 1;
+    Ap[j] = count;
+  }
 
-        for (int k = 0; k < nnz; k++) {
-                int j = Aj[k];
-                int s = Z[k];
-                int r = Tp[j];
-                int i = Ai[k];
-                int l = r + s;
-                Tj[l] = i;
-        }
+  // prefix-sum on Ap
+  u32 sum = 0;
+  for (u32 j = 0; j < m; j++)
+  {
+    u32 count = Ap[j];
+    Ap[j] = sum;
+    sum += count;
+  }
+  Ap[m] = sum;
+
+  // dispatching
+  for (u32 k = 0; k < nnz; k++)
+  {
+    u32 j = Tj[k];
+    u32 s = Z[k];
+    u32 r = Ap[j];
+    u32 l = r + s;
+    u32 i = Ti[k];
+    double x = Tx[k];
+    Aj[l] = i;
+    Ax[l] = x;
+  }
 }
-*/

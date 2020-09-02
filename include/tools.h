@@ -19,13 +19,14 @@
 
 /// The offsets in the "total" array below
 #define GUSTAVSON 0
-#define MKL 1
-#define STDSORT 2
-#define TBBSORT 3
-#define SCANTRANS 4
-#define MERGETRANS 5
-#define RADIXSORT 6
-#define N_METHOD 7
+#define CLASSICAL_WANG 1
+#define MKL 2
+#define STDSORT 3
+#define TBBSORT 4
+#define SCANTRANS 5
+#define MERGETRANS 6
+#define RADIXSORT 7
+#define N_METHOD 8
 
 #define OUTPUT_FILENAME "benchmarks.csv"
 

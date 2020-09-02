@@ -43,7 +43,7 @@ void run_test_classical(const mtx_COO *T, const mtx_COO *R,
   mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
-  u32 *W = (u32 *)spasm_malloc((mtx_CSR_max(n, m) + 1) * sizeof(*W));
+  u32 *W = (u32 *)spasm_malloc((spasm_max(n, m) + 1) * sizeof(*W));
 
   start = spasm_wtime();
   classical_compress(T, A, W);
@@ -89,6 +89,48 @@ void run_test_classical(const mtx_COO *T, const mtx_COO *R,
 }
 
 ///
+/// \brief Benchmarks the altered version of the "classical" algorithm.
+///
+/// \param[in] T the matrix in COO format
+/// \param[in] R the transposed matrix in COO format
+/// \param[in, out] duration the duration of the algorithms
+///
+void run_test_wang(const mtx_COO *T, const mtx_COO *R,
+                   algorithm_times *duration)
+{
+  double start, stop;
+  const u32 n = T->n;
+  const u32 m = T->m;
+  const u32 nnz = T->nnz;
+
+  mtx_CSR *A = mtx_CSR_alloc(m, n, nnz);
+  mtx_CSR *B = mtx_CSR_alloc(n, m, nnz);
+  u32 *Z = (u32 *)spasm_malloc(nnz * sizeof(*Z));
+
+  start = spasm_wtime();
+  wang_transpose(T, A, Z);
+  stop = spasm_wtime();
+  check(R, A);
+  duration->transpose = stop - start;
+  total[CLASSICAL_WANG].transpose += duration->transpose;
+  fprintf(stderr, "-- Classical (Wang) transpose [CSR->CSR']: %.3fs\n",
+          duration->transpose);
+
+  start = spasm_wtime();
+  wang_transpose(R, B, Z);
+  stop = spasm_wtime();
+  check(T, B);
+  duration->transpose_tr = stop - start;
+  total[CLASSICAL_WANG].transpose_tr += duration->transpose_tr;
+  fprintf(stderr, "-- Classical (Wang) transpose [CSR'->CSR]: %.3fs\n",
+          duration->transpose_tr);
+
+  mtx_CSR_free(A);
+  mtx_CSR_free(B);
+  free(Z);
+}
+
+///
 /// \brief Benchmarks the std::sort algorithm.
 ///
 /// \param[in] T the matrix in COO format
@@ -107,7 +149,7 @@ void run_test_stdsort(const mtx_COO *T, const mtx_COO *R,
   mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
-  struct mtx_entry *Te = (struct mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
+  mtx_entry *Te = (mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
 
   start = spasm_wtime();
   stdsort_compress(T, A, Te);
@@ -173,7 +215,7 @@ void run_test_tbbsort(const mtx_COO *T, const mtx_COO *R,
   mtx_CSR *B = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *C = mtx_CSR_alloc(m, n, nnz);
   mtx_CSR *D = mtx_CSR_alloc(n, m, nnz);
-  struct mtx_entry *Te = (struct mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
+  mtx_entry *Te = (mtx_entry *)spasm_malloc(nnz * sizeof(*Te));
 
   start = spasm_wtime();
   tbbsort_compress(T, A, Te, num_threads);
@@ -350,6 +392,30 @@ void write_test_classical(const char *output_filename,
 }
 
 ///
+/// \brief Writes the execution durations of the classical algorithms.
+///
+/// \param[in] output_filename the filename where to write
+/// \param[in] matrix_filename the name of the matrix studied
+/// \param[in] duration the durations to write
+///
+void write_test_wang(const char *output_filename, const char *matrix_filename,
+                     algorithm_times *duration)
+{
+  FILE *file = fopen(output_filename, "a");
+  if (file == NULL)
+    err(1, "impossible to open %s", output_filename);
+  const u32 num_threads = 1;
+  const char *name = "Classical::Wang";
+  for (unsigned short i = 0; i < N_REPEAT; i++)
+  {
+    fprintf(file, OUTPUT_FORMAT, name, CFLAGS, CXXFLAGS, num_threads,
+            matrix_filename, 0.0, duration[i].transpose, 0.0,
+            duration[i].transpose_tr, i, N_REPEAT);
+  }
+  fclose(file);
+}
+
+///
 /// \brief Writes the execution durations of the std::sort algorithms.
 ///
 /// \param[in] output_filename the filename where to write
@@ -462,7 +528,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   // Running classical
   for (u32 i = 0; i < N_REPEAT; ++i)
   {
-    fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+    fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_classical(T, R, &duration[i]);
   }
   write_test_classical(output_filename, matrix_filename, duration);
@@ -471,10 +537,22 @@ void run_test(const char *matrix_filename, const char *output_filename)
     clear_times(&duration[i]);
   }
 
+  // Running Wang
+  for (u32 i = 0; i < N_REPEAT; ++i)
+  {
+    fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
+    run_test_wang(T, R, &duration[i]);
+  }
+  write_test_wang(output_filename, matrix_filename, duration);
+  for (u32 i = 0; i < N_REPEAT; i++)
+  {
+    clear_times(&duration[i]);
+  }
+
   // Running std::sort
   for (u32 i = 0; i < N_REPEAT; ++i)
   {
-    fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+    fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_stdsort(T, R, &duration[i]);
   }
   write_test_stdsort(output_filename, matrix_filename, duration);
@@ -490,7 +568,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   {
     for (u32 i = 0; i < N_REPEAT; ++i)
     {
-      fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+      fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_tbbsort(T, R, &duration[i], i_thread);
     }
     write_test_tbbsort(output_filename, matrix_filename, duration, i_thread);
@@ -510,7 +588,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
   {
     for (u32 i = 0; i < N_REPEAT; ++i)
     {
-      fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+      fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
       run_test_MKL(T, &duration[i], i_thread);
     }
     write_test_MKL(output_filename, matrix_filename, duration, i_thread);
@@ -518,7 +596,7 @@ void run_test(const char *matrix_filename, const char *output_filename)
 #else
   for (u32 i = 0; i < N_REPEAT; ++i)
   {
-    fprintf(stderr, "-- Step %d/%d:\n", i + 1, N_REPEAT);
+    fprintf(stderr, "- Step %d/%d:\n", i + 1, N_REPEAT);
     run_test_MKL(T, &duration[i], 1);
   }
   write_test_MKL(output_filename, matrix_filename, duration, 1);
@@ -541,12 +619,17 @@ void run_test(const char *matrix_filename, const char *output_filename)
 ///
 void show_grand_totals(void)
 {
-  fprintf(stderr, "\nGRAND TOTALS:\n");
+  fprintf(stderr, "\nTOTALS:\n");
   fprintf(stderr, "  Gustavson:\n");
   fprintf(stderr, "    compress:      %.3fs\n", total[GUSTAVSON].compress);
   fprintf(stderr, "    compress_tr:   %.3fs\n", total[GUSTAVSON].compress_tr);
   fprintf(stderr, "    transpsose:    %.3fs\n", total[GUSTAVSON].transpose);
   fprintf(stderr, "    transpsose_tr: %.3fs\n", total[GUSTAVSON].transpose_tr);
+  fprintf(stderr, "  Classical (Wang):\n");
+  fprintf(stderr, "    transpsose:    %.3fs\n",
+          total[CLASSICAL_WANG].transpose);
+  fprintf(stderr, "    transpsose_tr: %.3fs\n",
+          total[CLASSICAL_WANG].transpose_tr);
   fprintf(stderr, "  std::sort:\n");
   fprintf(stderr, "    compress:      %.3fs\n", total[STDSORT].compress);
   fprintf(stderr, "    compress_tr:   %.3fs\n", total[STDSORT].compress_tr);
@@ -625,6 +708,9 @@ int main(int argc, char **argv)
   }
   show_grand_totals();
 #endif // BENCHMARK_LARGE_MATRICES
+
+  // run_test("../matrices/pre_transpose12.mtx", "tmp.csv");
+  // run_test("../matrices/language.mtx", "tmp.csv");
 
   return EXIT_SUCCESS;
 }

@@ -24,7 +24,7 @@ typedef uint32_t u32;
 /// \param[in] Te the input matrix in COO format to convert
 /// \param[out] A the output matrix in CSR format
 ///
-void finalize(const u32 n, const u32 nnz, const struct mtx_entry *Te,
+void finalize(const u32 n, const u32 nnz, const mtx_entry *Te,
               mtx_CSR *A);
 
 ///
@@ -35,7 +35,7 @@ void finalize(const u32 n, const u32 nnz, const struct mtx_entry *Te,
 /// \param[out] A the output matrix in CSR format
 /// \param[out] Te the output matrix in another COO format
 ///
-void stdsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te);
+void stdsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te);
 
 ///
 /// \brief Transposes a mtrix in CSR format by using std::sort.
@@ -47,7 +47,7 @@ void stdsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te);
 /// \param[out] R the output matrix in CSR format
 /// \param[out] Te the output matrix in another COO format
 ///
-void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, struct mtx_entry *Te);
+void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te);
 
 ///
 /// \brief Converts a matrix in COO format into a matrix in CSR
@@ -58,7 +58,7 @@ void stdsort_transpose(const mtx_CSR *A, mtx_CSR *R, struct mtx_entry *Te);
 /// \param[out] Te the output matrix in another COO format
 /// \param[in] num_threads the number of threads used in TBB's parallel sort
 ///
-void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te,
+void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te,
                       const u32 num_threads);
 
 ///
@@ -72,7 +72,7 @@ void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, struct mtx_entry *Te,
 /// \param[out] Te the output matrix in another COO format
 /// \param[in] num_threads the number of threads used in TBB's parallel sort
 ///
-void tbbsort_transpose(const mtx_CSR *A, mtx_CSR *R, struct mtx_entry *Te,
+void tbbsort_transpose(const mtx_CSR *A, mtx_CSR *R, mtx_entry *Te,
                        const u32 num_threads);
 
 ///

@@ -39,4 +39,15 @@ void classical_compress(const mtx_COO *T, mtx_CSR *A, u32 *W);
 ///
 void classical_transpose(const mtx_CSR *A, mtx_CSR *R, u32 *W);
 
+///
+/// \brief Transposes a matrix in CSR format by using the altered version of the
+/// classical algorithm. Wang et. al variant using the extra array. Faster than
+/// the classical variant...
+///
+/// \param[in] A the input matrix in CSR format
+/// \param[out] R the output matrix in CSR format
+/// \param[out] Z a scratch space (size == nnz)
+///
+void wang_transpose(const mtx_COO *T, mtx_CSR *A, u32 *Z);
+
 #endif /* INCLUDE_DRIVER_CLASSICAL_SORT_H */

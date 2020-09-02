@@ -2,12 +2,13 @@
 
 - [Transposition de matrices creuses](#transposition-de-matrices-creuses)
   - [Installation](#installation)
+  - [Matrices](#matrices)
   - [Utilisation](#utilisation)
-    - [Matrices](#matrices)
     - [Intel Math Kernel Library (MKL)](#intel-math-kernel-library-mkl)
     - [Intel Threading Building Block (TBB)](#intel-threading-building-block-tbb)
+  - [Version](#version)
   - [TODO](#todo)
-  - [Licence](#licence)
+  - [Remarques](#remarques)
 
 ## Installation
 
@@ -29,22 +30,11 @@ Testé avec:
 - C++ 11 STL
 - GCC 6.3.0 20170516 (Debian 6.3.0-18+deb9u1) et 10.1.0
 
+## Matrices
+
+Les tailles des matrices sont disponibles [ici](matrices.md).
 
 ## Utilisation
-
-### Matrices
-
-Le jeu de matrices utilisé par *Wang et. al* est disponible sur la machine ppti-gpu-1 dans le dossier ou dans le fichier `matrices.txt` :
-
-`/Infos/lmd/2019/master/ue/MU4IN903-2020fev`
-
-Taille : 5Go.
-
-Un autre jeu de matrices (le mien) est disponible dans le dossier :
-
-`/Infos/lmd/2019/master/ue/MU4IN903-2020fev/RSA.ok`
-
-Taille : 14Go. Ces matrices sont plus rectangulaires.
 
 ### Intel Math Kernel Library (MKL)
 
@@ -66,7 +56,7 @@ Pour utiliser TBB sur ppti-gpu-1 :
 
 Ensuite, `make clean` puis recompiler.
 
-## VERSION
+## Version
 
 1. count + prefix-sum dans transpose()
 2. finalize dans transpose()

@@ -1,7 +1,8 @@
 
 ///
 /// \file driver_bb.c
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files runs benchmarks.
 /// \date 2020-08-06
 ///

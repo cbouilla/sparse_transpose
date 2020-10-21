@@ -1,8 +1,9 @@
 ///
 /// \file driver.c
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files runs benchmarks.
-/// \date 2020-07-09
+/// \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///
@@ -25,7 +26,7 @@
 #include "tools.h"
 
 ///
-/// \brief Benchmarks the "classical" algorithm.
+/// \brief Benchmarks the classical (Gustavson's) algorithm.
 ///
 /// \param[in] T the matrix in COO format
 /// \param[in] R the transposed matrix in COO format
@@ -89,7 +90,8 @@ void run_test_classical(const mtx_COO *T, const mtx_COO *R,
 }
 
 ///
-/// \brief Benchmarks the altered version of the "classical" algorithm.
+/// \brief Benchmarks the altered version of the classical (Gustavson's)
+/// algorithm.
 ///
 /// \param[in] T the matrix in COO format
 /// \param[in] R the transposed matrix in COO format

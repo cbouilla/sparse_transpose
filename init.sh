@@ -1,6 +1,5 @@
 # MKL
 source /usr/intel/mkl/bin/mklvars.sh intel64
-# source /usr/intel/mkl/bin/mklvars.sh intel64 ilp64  <--- si on veut des entiers 64 bits
 
 # TBB
 source /usr/intel/tbb/bin/tbbvars.sh intel64

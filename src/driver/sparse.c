@@ -1,6 +1,6 @@
 ///
 /// \file sparse.c
-/// \author // TODO
+/// \author Charles Bouillaguet (Github: cbouilla)
 /// \brief This file implements structures and functions to manage sparse matrix
 /// formats.
 /// \date 2020-07-23

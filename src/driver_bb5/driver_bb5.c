@@ -1,7 +1,8 @@
 
 ///
 /// \file driver_bb.c
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files runs benchmarks.
 /// \date 2020-08-06
 ///
@@ -188,10 +189,10 @@ int main(int argc, char **argv)
 #endif // BENCHMARK_SMALL_MATRICES
 
 #ifdef BENCHMARK_LARGE_MATRICES
-  for (u32 i = 0; i < N_LARGE_MATRICES; i++)
+  for (u32 i = 1; i <= N_LARGE_MATRICES; i++)
   {
     char matrix_filename[FILENAME_MAX];
-    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, pre_transpose[i]);
+    sprintf(matrix_filename, "%s/RSA.ok/pre_transpose%d.mtx", MATRIX_PATH, i);
 
     printf("#---------------------------------------- %s\n", matrix_filename);
     run_test(matrix_filename, output_filename);

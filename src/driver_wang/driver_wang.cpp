@@ -1,6 +1,7 @@
 ///
 /// \file driver_wang.cpp
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files implements the ScanTrans and MergeTrans algorithms from
 /// Wang et al. (2016).
 /// The `run_test_scanTrans` and `run_test_mergeTrans` functions are heavily

@@ -9,6 +9,11 @@ from os import mkdir
 from sys import argv
 
 import matplotlib.pyplot as plt
+plt.rcParams.update({
+    'font.family': 'serif',
+    'font.serif': ['Liberation Serif'],
+    'font.size': 9
+})
 import numpy as np
 import pandas as pd
 from matplotlib._color_data import CSS4_COLORS
@@ -228,9 +233,9 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
             total[key]['matrices'].add(matrix)
         except:
             pass
-        fig, axes = plt.subplots()
-        print("Plotting speed up of {} on {}...".format(name, matrix), end=' ',
-              flush=True)
+        # fig, axes = plt.subplots()
+        # print("Plotting speed up of {} on {}...".format(name, matrix), end=' ',
+        #       flush=True)
         sequential = ref.loc[ref['matrix']
                              == matrix, 'transpose'].values[0]
         total[key]['sequential'] = total[key]['sequential'] + sequential
@@ -239,7 +244,7 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
         transpose = data.loc[index, "transpose"].rdiv(sequential)
         total[key]['mean_transpose'] = total[key]['mean_transpose'].add(
             transpose)
-        transpose.plot(label="transpose", linestyle=':', marker='.', color="b")
+#        transpose.plot(label="transpose", linestyle=':', marker='.', color="b")
         sequential_tr = ref.loc[ref['matrix'] ==
                                 matrix, 'transpose_tr'].values[0]
         total[key]['sequential_tr'] = total[key]['sequential_tr'] + sequential_tr
@@ -248,76 +253,77 @@ def plot_speed_up(data, ref, show=True, save=True, save_path=""):
         transpose_tr = data.loc[index, "transpose_tr"].rdiv(sequential_tr)
         total[key]['mean_transpose_tr'] = total[key]['mean_transpose_tr'].add(
             transpose_tr)
-        transpose_tr.plot(label="transpose_tr", linestyle=':', marker='.',
-                          color='r')
-        mean = transpose.add(transpose_tr).div(2)
-        mean.plot(label="mean", linestyle=':', marker='.', color='g')
-        axes.set(xlabel='threads', xlim=(threads[0] - 1, threads[-1] + 1),
-                 xticks=np.concatenate(
-                        ([1], 4*np.arange(threads[0], (threads[-1] + 1) / 4))),
-                 ylabel='speed up', title=name + " on " + matrix)
-        axes.grid(linestyle='-.')
-        axes.legend()
-        if save:
-            output = save_path + \
-                name.replace(" ", "_") + "_" + matrix + "_speed_up.svg"
-            fig.savefig(output)
-        if show:
-            plt.show()
-        plt.close(fig)
-        print("done.")
+        # transpose_tr.plot(label="transpose_tr", linestyle=':', marker='.',
+        #                   color='r')
+        # mean = transpose.add(transpose_tr).div(2)
+        # mean.plot(label="mean", linestyle=':', marker='.', color='g')
+        # axes.set(xlabel='threads', xlim=(threads[0] - 1, threads[-1] + 1),
+        #          xticks=np.concatenate(
+        #                 ([1], 4*np.arange(threads[0], (threads[-1] + 1) / 4))),
+        #          ylabel='speed up', title=name + " on " + matrix)
+        # axes.grid(linestyle='-.')
+        # axes.legend()
+        # if save:
+        #     output = save_path + \
+        #         name.replace(" ", "_") + "_" + matrix + "_speed_up.svg"
+        #     fig.savefig(output)
+        # if show:
+        #     plt.show()
+        # plt.close(fig)
+        # print("done.")
     # Mean
-    for (k, d) in total.items():
-        name, _, _ = k
-        length = len(total[k]['matrices'])
-        fig, axes = plt.subplots()
-        transpose = d['mean_transpose'].div(length)
-        transpose_tr = d['mean_transpose_tr'].div(length)
-        print("Plotting mean speed up of {}...".format(name), end=' ',
-              flush=True)
-        transpose.plot(label="transpose", linestyle=':', marker='.', color="b")
-        transpose_tr.plot(label="transpose_tr", linestyle=':', marker='.',
-                          color='r')
-        mean = transpose.add(transpose_tr).div(2)
-        mean.plot(label="mean", linestyle=':', marker='.', color='g')
-        axes.set(xlabel='threads', xlim=(threads[0] - 1, threads[-1] + 1),
-                 xticks=np.concatenate(
-                        ([1], 4*np.arange(threads[0], (threads[-1] + 1) / 4))),
-                 ylabel='speed up', title=name + " mean speed up")
-        axes.grid(linestyle='-.')
-        axes.legend()
-        if save:
-            output = save_path + \
-                name.replace(" ", "_") + "_mean_speed_up.svg"
-            fig.savefig(output)
-        if show:
-            plt.show()
-        plt.close(fig)
-        print("done.")
+    # for (k, d) in total.items():
+    #     name, _, _ = k
+    #     length = len(total[k]['matrices'])
+    #     fig, axes = plt.subplots()
+    #     transpose = d['mean_transpose'].div(length)
+    #     transpose_tr = d['mean_transpose_tr'].div(length)
+    #     print("Plotting mean speed up of {}...".format(name), end=' ',
+    #           flush=True)
+    #     transpose.plot(label="transpose", linestyle=':', marker='.', color="b")
+    #     transpose_tr.plot(label="transpose_tr", linestyle=':', marker='.',
+    #                       color='r')
+    #     mean = transpose.add(transpose_tr).div(2)
+    #     mean.plot(label="mean", linestyle=':', marker='.', color='g')
+    #     axes.set(xlabel='threads', xlim=(threads[0] - 1, threads[-1] + 1),
+    #              xticks=np.concatenate(
+    #                     ([1], 4*np.arange(threads[0], (threads[-1] + 1) / 4))),
+    #              ylabel='speed up', title=name + " mean speed up")
+    #     axes.grid(linestyle='-.')
+    #     axes.legend()
+    #     if save:
+    #         output = save_path + \
+    #             name.replace(" ", "_") + "_mean_speed_up.svg"
+    #         fig.savefig(output)
+    #     if show:
+    #         plt.show()
+    #     plt.close(fig)
+    #     print("done.")
     # Overall
     for (k, d) in total.items():
         name, _, _ = k
-        fig, axes = plt.subplots()
+        fig, axes = plt.subplots(figsize=(5.5,3.7))
         transpose = d['overall_transpose'].rdiv(d['sequential'])
         transpose_tr = d['overall_transpose_tr'].rdiv(
             d['sequential_tr'])
         print("Plotting overall speed up of {}...".format(name), end=' ',
               flush=True)
-        transpose.plot(label="transpose", linestyle=':', marker='.', color="b")
-        transpose_tr.plot(label="transpose_tr", linestyle=':', marker='.',
+        transpose.plot(label="$A^T$", linestyle='', marker='.', markersize=3, color="b")
+        transpose_tr.plot(label="$(A^T)^T$", linestyle='', marker='.', markersize=3,
                           color='r')
         mean = transpose.add(transpose_tr).div(2)
-        mean.plot(label="mean", linestyle=':', marker='.', color='g')
-        axes.set(xlabel='threads', xlim=(threads[0] - 1, threads[-1] + 1),
+        mean.plot(label="moyenne", linestyle='', marker='.', markersize=3, color='g')
+        axes.set(xlabel="Fils d'exécution", xlim=(threads[0] - 1, threads[-1] + 1),
                  xticks=np.concatenate(
                         ([1], 4*np.arange(threads[0], (threads[-1] + 1) / 4))),
-                 ylabel='speed up', title=name + " overall speed up")
+                 ylabel='Accélération')
         axes.grid(linestyle='-.')
-        axes.legend()
+        leg = axes.legend(ncol=3)
+#        leg.get_frame().set_alpha(0.6)
         if save:
             output = save_path + \
-                name.replace(" ", "_") + "_overall_speed_up.svg"
-            fig.savefig(output)
+                name.replace(" ", "_") + "_overall_speed_up.eps"
+            fig.savefig(output, dpi=1200)
         if show:
             plt.show()
         plt.close(fig)
@@ -374,9 +380,11 @@ def plot_box(data, show=True, save=True, save_path=""):
     total_tr = [0] * len(x)
     for i in range(0, len(data.index), N_repeat):
         matrix, _ = data.iloc[i].name
+        if matrix.find("pre_transpose6") < 0:
+            continue
         # dropna is needed because other threads appear as NaN
         current_data = data[i:i + N_repeat].dropna(axis=1)
-        fig, axes = plt.subplots(figsize=(14, 7))
+        fig, axes = plt.subplots(figsize=(7, 4))
         print("Plotting boxes on {}...".format(matrix), end=' ', flush=True)
         color = {'boxes': CSS4_COLORS['dimgrey'], 
                  'whiskers': CSS4_COLORS['dimgrey'],
@@ -396,53 +404,55 @@ def plot_box(data, show=True, save=True, save_path=""):
             means[i] = (y + y_tr) / 2
             total[i] = total[i] + y
             total_tr[i] = total_tr[i] + y_tr
-        axes.plot(x, means, linestyle="", color='g', marker='.', zorder=10,
-                  label='mean of medians')
-        axes.set(xticks=x, xlabel='name', ylabel='duration (s)', title=matrix)
-        bplot['medians'][0].set_label("transpose")
-        bplot_tr['medians'][0].set_label("transpose_tr")
+        axes.plot(x, means, linestyle="", color='g', marker='.', markersize=3, zorder=10,
+                  label='moyenne des medianes')
+        axes.set(xticks=x, ylabel='Durée (s)')
+        bplot['medians'][0].set_label("$A^T$")
+        bplot_tr['medians'][0].set_label("$(A^T)^T$")
         labels = list()
         columns = current_data['transpose'].columns
         for columns_names in columns:
             name = columns_names[0].replace(" ", "\n", 1)
             name = extract_program_name(name)
-            if not is_serial(name):
-                name = name + " (" + str(columns_names[3]) + ")"
+#            if not is_serial(name):
+#                name = name + " (" + str(columns_names[3]) + ")"
             labels.append(name)
         plt.setp(axes, xticklabels=labels)
         plt.xticks(horizontalalignment='center')
         axes.grid(False)
         axes.grid(linestyle='-.', axis='y')
-        axes.legend()
+        axes.legend(ncol=3)
         if save:
-            output = save_path + matrix + "_boxplot.svg"
-            fig.savefig(output)
+            output = save_path + matrix + "_boxplot.eps"
+            fig.savefig(output, dpi=1200)
         if show:
             plt.show()
         plt.close(fig)
         print("done.")
     # Overall
-    fig, axes = plt.subplots(figsize=(14,7))
-    print("Plotting overall boxes...", end=' ', flush=True)
-    axes.plot(x, total, label="transpose", linestyle="", color="b", marker='+')
-    axes.plot(x, total_tr, label="transpose_tr", linestyle="", color="r",
-              marker='+')
-    means = np.add(total, total_tr) / 2
-    axes.plot(x, means, label="mean", linestyle="", color="g", marker='+')
-    axes.set(xticks=x, xlabel='name', ylabel='duration (s)',
-             title="Overall sum of medians")
-    plt.setp(axes, xticklabels=labels)
-    plt.xticks(horizontalalignment='center')
-    axes.grid(False)
-    axes.grid(linestyle='-.', axis='y')
-    axes.legend()
-    if save:
-        output = save_path + "overall_boxplot.svg"
-        fig.savefig(output)
-    if show:
-        plt.show()
-    plt.close(fig)
-    print("done.")
+    # fig, axes = plt.subplots(figsize=(7,4))
+    # print("Plotting overall boxes...", end=' ', flush=True)
+    # axes.plot(x, total, label="$A^T$", linestyle="", color="b", marker='+', markersize=3)
+    # axes.plot(x, total_tr, label="$(A^T)^T$", linestyle="", color="r",
+    #           marker='+', markersize=3)
+    # means = np.add(total, total_tr) / 2
+    # axes.plot(x, means, label="moyenne des médianes", linestyle="", color="g", marker='.', markersize=3)
+    # axes.set(xticks=x, ylabel='Durée (s)')
+    # plt.setp(axes, xticklabels=labels)
+    # plt.xticks(horizontalalignment='center')
+    # axes.grid(False)
+    # axes.grid(linestyle='-.', axis='y')
+    # axes.legend(ncol=3)
+    # if save:
+    #     output = save_path + "overall_suitesparse_boxplot.eps"
+    #     fig.savefig(output, dpi=1200)
+    # if show:
+    #     plt.show()
+    # plt.close(fig)
+    # print("done.")
+    # print(total)
+    # print(total_tr)
+    # print(means)
 
 
 def main():
@@ -478,42 +488,33 @@ def main():
             filename)
         return
     data = read_csv(filename)
-    sequential, parallel = split(data)
-    parallel_means = means(parallel.iloc[:, :-2])
-    transpose_means = parallel_means[[
-        'transpose', 'transpose_tr']].apply(np.mean, axis=1)
-    parallel_means.insert(loc=len(parallel_means.columns), column="transpose mean",
-                        value=transpose_means)
-    ref = read_csv("csv/classical_O2.csv")
-    ref_means = means(ref)
-    parallel_means_pivot = parallel_means.pivot_table(
-        index=['program', 'cflags', 'cxxflags', 'matrix'], columns="threads",
-        values=['compress', 'transpose', 'compress_tr',
-                'transpose_tr', 'transpose mean'],
-        observed=True)
-    plot_duration(parallel_means_pivot, show=False,
-                save=True, save_path=save_path)
-    plot_speed_up(parallel_means_pivot, ref_means,
-                show=False, save=True, save_path=save_path)
-    best = find_minima(parallel_means_pivot, parallel)
-    faster_parallel = parallel.loc[best]
-    new_data = pd.concat([sequential, faster_parallel])
+    # sequential, parallel = split(data)
+    # parallel_means = means(parallel.iloc[:, :-2])
+    # transpose_means = parallel_means[[
+    #     'transpose', 'transpose_tr']].apply(np.mean, axis=1)
+    # parallel_means.insert(loc=len(parallel_means.columns), column="transpose mean",
+    #                       value=transpose_means)
+    # ref = read_csv("csv/classical_O2.csv")
+    # ref_means = means(ref)
+    # parallel_means_pivot = parallel_means.pivot_table(
+    #     index=['program', 'cflags', 'cxxflags', 'matrix'], columns="threads",
+    #     values=['compress', 'transpose', 'compress_tr',
+    #             'transpose_tr', 'transpose mean'],
+    #     observed=True)
+    # # plot_duration(parallel_means_pivot, show=False,
+    # #            save=True, save_path=save_path)
+    # plot_speed_up(parallel_means_pivot, ref_means,
+    #               show=False, save=True, save_path=save_path)
+    # best = find_minima(parallel_means_pivot, parallel)
+    # faster_parallel = parallel.loc[best]
+    # new_data = pd.concat([sequential, faster_parallel])
+    new_data = data.query('threads == 1')
     new_data_pivot = new_data.pivot_table(
         index=['matrix', 'step'],
         columns=['program', 'cflags', 'cxxflags', 'threads', 'total_step'],
         values=['compress', 'transpose', 'compress_tr', 'transpose_tr'],
         observed=True)
     plot_box(new_data_pivot, show=False, save=True, save_path=save_path)
-
-    # groups = ["program", "cflags", "cxxflags", "threads"]
-    # data = (parallel_means.groupby(groups, as_index=False)).sum().dropna()
-    # df = data.pivot_table(
-    #     index=['program', 'cflags', 'cxxflags'], columns="threads",
-    #     values=['compress', 'transpose', 'compress_tr',
-    #             'transpose_tr', 'transpose mean'],
-    #     observed=True)
-    # for idx in df.index:
-    #     df.loc[idx,'transpose mean'].idxmin()
 
 
 if __name__ == "__main__":

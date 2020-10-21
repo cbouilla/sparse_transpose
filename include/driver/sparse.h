@@ -1,13 +1,12 @@
 ///
 /// \file mini_spasm.h
-/// \author // TODO
-/// \brief This file implements structures and functions to manage sparse matrix
-/// formats.
-/// \date 2020-07-23
+/// \author Charles Bouillaguet (Github: cbouilla)
+/// Modified by Jérôme Bonacchi (Github: MarsParallax)
+/// \brief This file contains structures and functions to manage sparse matrix
+/// formats. Jérôme Bonacchi changed typedef, types, function names...
+/// \date 2020
 ///
-/// @copyright // TODO
-///
-/// Change typedef, types, function names
+/// @copyright Copyright (c) 2020
 ///
 
 #ifndef INCLUDE_DRIVER_SPARSE_H
@@ -22,7 +21,7 @@
 typedef uint32_t u32;
 
 ///
-/// \brief A COO corresponding to a matrix entry.
+/// \brief Triplet corresponding to a matrix entry.
 ///
 typedef struct
 {
@@ -37,7 +36,7 @@ typedef struct
 typedef struct
 {
   u32 nnz_max; ///< the maximum number of entries (only nonzero entries are
-               ///< usually stored, but explicit zero entries are allowed)
+               /// usually stored, but explicit zero entries are allowed)
   u32 nnz;     ///< the actual number of entries
   u32 n;       ///< the number of rows
   u32 m;       ///< the number of columns
@@ -52,7 +51,7 @@ typedef struct
 typedef struct
 {
   u32 nnz_max; ///< the maximum number of entries (only nonzero entries are
-               ///< usually stored, but explicit zero entries are allowed)
+               /// usually stored, but explicit zero entries are allowed)
   u32 n;       ///< the number of rows
   u32 m;       ///< the number of columns
   u32 *p;      ///< the row pointers (size == `n` + 1)
@@ -62,10 +61,10 @@ typedef struct
 
 /* example (this is Matrix/t1)
 
-                [ 4.5  0.0  3.2  0.0 ]
-                [ 3.1  2.9  0.0  0.9 ]
+    [ 4.5  0.0  3.2  0.0 ]
+    [ 3.1  2.9  0.0  0.9 ]
 A = [ 0.0  1.7  3.0  0.0 ]
-                [ 3.5  0.4  0.0  1.0 ]
+    [ 3.5  0.4  0.0  1.0 ]
 
 COO form (nz != -1) :
 
@@ -75,7 +74,7 @@ x = { 3.0, 3.1, 1.0, 3.2, 2.9, 3.5, 0.4, 0.9, 4.5, 1.7 }
 
 the coefficients may appear in any order.
 
-Compressed Row form :
+Compressed Row (CSR) form :
 
 p = {   0,             3,             6,        8,      10 }
 i = {   0,   1,   3,   1,   2,   3,   0,   2,   1,   3 }

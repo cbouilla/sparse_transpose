@@ -1,8 +1,10 @@
 ///
 /// \file transpose.h
-/// \author Charles Bouillaguet and Jérôme Bonacchi
-/// \brief //TODO
-/// \date 2020-08-07
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
+/// \brief This file contains functions to transpose matrices in CSR format
+/// using radix sort.
+/// \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///
@@ -19,7 +21,8 @@
 #include "tools.h"
 
 ///
-/// \brief L1 cache line has size 64 on most CPUs
+/// \brief Number of variables in L1 cache line. L1 cache line has size 64 on
+/// most CPUs.
 ///
 #define CACHELINE_SIZE ((u8)(64 / sizeof(u32)))
 #define MAX_RADIX_BITS 10 ///< was experimentally found to be OK
@@ -30,25 +33,26 @@
 ///
 struct ctx_t
 {
-  u8 bits;
-  u8 n_passes; /* last pass is done... first, in parallel. */
-  u8 radix[MAX_PASSES];
-  u8 shift[MAX_PASSES];
-  u32 n_buckets[MAX_PASSES];
+  u8 bits;                   ///< length in bits of the numbers
+  u8 n_passes;               ///< number of passes (first in parallel)
+  u8 radix[MAX_PASSES];      ///< radices used in each pass
+  u8 shift[MAX_PASSES];      ///< shifts used in each pass
+  u32 n_buckets[MAX_PASSES]; ///< number of buckets used in each pass
   u32 pCOUNT[MAX_PASSES];
-  u32 mask[MAX_PASSES];
-  u32 *OUTi[MAX_PASSES];
-  u32 *OUTj[MAX_PASSES];
-  double *OUTx[MAX_PASSES];
+  u32 mask[MAX_PASSES];     ///< masks used in each pass
+  u32 *OUTi[MAX_PASSES];    ///< row indices
+  u32 *OUTj[MAX_PASSES];    ///< column indices
+  double *OUTx[MAX_PASSES]; ///< numerical values
   u32 seq_count_size;
   u32 par_count_size;
 };
 
-/* cache-resident buffer for (i, j) pairs. One such entry per output bucket.
-   Invariants:  row[CACHELINE_SIZE - 1] contains COUNT[...] for this bucket,
-        col[CACHELINE_SIZE - 1] contains offset of the first entry in this
-   buffer.
-   */
+///
+/// \brief cache-resident buffer for triplets. One such entry per output bucket.
+/// Invariants:  row[CACHELINE_SIZE - 1] contains COUNT[...] for this bucket,
+/// col[CACHELINE_SIZE - 1] contains offset of the first entry in this
+/// buffer.
+///
 struct cacheline_t
 {
   u32 row[CACHELINE_SIZE];
@@ -56,18 +60,31 @@ struct cacheline_t
   double value[CACHELINE_SIZE];
 };
 
+///
+/// \brief cache-resident buffer for triplets. One such entry per output bucket.
+///
 struct half_cacheline_t
 {
   u32 row[CACHELINE_SIZE];
   double value[CACHELINE_SIZE];
 };
 
-/* copy 64 bytes from src to dst using non-temporal store instructions
-   if available (this bypasses the cache). */
+///
+/// \brief Copies 64 bytes from `src` to `dst` using non-temporal store
+/// instructions if available (this bypasses the cache).
+///
+/// \param[out] dst the destination array
+/// \param[in] src the source array
+///
 static inline void store_nontemp_int(void *dst, const void *src);
 
-/* copy 128 bytes from src to dst using non-temporal store instructions
-   if available (this bypasses the cache). */
+///
+/// \brief Copies 128 bytes from `src` to `dst` using non-temporal store
+/// instructions if available (this bypasses the cache).
+///
+/// \param[out] dst the destination array
+/// \param[in] src the source array
+///
 static inline void store_nontemp_double(void *dst, const void *src);
 
 #if __AVX__
@@ -80,7 +97,7 @@ static inline void store_nontemp_int(void *dst, const void *src)
   register __m256i s2 = *(((__m256i *)src) + 1);
   _mm256_stream_si256(d1, s1);
   _mm256_stream_si256(d2, s2);
-  /* note : it can also be done using SSE for non-AVX machines */
+  // note: it can also be done using SSE for non-AVX machines
 }
 
 static inline void store_nontemp_double(void *dst, const void *src)
@@ -97,7 +114,7 @@ static inline void store_nontemp_double(void *dst, const void *src)
   _mm256_stream_pd((double *)d2, s2);
   _mm256_stream_pd((double *)d3, s3);
   _mm256_stream_pd((double *)d4, s4);
-  /* note : it can also be done using SSE for non-AVX machines */
+  // note: it can also be done using SSE for non-AVX machines
 }
 #else
 static inline void store_nontemp_int(void *dst, const void *src)
@@ -115,8 +132,15 @@ static inline void store_nontemp_double(void *dst, const void *src)
   for (u8 i = 0; i < CACHELINE_SIZE; i++)
     out[i] = in[i];
 }
-#endif
+#endif // __AVX__
 
+///
+/// \brief Allocates aligned memory. Wrapper of `aligned_alloc`.
+///
+/// \param[in] size
+/// \param[in] alignment
+/// \return void* the pointer to allocated memory
+///
 static inline void *malloc_aligned(const size_t size, const size_t alignment)
 {
   void *x = aligned_alloc(alignment, size);
@@ -125,34 +149,51 @@ static inline void *malloc_aligned(const size_t size, const size_t alignment)
   return x;
 }
 
-/* Allocate the buffer */ // TODO allouer moins de mémoire en prenant un
-                          // argument
+///
+/// \brief Allocates the software write-combining buffer.
+///
+/// \return struct cacheline_t* a list of `cacheline_t`, i.e. buckets
+///
 static struct cacheline_t *wc_alloc()
 {
   return (struct cacheline_t *)malloc_aligned(
       sizeof(struct cacheline_t) * (1 << MAX_RADIX_BITS), 64);
 }
 
-/* Setup the buffer for a new pass */
+///
+/// \brief Sets up the buffer for a new pass.
+///
+/// \param[out] buffer the buffer, i.e. a list of buckets
+/// \param[in] COUNT
+/// \param[in] n_buckets the number of buckets
+///
 static inline void wc_prime(struct cacheline_t *buffer, const u32 *COUNT,
                             const u32 n_buckets)
 {
   for (u32 i = 0; i < n_buckets; i++)
   {
-    buffer[i].row[CACHELINE_SIZE - 1] =
-        COUNT[i];
+    buffer[i].row[CACHELINE_SIZE - 1] = COUNT[i];
     buffer[i].col[CACHELINE_SIZE - 1] = COUNT[i] & (CACHELINE_SIZE - 1);
   }
 }
 
-/* Transfer data stored in this buffer to the output arrays.
-   Assumption: this bucket is filled to the end */
+///
+/// \brief Transfers data stored in the bucket to the output arrays.
+/// Assumption: this bucket is filled to the end
+///
+/// \param[in] self the bucket
+/// \param[in] count
+/// \param[in] start the index where to start in the buffer
+/// \param[out] OUTi the row indices
+/// \param[out] OUTj the column indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_flush(struct cacheline_t *self, const u32 count,
                             const u32 start, u32 *OUTi, u32 *OUTj, double *OUTx)
 {
   u32 target = count & ~(CACHELINE_SIZE - 1);
   if (start != 0)
-  { /* incomplete flush */
+  { // incomplete flush
     for (u8 i = start; i < CACHELINE_SIZE; i++)
     {
       OUTi[target + i] = self->row[i];
@@ -161,7 +202,7 @@ static inline void wc_flush(struct cacheline_t *self, const u32 count,
     }
   }
   else
-  { /* complete cache line flush */
+  { // complete cache line flush
     store_nontemp_int(OUTi + target, self->row);
     store_nontemp_int(OUTj + target, self->col);
     store_nontemp_double(OUTx + target, self->value);
@@ -169,7 +210,18 @@ static inline void wc_flush(struct cacheline_t *self, const u32 count,
   self->col[CACHELINE_SIZE - 1] = 0;
 }
 
-/* push an (i,j) pair into the buffer */
+///
+/// \brief Pushes an (i, j, x) triplet into the buffer.
+///
+/// \param[in] i the row index
+/// \param[in] j the column index
+/// \param[in] x the numerical value
+/// \param[inout] buffer the buffer
+/// \param[in] bucket_idx the index of the bucket in the buffer
+/// \param[out] OUTi the row indices
+/// \param[out] OUTj the column indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_push(const u32 i, const u32 j, const double x,
                            struct cacheline_t *buffer, const u32 bucket_idx,
                            u32 *OUTi, u32 *OUTj, double *OUTx)
@@ -186,7 +238,15 @@ static inline void wc_push(const u32 i, const u32 j, const double x,
   self->row[CACHELINE_SIZE - 1] = count + 1;
 }
 
-/* flush all buffer entries to the OUT arrays */
+///
+/// \brief Flushes all buffer entries to the OUT arrays.
+///
+/// \param[in] buffer the buffer
+/// \param[in] n_buckets the number of buckets
+/// \param[out] OUTi the row indices
+/// \param[out] OUTj the column indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_purge(const struct cacheline_t *buffer,
                             const u32 n_buckets, u32 *OUTi, u32 *OUTj,
                             double *OUTx)
@@ -205,7 +265,13 @@ static inline void wc_purge(const struct cacheline_t *buffer,
   }
 }
 
-/* Setup the buffer for a new pass */
+///
+/// \brief Sets up the buffer for a new pass.
+///
+/// \param[out] buffer the buffer, i.e. a list of buckets
+/// \param[in] COUNT
+/// \param[in] n_buckets the number of buckets
+///
 static inline void wc_half_prime(struct half_cacheline_t *buffer, u8 *start,
                                  const u32 *COUNT, const u32 n_buckets)
 {
@@ -216,19 +282,27 @@ static inline void wc_half_prime(struct half_cacheline_t *buffer, u8 *start,
   }
 }
 
-/* Transfer data stored in this buffer to the output arrays.
-   Assumption: this buckget is filled to the end */
+///
+/// \brief Transfers data stored in the bucket to the output arrays.
+/// Assumption: this bucket is filled to the end
+///
+/// \param[in] self the bucket
+/// \param[in] count
+/// \param[in] start the index where to start in the buffer
+/// \param[out] OUTi the row indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_half_flush(struct half_cacheline_t *self, const u32 count,
                                  const u8 start, u32 *OUTi, double *OUTx)
 {
   u32 target = count & ~(CACHELINE_SIZE - 1);
   if (start == 0)
-  { /* complete cache line flush */
+  { // complete cache line flush
     store_nontemp_int(OUTi + target, self->row);
     store_nontemp_double(OUTx + target, self->value);
   }
   else
-  { /* incomplete flush */
+  { // incomplete flush
     for (u8 i = start; i < CACHELINE_SIZE; i++)
     {
       OUTi[target + i] = self->row[i];
@@ -237,7 +311,17 @@ static inline void wc_half_flush(struct half_cacheline_t *self, const u32 count,
   }
 }
 
-/* push an (i,j) pair into the buffer */
+///
+/// \brief Pushes an (i,j, x) triplet into the buffer.
+///
+/// \param[in] i the row index
+/// \param[in] j the column index
+/// \param[in] x the numerical value
+/// \param[inout] buffer the buffer
+/// \param[in] bucket_idx the index of the bucket in the buffer
+/// \param[out] OUTi the row indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_half_push(const u32 i, const double x,
                                 struct half_cacheline_t *buffer, u8 *start,
                                 const u32 bucket_idx, u32 *OUTi, double *OUTx)
@@ -255,7 +339,14 @@ static inline void wc_half_push(const u32 i, const double x,
   self->row[CACHELINE_SIZE - 1] = count + 1;
 }
 
-/* flush all buffer entries to the OUT arrays */
+///
+/// \brief Flushes all buffer entries to the OUT arrays.
+///
+/// \param[in] buffer the buffer
+/// \param[in] n_buckets the number of buckets
+/// \param[out] OUTi the row indices
+/// \param[out] OUTx the numerical values
+///
 static inline void wc_half_purge(const struct half_cacheline_t *buffer,
                                  const u8 *start, const u32 n_buckets,
                                  u32 *OUTi, double *OUTx)
@@ -273,31 +364,68 @@ static inline void wc_half_purge(const struct half_cacheline_t *buffer,
   }
 }
 
-/* prepare the ctx object with information needed for all passes */
-void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch, double *scratch2);
+///
+/// \brief Prepares the ctx object with information needed for all passes.
+///
+/// \param[out] ctx
+/// \param[in] R the output matrix in CSR format
+/// \param[in] scratch a scratch space for indices
+/// \param[in] scratch2 a scratch space for values
+///
+void planification(struct ctx_t *ctx, mtx_CSR *R, u32 *scratch,
+                   double *scratch2);
 
-/* returns k such that buckets [0:k] are non-empty. */
+///
+/// \brief Does the first pass of the radix sort. Returns k such that buckets
+/// [0:k] are non-empty.
+///
+/// \param[inout] ctx
+/// \param[in] A the input matrix
+/// \param[inout] buffer the buffer
+/// \param[out] tCOUNT
+/// \param[out] gCOUNT
+/// \return u32 k such that buckets [0:k] are non-empty
+///
 u32 partitioning(struct ctx_t *ctx, const mtx_COO *A,
                  struct cacheline_t *buffer, u32 *tCOUNT, u32 *gCOUNT);
 
+///
+/// \brief Computes the histogram for all the passes of the radix sort for the
+/// indices between `lo` and `hi`.
+///
+/// \param[in] ctx
+/// \param[in] Aj the input column indices
+/// \param[in] lo the lower bound of column indices
+/// \param[in] hi the upper bound of column indices
+/// \param[in] n the number of passes
+/// \param[out] W the histogram
+///
 void histogram(const struct ctx_t *ctx, const u32 *Aj, const u32 lo,
                const u32 hi, const u8 n, u32 **W);
 
-/* sequentially transpose a single bucket */
+///
+/// \brief Sequentially transposes a single bucket.
+///
+/// \param[inout] ctx
+/// \param[in] buffer the bucket
+/// \param[in] lo the lower bound of column indices
+/// \param[in] hi the upper bound of column indices
+///
 void transpose_bucket(struct ctx_t *ctx, struct cacheline_t *buffer,
                       const u32 lo, const u32 hi);
 
-/* converts a sparse matrix in COOrdinate format to the CSR format.
-   INPUT:  COO sparse matrix in Ai, Aj (both of size nnz), with n rows
-
-   OUTPUT: CSR sparse matrix in Rp, Rj.
-
-   Rp and Rj MUST be preallocated (of sizes n+1 and nnz, respectively).
-   The "row pointers" Rp MUST be already computed.
-
-   Ai, Aj, Rj MUST be aligned on a 64-byte boundary (for good cache behavior).
-   The input arrays are expendable (i.e. they might be destroyed).
-   The current code only reads them though. */
+///
+/// \brief Converts a sparse matrix in COOrdinate format to the CSR format.
+/// Rp and Rj MUST be preallocated (of sizes n+1 and nnz, respectively).
+/// The "row pointers" Rp MUST be already computed.
+/// Ai, Aj, Rj MUST be aligned on a 64-byte boundary (for good cache behavior).
+/// The input arrays are expendable (i.e. they might be destroyed).
+/// The current code only reads them though.
+///
+/// \param[in] A the input matrix
+/// \param[out] R the output matrix
+/// \param[in] num_threads the number of threads to use
+///
 void transpose(const mtx_COO *A, mtx_CSR *R, const u32 num_threads);
 
 #endif /* INCLUDE_DRIVER_BB_TRANSPOSE_H */

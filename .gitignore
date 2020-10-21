@@ -27,7 +27,7 @@ __pycache__/
 docs/
 
 ### VisualStudioCode ###
-.vscode/*
+.vscode/
 
 ### Matrix files ###
 */*.mtx

@@ -1,9 +1,11 @@
 ///
 /// \file classical_sort.c
-/// \author Charles Bouillaguet and Jérôme Bonacchi
-/// \brief This file implements the classical algorithms to convert and to
-/// tranpose matrices.
-/// \date 2020-07-09
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
+/// \brief This file contains the classical (Gustavson's) algorithm for
+/// matrix conversion from COO format to CSR format and matrix transposition
+/// in CSR format.
+/// \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///
@@ -127,7 +129,6 @@ void wang_transpose(const mtx_COO *T, mtx_CSR *A, u32 *Z)
   u32 m = T->m;
   u32 nnz = T->nnz;
 
-  // TODO optimiser ?
   for (u32 j = 0; j < m; j++)
     Ap[j] = 0;
 

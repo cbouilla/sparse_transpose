@@ -1,9 +1,10 @@
 ///
 /// \file simple_sort.cpp
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files uses std::sort and tbb::parallel_sort algorithms to
 /// convert and to tranpose matrices.
-/// \date 2020-07-09
+/// \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///

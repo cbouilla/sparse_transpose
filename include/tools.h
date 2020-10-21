@@ -1,9 +1,10 @@
 ///
 /// \file tools.h
-/// \author Charles Bouillaguet and Jérôme Bonacchi
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
 /// \brief This files containes `#define` and variables useful for many other
 /// files.
-/// \date 2020-07-21
+/// \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///

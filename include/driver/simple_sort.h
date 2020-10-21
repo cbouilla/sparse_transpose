@@ -1,9 +1,9 @@
 ///
 /// \file simple_sort.h
-/// \author Charles Bouillaguet and Jérôme Bonacchi
-/// \brief This files uses std::sort and tbb::parallel_sort algorithms to
-/// convert and to tranpose matrices.
-/// \date 2020-07-09
+/// \author Charles Bouillaguet (Github: cbouilla) and Jérôme Bonacchi (Github:
+/// MarsParallax)
+/// \brief This files contains algorithms that use std::sort and
+/// tbb::parallel_sort functions to convert and to tranpose matrices. \date 2020
 ///
 /// @copyright Copyright (c) 2020
 ///
@@ -13,10 +13,8 @@
 
 #include "sparse.h"
 
-typedef uint32_t u32;
-
 ///
-/// \brief Converts a sparse matrix in COO format into a matrix in CSR
+/// \brief Converts a matrix in COO format into a matrix in CSR
 /// format.
 ///
 /// \param[in] n the number of rows
@@ -24,8 +22,7 @@ typedef uint32_t u32;
 /// \param[in] Te the input matrix in COO format to convert
 /// \param[out] A the output matrix in CSR format
 ///
-void finalize(const u32 n, const u32 nnz, const mtx_entry *Te,
-              mtx_CSR *A);
+void finalize(const u32 n, const u32 nnz, const mtx_entry *Te, mtx_CSR *A);
 
 ///
 /// \brief Converts a matrix in COO format into a matrix in CSR
@@ -38,10 +35,10 @@ void finalize(const u32 n, const u32 nnz, const mtx_entry *Te,
 void stdsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te);
 
 ///
-/// \brief Transposes a mtrix in CSR format by using std::sort.
-/// Fist, converts a matrix in CSR format into a matrix in COO
-/// format. Then, uses std::sort to transpose it. Finally, converts it into a
-/// matrix in CSR format.
+/// \brief Transposes a matrix in CSR format by using std::sort.
+/// First, converts a matrix in CSR format into a matrix in COO
+/// format (`Te`). Then, uses std::sort to transpose it. Finally, converts it
+/// into a matrix in CSR format.
 ///
 /// \param[in] A the input matrix in CSR format to transpose
 /// \param[out] R the output matrix in CSR format
@@ -64,8 +61,8 @@ void tbbsort_compress(const mtx_COO *T, mtx_CSR *A, mtx_entry *Te,
 ///
 /// \brief Transposes a mtrix in CSR format by using tbb::parallel_sort.
 /// Fist, converts a matrix in CSR format into a matrix in COO
-/// format. Then, uses tbb::parallel_sort to transpose it. Finally, converts it
-/// into a matrix in CSR format.
+/// format (`Te`). Then, uses tbb::parallel_sort to transpose it. Finally,
+/// converts it into a matrix in CSR format.
 ///
 /// \param[in] A the input matrix in CSR format to transpose
 /// \param[out] R the output matrix in CSR format
